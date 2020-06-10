@@ -3,5 +3,5 @@ avocado-framework-plugin-varianter-yaml-to-mux==61.0
 avocado-framework-plugin-result-html==61.0
 avocado-framework-plugin-loader-yaml==61.0
 aexpect==1.4.0
-requests==2.18.4
+requests==2.20.0
 urllib3==1.22
