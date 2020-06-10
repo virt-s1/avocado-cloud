@@ -1,0 +1,12 @@
+kernel: acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+kernel: acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+systemd[1]: Failed to insert module 'ip_tables': Operation not permitted
+systemd-resolved.service: Failed at step NAMESPACE spawning /usr/lib/systemd/systemd-resolved: Read-only file system
+systemd-resolved.service: Failed with result 'exit-code'.
+systemd[1]: Failed to start Network Name Resolution.
+Failed to init entropy source 0: Hardware RNG Device
+Failed to init entropy source 1: TPM RNG Device
+stages.py[ERROR]: Unable to render networking. Network config is likely broken: No available network renderers found. Searched through list: ['eni', 'sysconfig', 'netplan']
+secret-key: failure reading secret key in "/var/lib/NetworkManager/secret_key": Failed to open file “/var/lib/NetworkManager/secret_key”: No such file or directory (generate new key)
+[system] Activated service 'org.fedoraproject.Setroubleshootd' failed: Failed to execute program org.fedoraproject.Setroubleshootd: Permission denied
+

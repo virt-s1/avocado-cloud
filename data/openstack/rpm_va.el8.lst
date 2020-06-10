@@ -1,0 +1,44 @@
+S.5....T.  c /etc/NetworkManager/NetworkManager.conf
+.M.......  d /usr/share/info/dir.old
+.M.......    /var/log/audit
+.....UG..  g /var/lib/sss/mc/group
+.....UG..  g /var/lib/sss/mc/initgroups
+.....UG..  g /var/lib/sss/mc/passwd
+S.5....T.  c /etc/ssh/sshd_config
+.......T.  c /etc/openldap/ldap.conf
+.M.......  g /run/dbus
+.M.......  c /etc/machine-id
+S.5....T.  c /etc/systemd/logind.conf
+missing   c /etc/systemd/system/dbus-org.freedesktop.resolve1.service
+.M.......  g /var/cache/private
+.M.......  g /var/lib/private
+.M.......  g /var/log/btmp
+.M.......  g /run/cloud-init
+.M.......  g /var/log/private
+.M....G..  g /var/log/lastlog
+.M.......  g /var/spool/anacron/cron.daily
+.M.......  g /var/spool/anacron/cron.monthly
+.M.......  g /var/spool/anacron/cron.weekly
+....L....  c /etc/nsswitch.conf
+..5....T.    /var/lib/selinux/targeted/active/commit_num
+.......T.    /var/lib/selinux/targeted/active/file_contexts
+.......T.    /var/lib/selinux/targeted/active/homedir_template
+S.5....T.    /var/lib/selinux/targeted/active/policy.kern
+.......T.    /var/lib/selinux/targeted/active/seusers
+.......T.    /var/lib/selinux/targeted/active/users_extra
+....L....  c /etc/pam.d/fingerprint-auth
+....L....  c /etc/pam.d/password-auth
+....L....  c /etc/pam.d/postlogin
+....L....  c /etc/pam.d/smartcard-auth
+....L....  c /etc/pam.d/system-auth
+.M.......  g /etc/udev/hwdb.bin
+.M.......  g /var/lib/systemd/random-seed
+.M.......  g /var/cache/dnf/packages.db
+..5....T.  c /etc/dnf/plugins/product-id.conf
+..5....T.  c /etc/dnf/plugins/subscription-manager.conf
+.M.......  c /etc/rc.d/rc.local
+S.5....T.  c /etc/sudoers
+.M.......  g /boot/System.map-4.18.0-64.el8.x86_64
+.M.......  g /boot/initramfs-4.18.0-64.el8.x86_64.img
+.......T.  c /etc/kdump.conf
+.M....G..  g /var/log/lastlog

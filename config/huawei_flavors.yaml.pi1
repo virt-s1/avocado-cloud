@@ -1,0 +1,28 @@
+Flavor: !mux
+    pi1.2xlarge.4:
+        name: pi1.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+        nic_count: 4
+        disk_size: 800
+        disk_type: nvme
+        disk_count: 1
+    pi1.4xlarge.4:
+        name: pi1.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+        nic_count: 8
+        disk_size: 800
+        disk_type: nvme
+        disk_count: 2
+    pi1.8xlarge.4:
+        name: pi1.8xlarge.4
+        cpu: 32
+        memory: 128
+        virt: kvm
+        nic_count: 8
+        disk_size: 800
+        disk_type: nvme
+        disk_count: 4

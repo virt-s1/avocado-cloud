@@ -1,0 +1,182 @@
+import os
+from avocado import Test
+from avocado import main
+from avocado_cloud.app import Setup
+from avocado_cloud.app.azure import AzureAccount
+from avocado_cloud.utils.utils_azure import command
+
+
+class PackagePreparation(Test):
+    def setUp(self):
+        self.casestatus = False
+        account = AzureAccount(self.params)
+        account.login()
+        self.pwd = os.path.abspath(os.path.dirname(__file__))
+        cloud = Setup(self.params, self.name)
+        self.vm = cloud.vm
+        self.session = cloud.init_vm(pre_delete=True)
+        self.packages = self.params.get("packages", "*/Other/*")
+        self.package_list = self.packages.split(',')
+        self.log.debug("Package list: {}".format(self.package_list))
+        self.with_wala = self.params.get("with_wala", "*/others/*", False)
+
+    def test_package_00_preparation(self):
+        """
+        Prepare environment for running cases
+        """
+        # Login with root
+        self.session.cmd_output("sudo /usr/bin/cp -a /home/{0}/.ssh /root/;\
+sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
+        self.session.close()
+        origin_username = self.vm.vm_username
+        self.vm.vm_username = "root"
+        self.session.connect(authentication="publickey")
+        # Copy and install package into guest
+        self.session.cmd_output("rm -rf /tmp/*")
+        self.session.copy_files_to(local_path="%s/../../*.rpm" % (self.pwd),
+                                   remote_path="/tmp")
+        command("systemctl start squid")
+        self.assertEqual(
+            command("netstat -tln|grep 3128").exit_status, 0,
+            "Fail to enable squid in host")
+        self.session.cmd_output("rm -f /etc/yum.repos.d/*")
+        self.session.cmd_output("yum clean all")
+        import re
+        x_match = re.findall("el([0-9]+).*", self.package_list[0])
+        if x_match:
+            x_version = int(x_match[0])
+        else:
+            # Currently the latest major release is 8. Need to be updated for
+            # future major releases
+            x_version = 8
+        label = "BaseOS" if x_version > 7 else "Server"
+        BASEREPO = """
+[rhel-base]
+name=rhel-base
+baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{0}/compose/{1}/x86_64/os/
+enabled=1
+gpgcheck=0
+proxy=http://127.0.0.1:8080/
+
+EOF
+""".format(x_version, label)
+        APPSTREAMREPO = """
+[rhel-appstream]
+name=rhel-appstream
+baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{0}/compose/AppStream/x86_64/os/
+enabled=1
+gpgcheck=0
+proxy=http://127.0.0.1:8080/
+EOF
+""".format(x_version)
+        self.session.cmd_output("cat << EOF > /etc/yum.repos.d/rhel.repo%s" %
+                                (BASEREPO))
+        if x_version > 7:
+            self.session.cmd_output(
+                "cat << EOF >> /etc/yum.repos.d/rhel.repo%s" % (APPSTREAMREPO))
+        # If not kernel, remove old package
+        pkgname_list = [pn.rsplit('-', 2)[0] for pn in self.package_list]
+        self.log.debug("Package name list: {}".format(pkgname_list))
+        if "kernel" not in pkgname_list:
+            [
+                self.session.cmd_output("rpm -e {}".format(pkgname))
+                for pkgname in pkgname_list
+            ]
+        # Install package
+        _yum_install = "ssh -o UserKnownHostsFile=/dev/null -o \
+StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
+\"yum -y install {}\"" % self.vm.public_ip
+        self.session.cmd_output("yum clean all")
+        if self.session.cmd_status_output("rpm -ivh --force /tmp/*.rpm",
+                                          timeout=300)[0] != 0:
+#             command("ssh -o UserKnownHostsFile=/dev/null -o \
+# StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
+# \"yum -y install /tmp/*.rpm\"" % self.vm.public_ip,
+#                     timeout=300)
+            command(_yum_install.format("/tmp/*.rpm"), timeout=300)
+        # Install cloud-init cloud-utils-growpart gdisk for cloud-init related
+        # packages
+        if x_version > 7:
+            cloudinit_pkgs = [
+                'cloud-init', 'python3-jsonpatch', 'cloud-utils-growpart',
+                'python3-jsonschema', 'python3-httpretty', 'python3-pyserial',
+                'python3-prettytable'
+            ]
+        else:
+            cloudinit_pkgs = [
+                'cloud-init', 'python-jsonpatch', 'cloud-utils-growpart',
+                'python-jsonschema', 'python-httpretty', 'pyserial',
+                'python-prettytable'
+            ]
+        for cloudinit_pkg in cloudinit_pkgs:
+            if cloudinit_pkg in self.packages:
+                for pkg in ["cloud-init", "cloud-utils-growpart", "gdisk"]:
+                    if self.session.cmd_status_output(
+                            "rpm -q %s" % pkg)[0] != 0:
+#                         command("ssh -o UserKnownHostsFile=/dev/null -o \
+# StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \"yum -y install %s\""
+#                                 % (self.vm.public_ip, pkg))
+                        command(_yum_install.format(pkg))
+                break
+        # If WALinuxAgent, install cloud-init and disable
+        if self.packages.startswith("WALinuxAgent"):
+            command(_yum_install.format("cloud-init"))
+        # Install other necessary packages
+        _other_pkgs = "tar net-tools bind-utils dracut-fips dracut-fips-aesni \
+tcpdump"
+
+#         command("ssh -o UserKnownHostsFile=/dev/null -o \
+# StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \"yum -y install %s\""
+#                 % (self.vm.public_ip, _other_pkgs))
+        command(_yum_install.format(_other_pkgs))
+        # Delete rhel.repo
+        self.session.cmd_output("rm -f /etc/yum.repos.d/rhel.repo")
+        # Verify packages are installed
+        for pkg in self.package_list:
+            self.assertEqual(
+                self.session.cmd_status_output("rpm -q {}".format(
+                    pkg[:-4]))[0], 0,
+                "Package {} is not installed.".format(pkg))
+        # Install RHUI package in case LISAv2 need to yum install packages.
+        # Ignore error in case no rhui package.
+        self.session.cmd_output(
+            "rpm -ivh /root/rhui-azure-*.rpm --force||true")
+        # Enable IPv6 init in ifcfg-eth0 for IPv6 case
+        self.session.cmd_output(
+            "sed -i 's/^IPV6INIT.*$/IPV6INIT=yes/g' /etc/sysconfig/network-scripts/ifcfg-eth0")
+        # Deprovision image
+        # If cloud-init related packages:
+        if (list(set(pkgname_list).intersection(set(cloudinit_pkgs)))):
+            if self.with_wala:
+                depro_type = "cloudinit_wala"
+            else:
+                depro_type = "cloudinit"
+        elif "WALinuxAgent" in pkgname_list:
+            depro_type = "wala"
+        else:
+            depro_type = "kernel"
+        script = "deprovision_package.sh"
+        self.session.copy_files_to(local_path="{0}/../../scripts/{1}".format(
+            self.pwd, script),
+                                   remote_path="/tmp")
+        ret, output = self.session.cmd_status_output(
+            "/bin/bash /tmp/{} all {} {}".format(script, depro_type,
+                                                 origin_username))
+        self.assertEqual(ret, 0, "Deprovision VM failed.\n{0}".format(output))
+        self.session.cmd_output("rm -f /root/.bash_history")
+        self.session.cmd_output("export HISTSIZE=0")
+        self.session.close()
+        # Get OS disk name
+        osdisk = self.vm.properties["storageProfile"]["osDisk"]["vhd"][
+            "uri"].split('/')[-1]
+        self.log.debug("OS disk: {}".format(osdisk))
+        self.vm.image = osdisk
+        with open("%s/../../osdisk" % self.pwd, 'w') as f:
+            f.write(osdisk)
+
+    def tearDown(self):
+        self.vm.delete(wait=True)
+
+
+if __name__ == "__main__":
+    main()

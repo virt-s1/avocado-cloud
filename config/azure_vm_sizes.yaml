@@ -1,0 +1,1585 @@
+vm_sizes:
+    DS1_v2:
+            name: Standard_DS1_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 3.5
+            disk_size: 7
+    DS2_v2:
+            name: Standard_DS2_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 7.0
+            disk_size: 14
+    DS3_v2:
+            name: Standard_DS3_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 14.0
+            disk_size: 28
+    DS4_v2:
+            name: Standard_DS4_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 28.0
+            disk_size: 56
+    DS5_v2:
+            name: Standard_DS5_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 56.0
+            disk_size: 112
+    DS11_v2:
+            name: Standard_DS11_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 14.0
+            disk_size: 28
+    DS12_v2:
+            name: Standard_DS12_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 28.0
+            disk_size: 56
+    DS13-2_v2:
+            name: Standard_DS13-2_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 112
+    DS13-4_v2:
+            name: Standard_DS13-4_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 112
+    DS13_v2:
+            name: Standard_DS13_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 112
+    DS14-4_v2:
+            name: Standard_DS14-4_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 224
+    DS14-8_v2:
+            name: Standard_DS14-8_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 224
+    DS14_v2:
+            name: Standard_DS14_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 224
+    DS15_v2:
+            name: Standard_DS15_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 20
+            memory: 140.0
+            disk_size: 280
+    DS2_v2_Promo:
+            name: Standard_DS2_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 7.0
+            disk_size: 14
+    DS3_v2_Promo:
+            name: Standard_DS3_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 14.0
+            disk_size: 28
+    DS4_v2_Promo:
+            name: Standard_DS4_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 28.0
+            disk_size: 56
+    DS5_v2_Promo:
+            name: Standard_DS5_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 56.0
+            disk_size: 112
+    DS11_v2_Promo:
+            name: Standard_DS11_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 14.0
+            disk_size: 28
+    DS12_v2_Promo:
+            name: Standard_DS12_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 28.0
+            disk_size: 56
+    DS13_v2_Promo:
+            name: Standard_DS13_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 112
+    DS14_v2_Promo:
+            name: Standard_DS14_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 224
+    F1s:
+            name: Standard_F1s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 2.0
+            disk_size: 4
+    F2s:
+            name: Standard_F2s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 4.0
+            disk_size: 8
+    F4s:
+            name: Standard_F4s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 8.0
+            disk_size: 16
+    F8s:
+            name: Standard_F8s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 16.0
+            disk_size: 32
+    F16s:
+            name: Standard_F16s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 32.0
+            disk_size: 64
+    A0:
+            name: Standard_A0
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 0.75
+            disk_size: 20
+    A1:
+            name: Standard_A1
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 1.75
+            disk_size: 70
+    A2:
+            name: Standard_A2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 3.5
+            disk_size: 135
+    A3:
+            name: Standard_A3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 7.0
+            disk_size: 285
+    A5:
+            name: Standard_A5
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 14.0
+            disk_size: 135
+    A4:
+            name: Standard_A4
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 14.0
+            disk_size: 605
+    A6:
+            name: Standard_A6
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 28.0
+            disk_size: 285
+    A7:
+            name: Standard_A7
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 605
+    Basic_A0:
+            name: Basic_A0
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 0.75
+            disk_size: 20
+    Basic_A1:
+            name: Basic_A1
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 1.75
+            disk_size: 40
+    Basic_A2:
+            name: Basic_A2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 3.5
+            disk_size: 60
+    Basic_A3:
+            name: Basic_A3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 7.0
+            disk_size: 120
+    Basic_A4:
+            name: Basic_A4
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 14.0
+            disk_size: 240
+    D1_v2:
+            name: Standard_D1_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 3.5
+            disk_size: 50
+    D2_v2:
+            name: Standard_D2_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 7.0
+            disk_size: 100
+    D3_v2:
+            name: Standard_D3_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 14.0
+            disk_size: 200
+    D4_v2:
+            name: Standard_D4_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 28.0
+            disk_size: 400
+    D5_v2:
+            name: Standard_D5_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 56.0
+            disk_size: 800
+    D11_v2:
+            name: Standard_D11_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 14.0
+            disk_size: 100
+    D12_v2:
+            name: Standard_D12_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 28.0
+            disk_size: 200
+    D13_v2:
+            name: Standard_D13_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 400
+    D14_v2:
+            name: Standard_D14_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 800
+    D15_v2:
+            name: Standard_D15_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 20
+            memory: 140.0
+            disk_size: 280
+    D2_v2_Promo:
+            name: Standard_D2_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 7.0
+            disk_size: 100
+    D3_v2_Promo:
+            name: Standard_D3_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 14.0
+            disk_size: 200
+    D4_v2_Promo:
+            name: Standard_D4_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 28.0
+            disk_size: 400
+    D5_v2_Promo:
+            name: Standard_D5_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 56.0
+            disk_size: 800
+    D11_v2_Promo:
+            name: Standard_D11_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 14.0
+            disk_size: 100
+    D12_v2_Promo:
+            name: Standard_D12_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 28.0
+            disk_size: 200
+    D13_v2_Promo:
+            name: Standard_D13_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 400
+    D14_v2_Promo:
+            name: Standard_D14_v2_Promo
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 800
+    F1:
+            name: Standard_F1
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 2.0
+            disk_size: 16
+    F2:
+            name: Standard_F2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 4.0
+            disk_size: 32
+    F4:
+            name: Standard_F4
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 8.0
+            disk_size: 64
+    F8:
+            name: Standard_F8
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 16.0
+            disk_size: 128
+    F16:
+            name: Standard_F16
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 32.0
+            disk_size: 256
+    A1_v2:
+            name: Standard_A1_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 2.0
+            disk_size: 10
+    A2m_v2:
+            name: Standard_A2m_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 16.0
+            disk_size: 20
+    A2_v2:
+            name: Standard_A2_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 4.0
+            disk_size: 20
+    A4m_v2:
+            name: Standard_A4m_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 32.0
+            disk_size: 40
+    A4_v2:
+            name: Standard_A4_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 8.0
+            disk_size: 40
+    A8m_v2:
+            name: Standard_A8m_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 64.0
+            disk_size: 80
+    A8_v2:
+            name: Standard_A8_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 16.0
+            disk_size: 80
+    H8:
+            name: Standard_H8
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 1000
+    H16:
+            name: Standard_H16
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 2000
+    H8m:
+            name: Standard_H8m
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 112.0
+            disk_size: 1000
+    H16m:
+            name: Standard_H16m
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 224.0
+            disk_size: 2000
+    H16r:
+            name: Standard_H16r
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 2000
+    H16mr:
+            name: Standard_H16mr
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 224.0
+            disk_size: 2000
+    D1:
+            name: Standard_D1
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 3.5
+            disk_size: 50
+    D2:
+            name: Standard_D2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 7.0
+            disk_size: 100
+    D3:
+            name: Standard_D3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 14.0
+            disk_size: 200
+    D4:
+            name: Standard_D4
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 28.0
+            disk_size: 400
+    D11:
+            name: Standard_D11
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 14.0
+            disk_size: 100
+    D12:
+            name: Standard_D12
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 28.0
+            disk_size: 200
+    D13:
+            name: Standard_D13
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 400
+    D14:
+            name: Standard_D14
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 800
+    NV6:
+            name: Standard_NV6
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 6
+            memory: 56.0
+            disk_size: 380
+    NV12:
+            name: Standard_NV12
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 12
+            memory: 112.0
+            disk_size: 680
+    NV24:
+            name: Standard_NV24
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 224.0
+            disk_size: 1440
+    NC6s_v2:
+            name: Standard_NC6s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 6
+            memory: 112.0
+            disk_size: 336
+    NC12s_v2:
+            name: Standard_NC12s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 12
+            memory: 224.0
+            disk_size: 672
+    NC24rs_v2:
+            name: Standard_NC24rs_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 448.0
+            disk_size: 1344
+    NC24s_v2:
+            name: Standard_NC24s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 448.0
+            disk_size: 1344
+    NC6:
+            name: Standard_NC6
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 6
+            memory: 56.0
+            disk_size: 380
+    NC12:
+            name: Standard_NC12
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 12
+            memory: 112.0
+            disk_size: 680
+    NC24:
+            name: Standard_NC24
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 224.0
+            disk_size: 1440
+    NC24r:
+            name: Standard_NC24r
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 224.0
+            disk_size: 1440
+    DS1:
+            name: Standard_DS1
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 3.5
+            disk_size: 7
+    DS2:
+            name: Standard_DS2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 7.0
+            disk_size: 14
+    DS3:
+            name: Standard_DS3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 14.0
+            disk_size: 28
+    DS4:
+            name: Standard_DS4
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 28.0
+            disk_size: 56
+    DS11:
+            name: Standard_DS11
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 14.0
+            disk_size: 28
+    DS12:
+            name: Standard_DS12
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 28.0
+            disk_size: 56
+    DS13:
+            name: Standard_DS13
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 112
+    DS14:
+            name: Standard_DS14
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 224
+    D2_v3:
+            name: Standard_D2_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 8.0
+            disk_size: 50
+    D4_v3:
+            name: Standard_D4_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 16.0
+            disk_size: 100
+    D8_v3:
+            name: Standard_D8_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 32.0
+            disk_size: 200
+    D16_v3:
+            name: Standard_D16_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 64.09765625
+            disk_size: 400
+    D32_v3:
+            name: Standard_D32_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 128.0
+            disk_size: 800
+    B1ms:
+            name: Standard_B1ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 2.0
+            disk_size: 4
+    B1s:
+            name: Standard_B1s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 1
+            memory: 1.0
+            disk_size: 2
+    B2ms:
+            name: Standard_B2ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 8.0
+            disk_size: 16
+    B2s:
+            name: Standard_B2s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 4.0
+            disk_size: 8
+    B4ms:
+            name: Standard_B4ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 16.0
+            disk_size: 32
+    B8ms:
+            name: Standard_B8ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 32.0
+            disk_size: 64
+    D64_v3:
+            name: Standard_D64_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 256.0
+            disk_size: 1600
+    D2s_v3:
+            name: Standard_D2s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 8.0
+            disk_size: 16
+    D4s_v3:
+            name: Standard_D4s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 16.0
+            disk_size: 32
+    D8s_v3:
+            name: Standard_D8s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 32.0
+            disk_size: 64
+    D16s_v3:
+            name: Standard_D16s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 64.0
+            disk_size: 128
+    D32s_v3:
+            name: Standard_D32s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 128.0
+            disk_size: 256
+    D64s_v3:
+            name: Standard_D64s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 256.0
+            disk_size: 512
+    E2_v3:
+            name: Standard_E2_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 16.0
+            disk_size: 50
+    E4_v3:
+            name: Standard_E4_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 32.0
+            disk_size: 100
+    E8_v3:
+            name: Standard_E8_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 64.0
+            disk_size: 200
+    E16_v3:
+            name: Standard_E16_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 128.0
+            disk_size: 400
+    E32_v3:
+            name: Standard_E32_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 256.0
+            disk_size: 800
+    E64_v3:
+            name: Standard_E64_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 432.0
+            disk_size: 1600
+    E2s_v3:
+            name: Standard_E2s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 16.0
+            disk_size: 32
+    E4s_v3:
+            name: Standard_E4s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 32.0
+            disk_size: 64
+    E8s_v3:
+            name: Standard_E8s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 64.0
+            disk_size: 128
+    E16s_v3:
+            name: Standard_E16s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 128.0
+            disk_size: 256
+    E32-8s_v3:
+            name: Standard_E32-8s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 256.0
+            disk_size: 512
+    E32-16s_v3:
+            name: Standard_E32-16s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 256.0
+            disk_size: 512
+    E32s_v3:
+            name: Standard_E32s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 256.0
+            disk_size: 512
+    E64-16s_v3:
+            name: Standard_E64-16s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 432.0
+            disk_size: 864
+    E64-32s_v3:
+            name: Standard_E64-32s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 432.0
+            disk_size: 864
+    E64s_v3:
+            name: Standard_E64s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 432.0
+            disk_size: 864
+    F2s_v2:
+            name: Standard_F2s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 4.0
+            disk_size: 16
+    F4s_v2:
+            name: Standard_F4s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 8.0
+            disk_size: 32
+    F8s_v2:
+            name: Standard_F8s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 16.0
+            disk_size: 64
+    F16s_v2:
+            name: Standard_F16s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 32.0
+            disk_size: 128
+    F32s_v2:
+            name: Standard_F32s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 64.0
+            disk_size: 256
+    F64s_v2:
+            name: Standard_F64s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 128.0
+            disk_size: 512
+    F72s_v2:
+            name: Standard_F72s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 72
+            memory: 144.0
+            disk_size: 576
+    ND6s:
+            name: Standard_ND6s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 6
+            memory: 112.0
+            disk_size: 336
+    ND12s:
+            name: Standard_ND12s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 12
+            memory: 224.0
+            disk_size: 672
+    ND24rs:
+            name: Standard_ND24rs
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 448.0
+            disk_size: 1344
+    ND24s:
+            name: Standard_ND24s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 448.0
+            disk_size: 1344
+    A8:
+            name: Standard_A8
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 382
+    A9:
+            name: Standard_A9
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 382
+    A10:
+            name: Standard_A10
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 8
+            memory: 56.0
+            disk_size: 382
+    A11:
+            name: Standard_A11
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 112.0
+            disk_size: 382
+    NC6s_v3:
+            name: Standard_NC6s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 6
+            memory: 112.0
+            disk_size: 336
+    NC12s_v3:
+            name: Standard_NC12s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 12
+            memory: 224.0
+            disk_size: 672
+    NC24rs_v3:
+            name: Standard_NC24rs_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 448.0
+            disk_size: 1344
+    NC24s_v3:
+            name: Standard_NC24s_v3
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 24
+            memory: 448.0
+            disk_size: 1344
+    G1:
+            name: Standard_G1
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 2
+            memory: 28.0
+            disk_size: 384
+    G2:
+            name: Standard_G2
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 4
+            memory: 56.0
+            disk_size: 768
+    G3:
+            name: Standard_G3
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 8
+            memory: 112.0
+            disk_size: 1536
+    G4:
+            name: Standard_G4
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 16
+            memory: 224.0
+            disk_size: 3072
+    G5:
+            name: Standard_G5
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 32
+            memory: 448.0
+            disk_size: 6144
+    GS1:
+            name: Standard_GS1
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 2
+            memory: 28.0
+            disk_size: 56
+    GS2:
+            name: Standard_GS2
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 4
+            memory: 56.0
+            disk_size: 112
+    GS3:
+            name: Standard_GS3
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 8
+            memory: 112.0
+            disk_size: 224
+    GS4:
+            name: Standard_GS4
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 16
+            memory: 224.0
+            disk_size: 448
+    GS4-4:
+            name: Standard_GS4-4
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 16
+            memory: 224.0
+            disk_size: 448
+    GS4-8:
+            name: Standard_GS4-8
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 16
+            memory: 224.0
+            disk_size: 448
+    GS5:
+            name: Standard_GS5
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 32
+            memory: 448.0
+            disk_size: 896
+    GS5-8:
+            name: Standard_GS5-8
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 32
+            memory: 448.0
+            disk_size: 896
+    GS5-16:
+            name: Standard_GS5-16
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 32
+            memory: 448.0
+            disk_size: 896
+    L4s:
+            name: Standard_L4s
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 4
+            memory: 32.0
+            disk_size: 678
+    L8s:
+            name: Standard_L8s
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 8
+            memory: 64.0
+            disk_size: 1388
+    L16s:
+            name: Standard_L16s
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 16
+            memory: 128.0
+            disk_size: 2807
+    L32s:
+            name: Standard_L32s
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 32
+            memory: 256.0
+            disk_size: 5630
+    L16s_v2:
+            name: Standard_L16s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 128.0
+            disk_size: 3576
+    L32s_v2:
+            name: Standard_L32s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 32
+            memory: 256.0
+            disk_size: 7152
+    L48s_v2:
+            name: Standard_L48s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 16
+            memory: 384.0
+            disk_size: 10728
+    L64s_v2:
+            name: Standard_L64s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 512.0
+            disk_size: 14304
+    L80s_v2:
+            name: Standard_L80s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 80
+            memory: 640.0
+            disk_size: 17880
+    M64-16ms:
+            name: Standard_M64-16ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 1750.0
+            disk_size: 2000
+    M64-32ms:
+            name: Standard_M64-32ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 1750.0
+            disk_size: 2000
+    M64ms:
+            name: Standard_M64ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 1750.0
+            disk_size: 2000
+    M64s:
+            name: Standard_M64s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 1000.0
+            disk_size: 2000
+    M64:
+            name: Standard_M64
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 1000.0
+            disk_size: 2000
+    M128-32ms:
+            name: Standard_M128-32ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 128
+            memory: 3800.0
+            disk_size: 4000
+    M128-64ms:
+            name: Standard_M128-64ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 128
+            memory: 3800.0
+            disk_size: 4000
+    M128ms:
+            name: Standard_M128ms
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 128
+            memory: 3800.0
+            disk_size: 4000
+    M128s:
+            name: Standard_M128s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 128
+            memory: 2000.0
+            disk_size: 4000
+    M208s_v2:
+            name: Standard_M208s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 208
+            memory: 5700.0
+            disk_size: 4096
+    M208ms_v2:
+            name: Standard_M208ms_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 208
+            memory: 2850.0
+            disk_size: 4096
+    Experimental_E64-40s_v3:
+            name: Experimental_E64-40s_v3
+            resource_group: walaautoeastus2
+            storage_account: walaautoeastus2
+            region: eastus2
+            cpu: 64
+            memory: 432.0
+            disk_size: 864
+    HB60rs:
+            name: Standard_HB60rs
+            resource_group: walaautosouthcentralus
+            storage_account: walaautosouthcentralus
+            region: southcentralus
+            cpu: 60
+            memory: 223.5
+            disk_size: 700
+    NV6s_v2:
+            name: Standard_NV6s_v2
+            resource_group: walaautosouthcentralus
+            storage_account: walaautosouthcentralus
+            region: southcentralus
+            cpu: 6
+            memory: 112.0
+            disk_size: 336
+    NV12s_v2:
+            name: Standard_NV12s_v2
+            resource_group: walaautosouthcentralus
+            storage_account: walaautosouthcentralus
+            region: southcentralus
+            cpu: 12
+            memory: 224.0
+            disk_size: 672
+    NV24s_v2:
+            name: Standard_NV24s_v2
+            resource_group: walaautosouthcentralus
+            storage_account: walaautosouthcentralus
+            region: southcentralus
+            cpu: 24
+            memory: 448.0
+            disk_size: 1344
+    HC44rs:
+            name: Standard_HC44rs
+            resource_group: walaautowestus2
+            storage_account: walaautowest2us
+            region: westus2
+            cpu: 44
+            memory: 327.0
+            disk_size: 700
+    DC2s:
+            name: Standard_DC2s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 8.0
+            disk_size: 100
+    DC4s:
+            name: Standard_DC4s
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 4
+            memory: 16.0
+            disk_size: 200

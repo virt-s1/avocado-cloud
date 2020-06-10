@@ -1,0 +1,8 @@
+kernel: acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+kernel: acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+augenrules: failure 1
+systemd: ovirt-guest-agent.service: main process exited, code=exited, status=1/FAILURE
+systemd: Unit ovirt-guest-agent.service entered failed state.
+systemd: ovirt-guest-agent.service failed.
+systemd: kdump.service failed.
+

@@ -1,0 +1,41 @@
+Flavor: !mux
+    m3.large.8:
+        name: m3.large.8
+        cpu: 2
+        memory: 16
+        virt: kvm
+    m3.xlarge.8:
+        name: m3.xlarge.8
+        cpu: 4
+        memory: 32
+        virt: kvm
+    m3.2xlarge.8:
+        name: m3.2xlarge.8
+        cpu: 8
+        memory: 64
+        virt: kvm
+    m3.3xlarge.8:
+        name: m3.3xlarge.8
+        cpu: 12
+        memory: 96
+        virt: kvm
+    m3.4xlarge.8:
+        name: m3.4xlarge.8
+        cpu: 16
+        memory: 128
+        virt: kvm
+    m3.6xlarge.8:
+        name: m3.6xlarge.8
+        cpu: 24
+        memory: 192
+        virt: kvm
+    m3.8xlarge.8:
+        name: m3.8xlarge.8
+        cpu: 32
+        memory: 256
+        virt: kvm
+    m3.15xlarge.8:
+        name: m3.15xlarge.8
+        cpu: 60
+        memory: 512
+        virt: kvm

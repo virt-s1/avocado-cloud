@@ -1,0 +1,23 @@
+Cloud:
+    provider: azure
+    project_name: xen-jenkins
+Credential:
+    username: huzhan@mheslinredhat.onmicrosoft.com
+    password: ******
+Subscription:
+    username:
+    password:
+VM:
+    rhel_ver: "8.0"
+    vm_name_prefix: walaautoyjgauto
+    size: D2
+    image: RHEL75.vhd
+    vm_username: azureuser
+    #1
+    #vm_password: 111111
+    #2
+    #generate_ssh_keys: True
+    #3
+    ssh_key_value: /home/yuhuijiang/.ssh/id_rsa.pub
+    use_unmanaged_disk: True
+    custom_data: 

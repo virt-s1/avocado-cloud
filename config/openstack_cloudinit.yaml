@@ -1,0 +1,4 @@
+test:
+    !include : openstack.yaml
+    !include : openstack_flavors.yaml
+    !include : openstack_testcases_cloudinit.yaml

@@ -1,0 +1,3 @@
+Would relabel /etc/sysconfig/anaconda from system_u:object_r:etc_runtime_t:s0 to system_u:object_r:etc_t:s0
+Would relabel /usr/sbin/dumpe2fs from system_u:object_r:bin_t:s0 to system_u:object_r:fsadm_exec_t:s0
+Would relabel /usr/sbin/e2mmpstatus from system_u:object_r:fsadm_exec_t:s0 to system_u:object_r:bin_t:s0

@@ -1,0 +1,12 @@
+Cloud:
+  provider: libvirt
+  uri: qemu:///system
+Subscription:
+  username:
+  password:
+VM:
+  rhel_ver: '7.5'
+  username: root
+  password: redhat
+  vm_name: rhel7.5
+  image_name: rhel-guest-image-7.5-161.x86_64.qcow2

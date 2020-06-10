@@ -1,0 +1,25 @@
+Flavor: !mux
+    p2v.2xlarge.8:
+        name: p2v.2xlarge.8
+        cpu: 8
+        memory: 64
+        virt: kvm
+        nic_count: 4
+    p2v.4xlarge.8:
+        name: p2v.4xlarge.8
+        cpu: 16
+        memory: 128
+        virt: kvm
+        nic_count: 8
+    p2v.8xlarge.8:
+        name: p2v.8xlarge.8
+        cpu: 32
+        memory: 256
+        virt: kvm
+        nic_count: 8
+    p2v.16xlarge.8:
+        name: p2v.16xlarge.8
+        cpu: 64
+        memory: 512
+        virt: kvm
+        nic_count: 8

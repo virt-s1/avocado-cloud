@@ -1,0 +1,22 @@
+cases:
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_publickey
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_critical_log
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_cloudinit_log
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_service_status
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_hostname
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_temporary_disk_mount_point
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_ovfenv_under_waagent_folder
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_publish_hostname_to_dns
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_networkmanager_dispatcher
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_customdata_script
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_customdata_cloudinit_config
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_extend_root_partition_and_filesystem
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_regenerate_sshd_keypairs
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_resize_partition_in_gpt
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_start_sector_equal_to_partition_size
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_upgrade_downgrade_package
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_multiple_nics
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_sriov_nic
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_ipv6
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_gen2_vm
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password

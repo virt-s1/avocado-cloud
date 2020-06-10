@@ -1,0 +1,26 @@
+cases:
+    test_functional_wala_lifecycle.py:LifeCycleTest.test_create_vm
+    test_functional_wala_lifecycle.py:LifeCycleTest.test_stop_vm
+    test_functional_wala_lifecycle.py:LifeCycleTest.test_start_vm
+    test_functional_wala_lifecycle.py:LifeCycleTest.test_restart_vm
+    test_functional_wala_lifecycle.py:LifeCycleTest.test_reboot_vm_inside_guest
+    test_functional_wala_lifecycle.py:LifeCycleTest.test_delete_vm
+    test_vmbus.py:AzureVmbus.test_version
+    test_vmbus.py:AzureVmbus.test_interrupt
+    test_memory.py:AzureMemory.test_memory
+    test_timekeeping.py:AzureTimeKeeping.test_chrony
+    test_timekeeping.py:AzureTimeKeeping.test_clocksource_performance
+    test_timekeeping.py:AzureTimeKeeping.test_unbind_clocksource
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_00_preparation
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_publickey
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_hostname
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_temporary_disk_mount_point
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_ovfenv_under_waagent_folder
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_publish_hostname_to_dns
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_customdata_script
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_customdata_cloudinit_config
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_extend_root_partition_and_filesystem
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password
+
+    
+

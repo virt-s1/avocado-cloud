@@ -1,0 +1,7 @@
+sfdisk with --part-type failed .1., retrying with -c
+INFO Retry .1/1 - IO error: HTTP GET .Errno 101. Network is unreachable.
+WARNING Failed to send DHCP request: .000006. timed out
+ERROR Event: name=WALinuxAgent, op=AutoUpdate, message=, duration=0
+WARNING ExtHandler failed to get IMDS info
+Error: .CGroupsException. The daemon.s PID .* was already added to the legacy cgroup. this invalidates resource usage data
+INFO Daemon Error getting cloud-init enabled status from.*

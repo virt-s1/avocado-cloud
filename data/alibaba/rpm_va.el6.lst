@@ -1,0 +1,9 @@
+....L....  c /etc/pam.d/fingerprint-auth
+....L....  c /etc/pam.d/password-auth
+....L....  c /etc/pam.d/smartcard-auth
+....L....  c /etc/pam.d/system-auth
+S.5....T.  c /etc/ssh/sshd_config
+S.5....T.  c /etc/cloud/cloud.cfg
+missing     /etc/yum.repos.d/rhel-source.repo
+.......T.  c /etc/inittab
+S.5....T.  c /etc/sysctl.conf

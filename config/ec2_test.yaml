@@ -1,0 +1,4 @@
+test:
+    !include : ec2_env_conf.yaml
+    !include : ec2_instance_types.yaml
+    !include : ec2_testcases.yaml

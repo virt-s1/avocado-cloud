@@ -1,0 +1,25 @@
+Flavor: !mux
+    e3.7xlarge.12:
+        name: e3.7xlarge.12
+        cpu: 28
+        memory: 348
+        virt: kvm
+        nic_count: 8
+    e3.14xlarge.12:
+        name: e3.14xlarge.12
+        cpu: 56
+        memory: 696
+        virt: kvm
+        nic_count: 8
+    e3.26xlarge.14:
+        name: e3.26xlarge.14
+        cpu: 104
+        memory: 1466
+        virt: kvm
+        nic_count: 8
+    e3.52xlarge.14:
+        name: e3.52xlarge.14
+        cpu: 208
+        memory: 2932
+        virt: kvm
+        nic_count: 8

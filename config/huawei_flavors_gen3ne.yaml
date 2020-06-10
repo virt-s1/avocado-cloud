@@ -1,0 +1,147 @@
+Flavor: !mux
+    sn3.small.1:
+        name: sn3.small.1
+        cpu: 1
+        memory: 1
+        virt: kvm
+    sn3.medium.2:
+        name: sn3.medium.2
+        cpu: 1
+        memory: 2
+        virt: kvm
+    sn3.large.2:
+        name: sn3.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+    sn3.xlarge.2:
+        name: sn3.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+    sn3.2xlarge.2:
+        name: sn3.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+    sn3.4xlarge.2:
+        name: sn3.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+    sn3.medium.4:
+        name: sn3.medium.4
+        cpu: 1
+        memory: 4
+        virt: kvm
+    sn3.large.4:
+        name: sn3.large.4
+        cpu: 2
+        memory: 8
+        virt: kvm
+    sn3.xlarge.4:
+        name: sn3.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+    sn3.2xlarge.4:
+        name: sn3.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+    sn3.4xlarge.4:
+        name: sn3.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+    c3ne.large.2:
+        name: c3ne.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+    c3ne.xlarge.2:
+        name: c3ne.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+    c3ne.2xlarge.2:
+        name: c3ne.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+    c3ne.4xlarge.2:
+        name: c3ne.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+    c3ne.8xlarge.2:
+        name: c3ne.8xlarge.2
+        cpu: 32
+        memory: 64
+        virt: kvm
+    c3ne.15xlarge.2:
+        name: c3ne.15xlarge.2
+        cpu: 60
+        memory: 128
+        virt: kvm
+    c3ne.large.4:
+        name: c3ne.large.4
+        cpu: 2
+        memory: 4
+        virt: kvm
+    c3ne.xlarge.4:
+        name: c3ne.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+    c3ne.2xlarge.4:
+        name: c3ne.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+    c3ne.4xlarge.4:
+        name: c3ne.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+    c3ne.8xlarge.4:
+        name: c3ne.8xlarge.4
+        cpu: 32
+        memory: 128
+        virt: kvm
+    c3ne.15xlarge.4:
+        name: c3ne.15xlarge.4
+        cpu: 60
+        memory: 256
+        virt: kvm
+    m3ne.large.8:
+        name: m3ne.large.8
+        cpu: 2
+        memory: 16
+        virt: kvm
+    m3ne.xlarge.8:
+        name: m3ne.xlarge.8
+        cpu: 4
+        memory: 32
+        virt: kvm
+    m3ne.2xlarge.8:
+        name: m3ne.2xlarge.8
+        cpu: 8
+        memory: 64
+        virt: kvm
+    m3ne.4xlarge.8:
+        name: m3ne.4xlarge.8
+        cpu: 16
+        memory: 128
+        virt: kvm
+    m3ne.8xlarge.8:
+        name: m3ne.8xlarge.8
+        cpu: 32
+        memory: 256
+        virt: kvm
+    m3ne.15xlarge.8:
+        name: m3ne.15xlarge.8
+        cpu: 60
+        memory: 512
+        virt: kvm
+

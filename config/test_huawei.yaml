@@ -1,0 +1,4 @@
+test:
+    !include : huawei_common.yaml
+    !include : huawei_flavors.yaml
+    !include : huawei_testcases.yaml

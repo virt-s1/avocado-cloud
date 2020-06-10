@@ -1,0 +1,14 @@
+avocado-framework==61.0
+avocado-framework-plugin-varianter-yaml-to-mux==61.0
+avocado-framework-plugin-loader-yaml==61.0
+avocado-framework-plugin-result-html==61.0
+boto3>=1.5.22
+botocore>=1.8.37
+azure-cli==2.0.32
+openstacksdk==0.13.0
+aexpect==1.4.0
+requests==2.18.4
+urllib3==1.22
+aliyun-python-sdk-core==2.8.2
+aliyun-python-sdk-ecs==4.8.0
+libvirt-python>=0.10.2

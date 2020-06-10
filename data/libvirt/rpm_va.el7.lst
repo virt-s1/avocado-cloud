@@ -1,0 +1,32 @@
+.M.......  g /usr/sbin/ifdown
+.M.......  g /usr/sbin/ifup
+.M.......  c /etc/machine-id
+S.5....T.  c /etc/systemd/logind.conf
+.M.......  g /etc/udev/hwdb.bin
+.M.......  g /var/lib/systemd/random-seed
+.......T.    /var/lib/lsvpd/run.vpdupdate
+..5....T.  c /etc/yum/pluginconf.d/product-id.conf
+..5....T.  c /etc/yum/pluginconf.d/subscription-manager.conf
+S.5....T.  c /etc/sysconfig/authconfig
+.M.......  g /etc/pki/ca-trust/extracted/java/cacerts
+.M.......  g /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
+.M.......  g /etc/pki/ca-trust/extracted/pem/email-ca-bundle.pem
+.M.......  g /etc/pki/ca-trust/extracted/pem/objsign-ca-bundle.pem
+.M.......  g /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+....L....  c /etc/pam.d/fingerprint-auth
+....L....  c /etc/pam.d/password-auth
+....L....  c /etc/pam.d/postlogin
+....L....  c /etc/pam.d/smartcard-auth
+....L....  c /etc/pam.d/system-auth
+.M.......  c /etc/sysconfig/kernel
+.......T.  c /etc/sysconfig/network-scripts/ifcfg-lo
+.M.......  g /var/log/dmesg
+.M.......  g /var/log/dmesg.old
+.M.......  g /var/spool/anacron/cron.daily
+.M.......  g /var/spool/anacron/cron.monthly
+.M.......  g /var/spool/anacron/cron.weekly
+missing     /var/run/wpa_supplicant
+.M.......  g /boot/initramfs-3.10.0-862.11.6.el7.ppc64le.img
+.M.......    /run/cloud-init
+.M.......  c /etc/audit/rules.d/audit.rules
+S.5....T.  c /etc/sudoers

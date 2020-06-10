@@ -1,0 +1,528 @@
+Flavor: !mux
+    ecs.sn1.medium:
+        name: ecs.sn1.medium
+        cpu: 2
+        memory: 4
+    ecs.sn1.large:
+        name: ecs.sn1.large
+        cpu: 4
+        memory: 8
+    ecs.sn1.xlarge:
+        name: ecs.sn1.xlarge
+        cpu: 8
+        memory: 16
+    ecs.sn1.3xlarge:
+        name: ecs.sn1.3xlarge
+        cpu: 16
+        memory: 32
+    ecs.sn1.7xlarge:
+        name: ecs.sn1.7xlarge
+        cpu: 32
+        memory: 64
+    ecs.sn2.medium:
+        name: ecs.sn2.medium
+        cpu: 2
+        memory: 8
+    ecs.sn2.large:
+        name: ecs.sn2.large
+        cpu: 4
+        memory: 16
+    ecs.sn2.xlarge:
+        name: ecs.sn2.xlarge
+        cpu: 8
+        memory: 32
+    ecs.sn2.3xlarge:
+        name: ecs.sn2.3xlarge
+        cpu: 16
+        memory: 64
+    ecs.sn2.7xlarge:
+        name: ecs.sn2.7xlarge
+        cpu: 32
+        memory: 128
+    ecs.sn2.13xlarge:
+        name: ecs.sn2.13xlarge
+        cpu: 56
+        memory: 224
+    ecs.sn1ne.large:
+        name: ecs.sn1ne.large
+        cpu: 2
+        memory: 4
+        nic_count: 2
+    ecs.sn1ne.xlarge:
+        name: ecs.sn1ne.xlarge
+        cpu: 4
+        memory: 8
+        nic_count: 3
+    ecs.sn1ne.2xlarge:
+        name: ecs.sn1ne.2xlarge
+        cpu: 8
+        memory: 16
+        nic_count: 4
+    ecs.sn1ne.4xlarge:
+        name: ecs.sn1ne.4xlarge
+        cpu: 16
+        memory: 32
+        nic_count: 8
+    ecs.sn1ne.8xlarge:
+        name: ecs.sn1ne.8xlarge
+        cpu: 32
+        memory: 64
+        nic_count: 8
+    ecs.sn2ne.large:
+        name: ecs.sn2ne.large
+        cpu: 2
+        memory: 8
+        nic_count: 2
+    ecs.sn2ne.xlarge:
+        name: ecs.sn2ne.xlarge
+        cpu: 4
+        memory: 16
+        nic_count: 3
+    ecs.sn2ne.2xlarge:
+        name: ecs.sn2ne.2xlarge
+        cpu: 8
+        memory: 32
+        nic_count: 4
+    ecs.sn2ne.4xlarge:
+        name: ecs.sn2ne.4xlarge
+        cpu: 16
+        memory: 64
+        nic_count: 8
+    ecs.sn2ne.8xlarge:
+        name: ecs.sn2ne.8xlarge
+        cpu: 32
+        memory: 128
+        nic_count: 8
+    ecs.sn2ne.14xlarge:
+        name: ecs.sn2ne.14xlarge
+        cpu: 56
+        memory: 224
+        nic_count: 8
+    ecs.se1ne.large:
+        name: ecs.se1ne.large
+        cpu: 2
+        memory: 16
+        nic_count: 2
+    ecs.se1ne.xlarge:
+        name: ecs.se1ne.xlarge
+        cpu: 4
+        memory: 32
+        nic_count: 3
+    ecs.se1ne.2xlarge:
+        name: ecs.se1ne.2xlarge
+        cpu: 8
+        memory: 64
+        nic_count: 4
+    ecs.se1ne.4xlarge:
+        name: ecs.se1ne.4xlarge
+        cpu: 16
+        memory: 128
+        nic_count: 8
+    ecs.se1ne.8xlarge:
+        name: ecs.se1ne.8xlarge
+        cpu: 32
+        memory: 256
+        nic_count: 8
+    ecs.se1ne.14xlarge:
+        name: ecs.se1ne.14xlarge
+        cpu: 56
+        memory: 480
+        nic_count: 8
+    ecs.se1.large:
+        name: ecs.se1.large
+        cpu: 2
+        memory: 16
+        nic_count: 2
+    ecs.se1.xlarge:
+        name: ecs.se1.xlarge
+        cpu: 4
+        memory: 32
+        nic_count: 3
+    ecs.se1.2xlarge:
+        name: ecs.se1.2xlarge
+        cpu: 8
+        memory: 64
+        nic_count: 4
+    ecs.se1.4xlarge:
+        name: ecs.se1.4xlarge
+        cpu: 16
+        memory: 128
+        nic_count: 8
+    ecs.se1.8xlarge:
+        name: ecs.se1.8xlarge
+        cpu: 32
+        memory: 256
+        nic_count: 8
+    ecs.se1.14xlarge:
+        name: ecs.se1.14xlarge
+        cpu: 56
+        memory: 480
+        nic_count: 8
+    ecs.i1.xlarge:
+        name: ecs.i1.xlarge
+        cpu: 4
+        memory: 16
+        disk_count: 2
+        disk_size: 104
+        disk_type: ssd
+        nic_count: 3
+    ecs.i1.2xlarge:
+        name: ecs.i1.2xlarge
+        cpu: 8
+        memory: 32
+        disk_count: 2
+        disk_size: 208
+        disk_type: ssd
+        nic_count: 4
+    ecs.i1.4xlarge:
+        name: ecs.i1.4xlarge
+        cpu: 16
+        memory: 64
+        disk_count: 2
+        disk_size: 416
+        disk_type: ssd
+        nic_count: 8
+    ecs.i1.8xlarge:
+        name: ecs.i1.8xlarge
+        cpu: 32
+        memory: 128
+        disk_count: 2
+        disk_size: 832
+        disk_type: ssd
+        nic_count: 8
+    ecs.i1.14xlarge:
+        name: ecs.i1.14xlarge
+        cpu: 56
+        memory: 224
+        disk_count: 2
+        disk_size: 1456
+        disk_type: ssd
+        nic_count: 8
+    ecs.i1-c5d1.4xlarge:
+        name: ecs.i1-c5d1.4xlarge
+        cpu: 16
+        memory: 64
+        disk_count: 2
+        disk_size: 1456
+        disk_type: ssd
+        nic_count: 8
+    ecs.i1-c10d1.8xlarge:
+        name: ecs.i1-c10d1.8xlarge
+        cpu: 32
+        memory: 128
+        disk_count: 2
+        disk_size: 1456
+        disk_type: ssd
+        nic_count: 8
+    ecs.cm4.xlarge:
+        name: ecs.cm4.xlarge
+        cpu: 4
+        memory: 16
+        nic_count: 3
+    ecs.cm4.2xlarge:
+        name: ecs.cm4.2xlarge
+        cpu: 8
+        memory: 32
+        nic_count: 4
+    ecs.cm4.4xlarge:
+        name: ecs.cm4.4xlarge
+        cpu: 16
+        memory: 64
+        nic_count: 8
+    ecs.cm4.6xlarge:
+        name: ecs.cm4.6xlarge
+        cpu: 24
+        memory: 96
+        nic_count: 8
+    ecs.ce4.xlarge:
+        name: ecs.ce4.xlarge
+        cpu: 4
+        memory: 32
+        nic_count: 3
+    ecs.c4.xlarge:
+        name: ecs.c4.xlarge
+        cpu: 4
+        memory: 8
+        nic_count: 3
+    ecs.c4.2xlarge:
+        name: ecs.c4.2xlarge
+        cpu: 8
+        memory: 16
+        nic_count: 4
+    ecs.c4.4xlarge:
+        name: ecs.c4.4xlarge
+        cpu: 16
+        memory: 32
+        nic_count: 8
+    ecs.d1.2xlarge:
+        name: ecs.d1.2xlarge
+        cpu: 8
+        memory: 32
+        disk_count: 4
+        disk_size: 5500
+        disk_type: hdd
+    ecs.d1.4xlarge:
+        name: ecs.d1.4xlarge
+        cpu: 16
+        memory: 64
+        disk_count: 8
+        disk_size: 5500
+        disk_type: hdd
+    ecs.d1.6xlarge:
+        name: ecs.d1.6xlarge
+        cpu: 24
+        memory: 96
+        disk_count: 12
+        disk_size: 5500
+        disk_type: hdd
+    ecs.d1.8xlarge:
+        name: ecs.d1.8xlarge
+        cpu: 32
+        memory: 128
+        disk_count: 16
+        disk_size: 5500
+        disk_type: hdd
+    ecs.d1.14xlarge:
+        name: ecs.d1.14xlarge
+        cpu: 56
+        memory: 224
+        disk_count: 28
+        disk_size: 5500
+        disk_type: hdd
+    ecs.hfg5.xlarge:
+        name: ecs.hfg5.xlarge
+        cpu: 4
+        memory: 16
+    ecs.hfg5.2xlarge:
+        name: ecs.hfg5.2xlarge
+        cpu: 8
+        memory: 32
+    ecs.hfg5.4xlarge:
+        name: ecs.hfg5.4xlarge
+        cpu: 16
+        memory: 64
+    ecs.hfg5.6xlarge:
+        name: ecs.hfg5.6xlarge
+        cpu: 24
+        memory: 96
+    ecs.hfg5.8xlarge:
+        name: ecs.hfg5.8xlarge
+        cpu: 32
+        memory: 128
+    ecs.hfg5.14xlarge:
+        name: ecs.hfg5.14xlarge
+        cpu: 56
+        memory: 160
+    ecs.i2.xlarge:
+        name: ecs.i2.xlarge
+        cpu: 4
+        memory: 32
+        disk_count: 1
+        disk_size: 894
+        disk_type: ssd
+    ecs.i2.2xlarge:
+        name: ecs.i2.2xlarge
+        cpu: 8
+        memory: 64
+        disk_count: 2
+        disk_size: 1788
+        disk_type: ssd
+    ecs.i2.4xlarge:
+        name: ecs.i2.4xlarge
+        cpu: 16
+        memory: 128
+        disk_count: 2
+        disk_size: 1788
+        disk_type: ssd
+    ecs.i2.8xlarge:
+        name: ecs.i2.8xlarge
+        cpu: 32
+        memory: 256
+        disk_count: 4
+        disk_size: 1788
+        disk_type: ssd
+    ecs.i2.16xlarge:
+        name: ecs.i2.16xlarge
+        cpu: 64
+        memory: 512
+        disk_count: 8
+        disk_size: 1788
+        disk_type: ssd
+    ecs.c5.large:
+        name: ecs.c5.large
+        cpu: 2
+        memory: 4
+    ecs.c5.xlarge:
+        name: ecs.c5.xlarge
+        cpu: 4
+        memory: 8
+    ecs.c5.2xlarge:
+        name: ecs.c5.2xlarge
+        cpu: 8
+        memory: 16
+    ecs.c5.4xlarge:
+        name: ecs.c5.4xlarge
+        cpu: 16
+        memory: 32
+    ecs.c5.6xlarge:
+        name: ecs.c5.6xlarge
+        cpu: 24
+        memory: 48
+    ecs.c5.8xlarge:
+        name: ecs.c5.8xlarge
+        cpu: 32
+        memory: 64
+    ecs.c5.16xlarge:
+        name: ecs.c5.16xlarge
+        cpu: 64
+        memory: 128
+    ecs.g5.large:
+        name: ecs.g5.large
+        cpu: 2
+        memory: 8
+    ecs.g5.xlarge:
+        name: ecs.g5.xlarge
+        cpu: 4
+        memory: 16
+    ecs.g5.2xlarge:
+        name: ecs.g5.2xlarge
+        cpu: 8
+        memory: 32
+    ecs.g5.4xlarge:
+        name: ecs.g5.4xlarge
+        cpu: 16
+        memory: 64
+    ecs.g5.6xlarge:
+        name: ecs.g5.6xlarge
+        cpu: 24
+        memory: 96
+    ecs.g5.8xlarge:
+        name: ecs.g5.8xlarge
+        cpu: 32
+        memory: 128
+    ecs.g5.16xlarge:
+        name: ecs.g5.16xlarge
+        cpu: 64
+        memory: 256
+    ecs.r5.large:
+        name: ecs.r5.large
+        cpu: 2
+        memory: 16
+    ecs.r5.xlarge:
+        name: ecs.r5.xlarge
+        cpu: 4
+        memory: 32
+    ecs.r5.2xlarge:
+        name: ecs.r5.2xlarge
+        cpu: 8
+        memory: 64
+    ecs.r5.4xlarge:
+        name: ecs.r5.4xlarge
+        cpu: 16
+        memory: 128
+    ecs.r5.6xlarge:
+        name: ecs.r5.6xlarge
+        cpu: 24
+        memory: 192
+    ecs.r5.8xlarge:
+        name: ecs.r5.8xlarge
+        cpu: 32
+        memory: 256
+    ecs.r5.16xlarge:
+        name: ecs.r5.16xlarge
+        cpu: 64
+        memory: 512
+    ecs.r5.22xlarge:
+        name: ecs.r5.22xlarge
+        cpu: 88
+        memory: 704
+    ecs.hfc5.large:
+        name: ecs.hfc5.large
+        cpu: 2
+        memory: 4
+    ecs.hfc5.xlarge:
+        name: ecs.hfc5.xlarge
+        cpu: 4
+        memory: 8
+    ecs.hfc5.2xlarge:
+        name: ecs.hfc5.2xlarge
+        cpu: 8
+        memory: 16
+    ecs.hfc5.4xlarge:
+        name: ecs.hfc5.4xlarge
+        cpu: 16
+        memory: 32
+    ecs.hfc5.6xlarge:
+        name: ecs.hfc5.6xlarge
+        cpu: 24
+        memory: 48
+    ecs.hfc5.8xlarge:
+        name: ecs.hfc5.8xlarge
+        cpu: 32
+        memory: 64
+    ecs.t5-c1m1.large:
+        name: ecs.t5-c1m1.large
+        cpu: 2
+        memory: 2
+    ecs.t5-c1m1.xlarge:
+        name: ecs.t5-c1m1.xlarge
+        cpu: 4
+        memory: 4
+    ecs.t5-c1m1.2xlarge:
+        name: ecs.t5-c1m1.2xlarge
+        cpu: 8
+        memory: 8
+    ecs.t5-c1m2.large:
+        name: ecs.t5-c1m2.large
+        cpu: 2
+        memory: 4
+    ecs.t5-c1m2.xlarge:
+        name: ecs.t5-c1m2.xlarge
+        cpu: 4
+        memory: 8
+    ecs.t5-c1m2.2xlarge:
+        name: ecs.t5-c1m2.2xlarge
+        cpu: 8
+        memory: 16
+    ecs.t5-c1m4.large:
+        name: ecs.t5-c1m4.large
+        cpu: 2
+        memory: 8
+    ecs.t5-c1m4.xlarge:
+        name: ecs.t5-c1m4.xlarge
+        cpu: 4
+        memory: 16
+    ecs.t5-c1m4.2xlarge:
+        name: ecs.t5-c1m4.2xlarge
+        cpu: 8
+        memory: 32
+    ecs.t5-lc2m1.nano:
+        name: ecs.t5-lc2m1.nano
+        cpu: 1
+        memory: 0.5
+    ecs.t5-lc1m1.small:
+        name: ecs.t5-lc1m1.small
+        cpu: 1
+        memory: 1
+    ecs.t5-lc1m2.small:
+        name: ecs.t5-lc1m2.small
+        cpu: 1
+        memory: 2
+    ecs.t5-lc1m2.large:
+        name: ecs.t5-lc1m2.large
+        cpu: 2
+        memory: 4
+    ecs.t5-lc1m4.large:
+        name: ecs.t5-lc1m4.large
+        cpu: 2
+        memory: 8
+    ecs.re4.20xlarge:
+        name: ecs.re4.20xlarge
+        cpu: 80
+        memory: 960
+        nic_count: 2
+    ecs.re4.40xlarge:
+        name: ecs.re4.40xlarge
+        cpu: 160
+        memory: 1920
+        nic_count: 2

@@ -1,0 +1,4 @@
+test:
+    !include : alibaba_flavors.yaml
+    !include : alibaba_testcases.yaml
+    !include : alibaba_common.yaml

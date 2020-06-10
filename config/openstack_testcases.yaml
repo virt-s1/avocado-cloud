@@ -1,0 +1,27 @@
+cases:
+  test_functional_lifecycle.py:LifeCycleTest.test_create_vm_sshkey
+  test_functional_checkup.py:GeneralTest.test_check_boot_message
+  test_functional_checkup.py:GeneralTest.test_check_fstab
+  test_functional_checkup.py:GeneralTest.test_check_partitions
+  test_functional_checkup.py:GeneralTest.test_check_bash_prompt
+  test_functional_checkup.py:GeneralTest.test_check_installed_packages
+  test_functional_checkup.py:GeneralTest.test_check_redhat_release
+  test_functional_checkup.py:GeneralTest.test_check_size_of_rootfs
+  test_functional_checkup.py:GeneralTest.test_check_password_hash_for_root
+  test_functional_checkup.py:GeneralTest.test_check_selinux_status
+  test_functional_checkup.py:GeneralTest.test_check_selinux_contexts
+  test_functional_checkup.py:GeneralTest.test_check_boot_cmdline_parameters
+  test_functional_checkup.py:GeneralTest.test_check_product_certificate
+  test_functional_checkup.py:GeneralTest.test_check_package_signature
+  test_functional_checkup.py:GeneralTest.test_check_hostname
+  test_functional_checkup.py:GeneralTest.test_check_services_status
+  test_functional_checkup.py:GeneralTest.test_check_network_cfg
+  test_functional_checkup.py:GeneralTest.test_check_persistent_dhclient
+  test_functional_checkup.py:GeneralTest.test_check_virt_what
+  test_functional_checkup.py:GeneralTest.test_check_pv_drivers
+  test_functional_lifecycle.py:LifeCycleTest.test_stop_vm
+  test_functional_lifecycle.py:LifeCycleTest.test_start_vm
+  test_functional_lifecycle.py:LifeCycleTest.test_pause_unpause_vm
+  test_functional_lifecycle.py:LifeCycleTest.test_reboot_vm
+  test_functional_lifecycle.py:LifeCycleTest.test_reboot_inside_vm
+  test_functional_lifecycle.py:LifeCycleTest.test_delete_vm

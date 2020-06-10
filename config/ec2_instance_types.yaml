@@ -1,0 +1,8 @@
+instance_types: !mux
+    t3.large:
+        instance_type: t3.large
+        cpu: 2
+        memory: 8
+        disks: 1
+        net_perf : 5
+        ipv6: True

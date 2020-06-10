@@ -1,0 +1,15 @@
+S.5....T.  c /etc/ssh/sshd_config
+S.5....T.  c /etc/securetty
+S.5....T.  c /etc/sudoers
+....L....  c /etc/pam.d/fingerprint-auth
+....L....  c /etc/pam.d/password-auth
+....L....  c /etc/pam.d/smartcard-auth
+....L....  c /etc/pam.d/system-auth
+S.5....T.  c /etc/libuser.conf
+S.5....T.  c /etc/openldap/ldap.conf
+S.5....T.  c /etc/login.defs
+.......T.  c /etc/inittab
+S.5....T.  c /etc/rc.d/rc.local
+.......T.  c /etc/sysconfig/network-scripts/ifcfg-lo
+missing   c /var/log/mail/statistics
+missing   c /var/lib/logrotate.status

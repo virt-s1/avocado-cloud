@@ -1,0 +1,75 @@
+Flavor: !mux
+    t6.small.1:
+        name: t6.small.1
+        cpu: 1
+        memory: 1
+        virt: kvm
+    t6.large.1:
+        name: t6.large.1
+        cpu: 2
+        memory: 2
+        virt: kvm
+    t6.xlarge.1:
+        name: t6.xlarge.1
+        cpu: 4
+        memory: 4
+        virt: kvm
+        nic_count: 2
+    t6.2xlarge.1:
+        name: t6.2xlarge.1
+        cpu: 8
+        memory: 8
+        virt: kvm
+        nic_count: 2
+    t6.4xlarge.1:
+        name: t6.4xlarge.1
+        cpu: 16
+        memory: 16
+        virt: kvm
+        nic_count: 2
+    t6.medium.2:
+        name: t6.medium.2
+        cpu: 1
+        memory: 2
+        virt: kvm
+    t6.large.2:
+        name: t6.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+    t6.xlarge.2:
+        name: t6.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+        nic_count: 2
+    t6.2xlarge.2:
+        name: t6.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+        nic_count: 2
+    t6.4xlarge.2:
+        name: t6.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+        nic_count: 2
+    t6.large.4:
+        name: t6.large.4
+        cpu: 2
+        memory: 8
+        virt: kvm
+    t6.xlarge.4:
+        name: t6.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+        nic_count: 2
+    t6.2xlarge.4:
+        name: t6.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+        nic_count: 2
+

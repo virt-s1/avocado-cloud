@@ -1,0 +1,4 @@
+restorecon reset /etc/sysconfig/anaconda context system_u:object_r:etc_runtime_t:s0->system_u:object_r:etc_t:s0
+restorecon reset /etc/cloud/cloud.cfg context unconfined_u:object_r:user_tmp_t:s0->unconfined_u:object_r:etc_t:s0
+restorecon reset /root/.pki context unconfined_u:object_r:admin_home_t:s0->unconfined_u:object_r:home_cert_t:s0
+restorecon reset /root/.pki/nssdb context unconfined_u:object_r:admin_home_t:s0->unconfined_u:object_r:home_cert_t:s0

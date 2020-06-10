@@ -1,0 +1,4 @@
+test:
+    !include : azure_common.yaml
+    !include : azure_vm_sizes.yaml
+    !include : azure_testcases_wala.yaml

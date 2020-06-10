@@ -1,0 +1,4 @@
+restorecon reset /aliyun-bin context system_u:object_r:root_t:s0->system_u:object_r:default_t:s0
+restorecon reset /var/spool/plymouth/boot.log context system_u:object_r:var_log_t:s0->system_u:object_r:plymouthd_spool_t:s0
+restorecon reset /var/lock/kdump context system_u:object_r:var_lock_t:s0->system_u:object_r:kdump_lock_t:s0
+restorecon reset /var/log/repair.log context system_u:object_r:file_t:s0->system_u:object_r:var_log_t:s0

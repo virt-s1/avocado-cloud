@@ -1,0 +1,7 @@
+avocado-framework==61.0
+avocado-framework-plugin-varianter-yaml-to-mux==61.0
+avocado-framework-plugin-result-html==61.0
+avocado-framework-plugin-loader-yaml==61.0
+aexpect==1.4.0
+requests==2.18.4
+urllib3==1.22

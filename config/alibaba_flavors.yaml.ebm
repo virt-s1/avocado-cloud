@@ -1,0 +1,6 @@
+Flavor: !mux
+    ecs.ebmg5s.24xlarge:
+        name: ecs.ebmg5s.24xlarge
+        cpu: 96
+        memory: 384
+        nic_count: 32

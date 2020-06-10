@@ -1,0 +1,97 @@
+Flavor: !mux
+    c6.large.2:
+        name: c6.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+        nic_count: 2
+    c6.xlarge.2:
+        name: c6.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+        nic_count: 3
+    c6.2xlarge.2:
+        name: c6.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+        nic_count: 4
+    c6.3xlarge.2:
+        name: c6.2xlarge.2
+        cpu: 12
+        memory: 24
+        virt: kvm
+        nic_count: 6
+    c6.4xlarge.2:
+        name: c6.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+        nic_count: 8
+    c6.6xlarge.2:
+        name: c6.6xlarge.2
+        cpu: 24
+        memory: 48
+        virt: kvm
+        nic_count: 8
+    c6.8xlarge.2:
+        name: c6.8xlarge.2
+        cpu: 32
+        memory: 64
+        virt: kvm
+        nic_count: 8
+    c6.16xlarge.2:
+        name: c6.16xlarge.2
+        cpu: 64
+        memory: 128
+        virt: kvm
+        nic_count: 8
+    c6.large.4:
+        name: c6.large.4
+        cpu: 2
+        memory: 8
+        virt: kvm
+        nic_count: 2
+    c6.xlarge.4:
+        name: c6.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+        nic_count: 3
+    c6.2xlarge.4:
+        name: c6.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+        nic_count: 4
+    c6.3xlarge.4:
+        name: c6.3xlarge.4
+        cpu: 12
+        memory: 48
+        virt: kvm
+        nic_count: 6
+    c6.4xlarge.4:
+        name: c6.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+        nic_count: 8
+    c6.6xlarge.4:
+        name: c6.6xlarge.4
+        cpu: 24
+        memory: 96
+        virt: kvm
+        nic_count: 8
+    c6.8xlarge.4:
+        name: c6.8xlarge.4
+        cpu: 32
+        memory: 128
+        virt: kvm
+        nic_count: 8
+    c6.16xlarge.4:
+        name: c6.16xlarge.4
+        cpu: 64
+        memory: 256
+        virt: kvm
+        nic_count: 8

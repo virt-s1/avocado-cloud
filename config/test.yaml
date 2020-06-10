@@ -1,0 +1,4 @@
+test:
+    !include : common.yaml
+    !include : flavors.yaml
+    !include : testcases.yaml

@@ -1,0 +1,7 @@
+Flavor: !mux
+    small:
+        name: small
+        cpu: 1
+        memory: 1
+        size: 8G
+        virt: kvm

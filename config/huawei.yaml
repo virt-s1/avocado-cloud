@@ -1,0 +1,32 @@
+Cloud:
+    provider: huawei
+    base_url: https://ecs.%project_name%.myhuaweicloud.com/
+    project_name: cn-east-2
+Credential:
+    domain_name: chris-new
+    username: rht-wshi
+    password: 
+#    access_key_id:
+#    secretaccess_key:
+Subscription:
+    username:
+    password:
+VM:
+    rhel_ver: '7.4'
+    username: cloud-user
+    password: RedHatTest1@
+    keypair: wshi
+    vm_name: avocado_cloud
+    image_ref: 726802ee-a5c6-4b2e-9a2f-66f24f205313
+    vpc_id: 3a4250b1-9256-4b04-8607-dd220c6ae991
+    subnet_id: 960f27f3-37b3-4a39-8746-2746acb991a2
+    sg_id: 088dcd24-3a1d-45b2-bafe-370eec5dffab
+    az: cn-east-2a
+Disk:
+    cloud_disk_count: 23
+    cloud_disk_name: avocado_cloud_disk
+    cloud_disk_size: 100
+    cloud_disk_type: SATA
+NIC:
+    nic_count: 12
+

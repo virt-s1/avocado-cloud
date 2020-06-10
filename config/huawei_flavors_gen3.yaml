@@ -1,0 +1,252 @@
+Flavor: !mux
+    s3.small.1:
+        name: s3.small.1
+        cpu: 1
+        memory: 1
+        virt: kvm
+    s3.medium.2:
+        name: s3.medium.2
+        cpu: 1
+        memory: 2
+        virt: kvm
+    s3.large.2:
+        name: s3.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+    s3.xlarge.2:
+        name: s3.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+    s3.2xlarge.2:
+        name: s3.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+    s3.4xlarge.2:
+        name: s3.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+    s3.medium.4:
+        name: s3.medium.4
+        cpu: 1
+        memory: 4
+        virt: kvm
+    s3.large.4:
+        name: s3.large.4
+        cpu: 2
+        memory: 8
+        virt: kvm
+    s3.xlarge.4:
+        name: s3.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+    s3.2xlarge.4:
+        name: s3.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+    s3.4xlarge.4:
+        name: s3.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+    c3.large.2:
+        name: c3.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+    c3.xlarge.2:
+        name: c3.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+    c3.2xlarge.2:
+        name: c3.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+    c3.4xlarge.2:
+        name: c3.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+    c3.8xlarge.2:
+        name: c3.8xlarge.2
+        cpu: 32
+        memory: 64
+        virt: kvm
+    c3.15xlarge.2:
+        name: c3.15xlarge.2
+        cpu: 60
+        memory: 128
+        virt: kvm
+    c3.large.4:
+        name: c3.large.4
+        cpu: 2
+        memory: 8
+        virt: kvm
+    c3.xlarge.4:
+        name: c3.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+    c3.2xlarge.4:
+        name: c3.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+    c3.4xlarge.4:
+        name: c3.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+    c3.8xlarge.4:
+        name: c3.8xlarge.4
+        cpu: 32
+        memory: 128
+        virt: kvm
+    c3.15xlarge.4:
+        name: c3.15xlarge.4
+        cpu: 60
+        memory: 256
+        virt: kvm
+    m3.large.8:
+        name: m3.large.8
+        cpu: 2
+        memory: 16
+        virt: kvm
+    m3.xlarge.8:
+        name: m3.xlarge.8
+        cpu: 4
+        memory: 32
+        virt: kvm
+    m3.2xlarge.8:
+        name: m3.2xlarge.8
+        cpu: 8
+        memory: 64
+        virt: kvm
+    m3.4xlarge.8:
+        name: m3.4xlarge.8
+        cpu: 16
+        memory: 128
+        virt: kvm
+    m3.8xlarge.8:
+        name: m3.8xlarge.8
+        cpu: 32
+        memory: 256
+        virt: kvm
+    m3.15xlarge.8:
+        name: m3.15xlarge.8
+        cpu: 60
+        memory: 512
+        virt: kvm
+    e3.7xlarge.12:
+        name: e3.7xlarge.12
+        cpu: 28
+        memory: 348
+        virt: kvm
+    e3.14xlarge.12:
+        name: e3.14xlarge.12
+        cpu: 56
+        memory: 696
+        virt: kvm
+    h3.large.2:
+        name: h3.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+    h3.xlarge.2:
+        name: h3.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+    h3.2xlarge.2:
+        name: h3.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+    h3.4xlarge.2:
+        name: h3.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+    h3.8xlarge.2:
+        name: h3.8xlarge.2
+        cpu: 32
+        memory: 64
+        virt: kvm
+    h3.large.4:
+        name: h3.large.4
+        cpu: 2
+        memory: 8
+        virt: kvm
+    h3.xlarge.4:
+        name: h3.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+    h3.2xlarge.4:
+        name: h3.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+    h3.4xlarge.4:
+        name: h3.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+    h3.8xlarge.4:
+        name: h3.8xlarge.4
+        cpu: 32
+        memory: 128
+        virt: kvm
+    i3.2xlarge.8:
+        name: i3.2xlarge.8
+        cpu: 8
+        memory: 64
+        virt: kvm
+        nic_count: 4
+        disk_count: 1
+        disk_size: 1600
+        disk_type: nvme
+    i3.4xlarge.8:
+        name: i3.4xlarge.8
+        cpu: 16
+        memory: 128
+        virt: kvm
+        nic_count: 8
+        disk_count: 2
+        disk_size: 1600
+        disk_type: nvme
+    i3.8xlarge.8:
+        name: i3.8xlarge.8
+        cpu: 32
+        memory: 256
+        virt: kvm
+        nic_count: 8
+        disk_count: 4
+        disk_size: 1600
+        disk_type: nvme
+    i3.12xlarge.8:
+        name: i3.12xlarge.8
+        cpu: 48
+        memory: 384
+        virt: kvm
+        nic_count: 8
+        disk_count: 6
+        disk_size: 1600
+        disk_type: nvme
+    i3.15xlarge.8:
+        name: i3.15xlarge.8
+        cpu: 60
+        memory: 512
+        virt: kvm
+        nic_count: 8
+        disk_count: 7
+        disk_size: 1600
+        disk_type: nvme
+

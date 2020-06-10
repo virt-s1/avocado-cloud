@@ -1,0 +1,12 @@
+kernel: acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+kernel: acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+systemd[1]: Failed to insert module 'ip_tables': Operation not permitted
+Failed to init entropy source
+NMI watchdog: Perf event create on CPU 0 failed with -2
+stages.py[ERROR]: Unable to render networking. Network config is likely broken: No available network renderers found. Searched through list: ['eni', 'sysconfig', 'netplan']
+cloud-user: Error executing command as another user: Not authorized [USER=root] [TTY=unknown] [CWD=/home/cloud-user] [COMMAND=/usr/sbin/grub2-set-bootflag boot_success]
+Error executing command as another user: Not authorized
+grub-boot-success.service: Failed with result 'exit-code'.
+Failed to start Mark boot as successful.
+kernel: RAS: Correctable Errors collector initialized.
+augenrules

@@ -1,0 +1,26 @@
+Cloud:
+  provider: openstack
+  auth_url: https://rhos-d.infra.prod.upshift.rdu2.redhat.com:13000/v3/
+  project_name: xenqe
+  project_domain_name: redhat.com
+  user_domain_name: redhat.com
+Credential:
+  username: psi-xenqe
+  password:
+#  access_key_id:
+#  secretaccess_key:
+Subscription:
+  username:
+  password:
+VM:
+  rhel_ver: '8.0'
+  username: cloud-user
+  password: RedHatTest1@
+  keypair: xen-jenkins
+  vm_name: avocado_cloud
+  image_name: rhel-guest-image-8.0-1795.x86_64.qcow2
+  network_name: provider_net_cci_4
+  network_id: 68a8220a-20f4-4940-99b4-45b6f98bce6b
+SecurityGroups:
+  name:
+    - default

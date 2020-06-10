@@ -1,0 +1,30 @@
+Cloud:
+    provider: alibaba
+Credential:
+    access_key_id:
+    secretaccess_key:
+Subscription:
+    username:
+    password:
+VM:
+    rhel_ver: '7.4'
+    username: root
+    password: RedHatTest1@
+    keypair: wshi
+    vm_name: avocado-cloud-wshi
+    az: us-west-1
+    region: us-west-1b
+Image:
+    name: rhel_7_4_64_20G_alibaba_20180123.vhd
+    id: rhel_7_4_64_20G_alibaba_20180123.vhd
+Network:
+    VSwitch:
+        id: vsw-rj9mxj81k24a3erwqibza
+SecurityGroup:
+    id: sg-rj9f46qhpa7q02u5jl2p
+Disk:
+    cloud_disk_count: 16
+    cloud_disk_name: avocado_cloud_disk
+    cloud_disk_size: 100
+NIC:
+    nic_name: avocado_cloud_nic

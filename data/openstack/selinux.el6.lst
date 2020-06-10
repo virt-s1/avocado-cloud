@@ -1,0 +1,4 @@
+restorecon reset /etc/pki/product context system_u:object_r:root_t:s0->system_u:object_r:cert_t:s0
+restorecon reset /var/lock/subsys/ktune context system_u:object_r:var_lock_t:s0->system_u:object_r:tuned_var_lock_t:s0
+restorecon reset /var/run/ktune.save context system_u:object_r:initrc_var_run_t:s0->system_u:object_r:tuned_var_run_t:s0
+restorecon reset /var/spool/plymouth/boot.log context system_u:object_r:var_log_t:s0->system_u:object_r:plymouthd_spool_t:s0

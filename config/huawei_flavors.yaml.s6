@@ -1,0 +1,67 @@
+Flavor: !mux
+    s6.small.1:
+        name: s6.small.1
+        cpu: 1
+        memory: 1
+        virt: kvm
+        nic_count: 1
+    s6.medium.2:
+        name: s6.medium.2
+        cpu: 1
+        memory: 2
+        virt: kvm
+        nic_count: 1
+    s6.large.2:
+        name: s6.large.2
+        cpu: 2
+        memory: 4
+        virt: kvm
+        nic_count: 2
+    s6.xlarge.2:
+        name: s6.xlarge.2
+        cpu: 4
+        memory: 8
+        virt: kvm
+        nic_count: 2
+    s6.2xlarge.2:
+        name: s6.2xlarge.2
+        cpu: 8
+        memory: 16
+        virt: kvm
+        nic_count: 2
+    s6.4xlarge.2:
+        name: s6.4xlarge.2
+        cpu: 16
+        memory: 32
+        virt: kvm
+        nic_count: 2
+    s6.medium.4:
+        name: s6.medium.4
+        cpu: 1
+        memory: 4
+        virt: kvm
+        nic_count: 1
+    s6.large.4:
+        name: s6.large.4
+        cpu: 2
+        memory: 8
+        virt: kvm
+        nic_count: 2
+    s6.xlarge.4:
+        name: s6.xlarge.4
+        cpu: 4
+        memory: 16
+        virt: kvm
+        nic_count: 2
+    s6.2xlarge.4:
+        name: s6.2xlarge.4
+        cpu: 8
+        memory: 32
+        virt: kvm
+        nic_count: 2
+    s6.4xlarge.4:
+        name: s6.4xlarge.4
+        cpu: 16
+        memory: 64
+        virt: kvm
+        nic_count: 2

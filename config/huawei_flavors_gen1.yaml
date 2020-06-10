@@ -1,0 +1,142 @@
+Flavor: !mux
+    s1.medium:
+        name: s1.medium
+        cpu: 1
+        memory: 4
+        virt: xen
+    s1.large:
+        name: s1.large
+        cpu: 2
+        memory: 8
+        virt: xen
+    s1.xlarge:
+        name: s1.xlarge
+        cpu: 4
+        memory: 16
+        virt: xen
+    s1.2xlarge:
+        name: s1.2xlarge
+        cpu: 8
+        memory: 32
+        virt: xen
+    s1.4xlarge:
+        name: s1.4xlarge
+        cpu: 16
+        memory: 64
+        virt: xen
+    s1.8xlarge:
+        name: s1.8xlarge
+        cpu: 32
+        memory: 128
+        virt: xen
+    c1.medium:
+        name: c1.medium
+        cpu: 1
+        memory: 1
+        virt: xen
+    c1.large:
+        name: c1.large
+        cpu: 2
+        memory: 2
+        virt: xen
+    c1.xlarge:
+        name: c1.xlarge
+        cpu: 4
+        memory: 4
+        virt: xen
+    c1.2xlarge:
+        name: c1.2xlarge
+        cpu: 8
+        memory: 8
+        virt: xen
+    c1.4xlarge:
+        name: c1.4xlarge
+        cpu: 16
+        memory: 16
+        virt: xen
+    c1.8xlarge:
+        name: c1.8xlarge
+        cpu: 32
+        memory: 32
+        virt: xen
+    c2.medium:
+        name: c2.medium
+        cpu: 1
+        memory: 2
+        virt: xen
+    c2.large:
+        name: c2.large
+        cpu: 2
+        memory: 4
+        virt: xen
+    c2.xlarge:
+        name: c2.xlarge
+        cpu: 4
+        memory: 8
+        virt: xen
+    c2.2xlarge:
+        name: c2.2xlarge
+        cpu: 8
+        memory: 16
+        virt: xen
+    c2.4xlarge:
+        name: c2.4xlarge
+        cpu: 16
+        memory: 32
+        virt: xen
+    c2.8xlarge:
+        name: c2.8xlarge
+        cpu: 32
+        memory: 64
+        virt: xen
+    m1.medium:
+        name: m1.medium
+        cpu: 1
+        memory: 8
+        virt: xen
+    m1.large:
+        name: m1.large
+        cpu: 2
+        memory: 16
+        virt: xen
+    m1.xlarge:
+        name: m1.xlarge
+        cpu: 4
+        memory: 32
+        virt: xen
+    m1.2xlarge:
+        name: m1.2xlarge
+        cpu: 8
+        memory: 64
+        virt: xen
+    m1.4xlarge:
+        name: m1.4xlarge
+        cpu: 16
+        memory: 128
+        virt: xen
+    m1.8xlarge:
+        name: m1.8xlarge
+        cpu: 32
+        memory: 256
+        virt: xen
+    g1.xlarge:
+        name: g1.xlarge
+        cpu: 4
+        memory: 8
+        gpu_type: "Tesla M60"
+        gpu_count: 1
+        virt: xen
+    g1.2xlarge:
+        name: g1.2xlarge
+        cpu: 8
+        memory: 16
+        gpu_type: "Tesla M60"
+        gpu_count: 1
+        virt: xen
+    g1.4xlarge:
+        name: g1.4xlarge
+        cpu: 16
+        memory: 32
+        gpu_type: "Tesla M60"
+        gpu_count: 1
+        virt: xen
