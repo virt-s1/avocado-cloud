@@ -50,7 +50,7 @@ pyOpenSSL==18.0.0
 pyasn1==0.2.3
 pycparser==2.18
 pycrypto==2.6.1
-pycryptodome==3.6.1
+pycryptodome==3.6.6
 pydocumentdb==2.3.2
 pyparsing==2.1.10
 python-dateutil==2.6.1
