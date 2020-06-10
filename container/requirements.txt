@@ -1,7 +1,7 @@
 PyJWT==1.6.1
 PyNaCl==1.1.2
 PySocks==1.6.7
-PyYAML==3.12
+PyYAML==5.1
 Pygments==2.2.0
 Whoosh==2.7.4
 adal==0.6.0
