@@ -2,22 +2,23 @@ Cloud:
     provider : aws
 ami_id :  ami-0d8ae726968615e70
 region : us-west-2
-#availability_zone : us-west-2b
 availability_zone : us-west-2b
 vpc_id : None
 subnet_id_ipv6 : xxxx
 subnet_id_ipv4 : xxxx
-security_group_ids : sg-066fa7bf060ffeff9 #2a
+security_group_ids : xxxx
 ssh_user : ec2-user
-ssh_key_name : xiliangc5
+# The key pair name to create resource
+ssh_key_name : xxxx
+# specify tag name to identify resource created in test run
 ec2_tagname : virtqe
 ipv4_range : 10.119.0.16/16
-#dmesg_compare_url is using for compare dmesg output purpose.
-#It is optional and it will help you to find whether there is
-#new fail/warning/error/call trace in test_check_dmesg.
-#If it is not specified during test, all fail/warning/error/call
+# dmesg_compare_url is using for compare dmesg output purpose.
+# It is optional and it will help you to find whether there is
+# new fail/warning/error/call trace in test_check_dmesg.
+# If it is not specified during test, all fail/warning/error/call
 # trace is considered as case fail.
-#dmesg_compare_url : XXXXXXX
+# dmesg_compare_url : XXXXXXX
 # ntp_server is used for time drift checking
 ntp_server : de.ntp.org.cn
 # stress pkgs for stress utility, below are options url list
@@ -28,9 +29,9 @@ stress_url : "https://rpmfind.net/linux/epel/7/x86_64/Packages/s/stress-1.0.4-16
 # measure system boot/reboot time via systemd-analyze
 max_boot_time : 40
 max_reboot_time : 35
-# ltp rpm location for ltp test
-# x86_64: https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp_20190130/ltp-master-20190129.x86_64.rpm
-# arm: https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp_20190130/ltp-master-20190129.aarch64.rpm
+# Install ltp rpms instead of compiling it each time
+# x86_64: https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp-master-20200514/ltp-master-20200514.x86_64.rpm
+# aarch64: https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp-master-20200514/ltp-master-20200514.aarch64.rpm
 ltp_url : https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp_20190130/ltp-master-20190129.x86_64.rpm
 # True|False to collect code coverage report, you need a gcov kernel ami first
 code_cover : False
