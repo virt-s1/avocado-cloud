@@ -352,6 +352,11 @@ class EC2VM(VM):
 
     def get_console_log(self):
         try:
+            output = self.__ec2_instance.console_output(Latest=True).get('Output')
+            return True, output
+        except Exception as err:
+            LOG.error("Failed to get console log, try without latest! %s" % err)
+        try:
             output = self.__ec2_instance.console_output().get('Output')
             return True, output
         except Exception as err:
