@@ -36,15 +36,11 @@ class KdumpTest(Test):
 
     def _delete_core_file(self):
         self.log.info("Clean up core files for space concern!")
-        status, output = self.session.cmd_status_output("find /var/crash")
-        self.log.info("Before deleting: %s" % output)
-        status, output = self.session.cmd_status_output(
-            "sudo rm -rf /var/crash/*")
-        status, output = self.session.cmd_status_output(
-            "sudo rm -rf /var/spool/abrt/*")
-        status, output = self.session.cmd_status_output("sudo sync")
-        status, output = self.session.cmd_status_output("find /var/crash")
-        self.log.info("After deleted: %s" % output)
+        utils_lib.run_cmd(self, "find /var/crash", msg="Before cleanup")
+        utils_lib.run_cmd(self, "sudo rm -rf /var/crash/*")
+        utils_lib.run_cmd(self, "sudo rm -rf /var/spool/abrt/*")
+        utils_lib.run_cmd(self, "sudo sync")
+        utils_lib.run_cmd(self, "find /var/crash", msg="After cleanup")
 
     def _trigger_kdump_on_cpu(self, cpu=None):
         cmd = 'sudo su'
@@ -102,12 +98,9 @@ class KdumpTest(Test):
             self.cancel("Cancle test as kdump not running!")
         self.session.connect(timeout=self.ssh_wait_timeout)
         time.sleep(10)
-        if self.vm.instance_type.startswith(
-                'a1') and 'metal' not in self.vm.instance_type:
-            self.cancel("Cancel it as bug 1654962 in arm instances which \
-no plan to fix it in the near future!")
-        if self.vm.instance_type.startswith(
-                'm6g') and 'metal' not in self.vm.instance_type:
+        output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
+        if 'aarch64' in output and 'metal' not in self.vm.instance_type:
+            self.log.info("arm instance")
             self.cancel("Cancel it as bug 1654962 in arm instances which \
 no plan to fix it in the near future!")
 
