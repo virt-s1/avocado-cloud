@@ -240,6 +240,21 @@ document"
                     expect_kw='Fetching Ec2 IMDSv2 API Token,X-aws-ec2-metadata-token',
                     msg='check /var/log/cloud-init.log')
 
+    def test_check_cloudinit_ds_identify_found(self):
+        '''
+        :avocado: tags=test_check_cloudinit_ds_identify_found,fast_check
+        polarion_id:
+        bz#: 1746627
+        check ds-identify run and ret found
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'sudo cat /run/cloud-init/cloud-init-generator.log'
+        utils_lib.run_cmd(self,
+                    cmd,
+                    expect_ret=0,
+                    expect_kw='ds-identify _RET=found',
+                    msg='check /run/cloud-init/cloud-init-generator.log')
+
     def test_check_lineoverwrite(self):
         '''
         :avocado: tags=test_check_lineoverwrite

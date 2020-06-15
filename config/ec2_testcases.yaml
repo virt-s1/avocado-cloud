@@ -102,6 +102,7 @@ cases:
     test_cloud_init.py:CloudInit.test_check_cloudinit_log_error
     test_cloud_init.py:CloudInit.test_check_cloudinit_service_status
     test_cloud_init.py:CloudInit.test_check_cloudinit_log_imdsv2
+    test_cloud_init.py:CloudInit.test_check_cloudinit_ds_identify_found
     test_cloud_init.py:CloudInit.test_check_lineoverwrite
     test_zcleanup.py:CleanUp.test_cleanupall
 
