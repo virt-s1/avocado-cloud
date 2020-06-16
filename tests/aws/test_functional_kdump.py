@@ -309,12 +309,13 @@ if crashed successfully!")
                 self.log.info("CPU- %s New core file found! Test PASS" % i)
             self._delete_core_file()
 
-    def test_kdump_fastboot(self):
+    def test_kdump_fastboot_systemctl_kexec(self):
         '''
-        :avocado: tags=test_kdump_fastboot,acceptance,
+        :avocado: tags=test_kdump_fastboot_systemctl_kexec,acceptance,
                        fast_check
         polarion_id:
         bz#: 1758323
+        "systemctl kexec": Shut down and reboot the system via kexec.
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
@@ -328,6 +329,32 @@ if crashed successfully!")
             cmd = "sudo kexec -l %s --initrd=%s --reuse-cmdline" % (kernel_vmlinuz, kernel_initramfs)
             utils_lib.run_cmd(self, cmd, msg='Switch kernel', expect_ret=0)
             cmd = "sudo systemctl kexec"
+            self.log.info("CMD: %s", cmd)
+            self.session.session.sendline("%s" % cmd)
+            time.sleep(10)
+            self.session.connect(timeout=self.ssh_wait_timeout)
+            utils_lib.run_cmd(self, 'uname -r', msg='check kernel', expect_ret=0, expect_kw=kernel[7:])
+
+    def test_kdump_fastboot_kexec_e(self):
+        '''
+        :avocado: tags=test_kdump_fastboot_kexec_e,acceptance,
+                       fast_check
+        polarion_id:
+        bz#: 1758323
+        "kexec -e": Run the currently loaded kernel. Note that it will reboot into the loaded kernel without calling shutdown(8).
+        '''
+        if not self.kdump_status:
+            self.cancel("Cancle test as kdump not running!")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'sudo rpm -qa|grep -e "kernel-[0-9]"'
+        output = utils_lib.run_cmd(self, cmd, msg='Get kernel version')
+        kernels_list = output.split('\n')
+        for kernel in kernels_list:
+            kernel_vmlinuz = "/boot/" + kernel.replace('kernel','vmlinuz')
+            kernel_initramfs = "/boot/" + kernel.replace('kernel','initramfs') + ".img"
+            cmd = "sudo kexec -l %s --initrd=%s --reuse-cmdline" % (kernel_vmlinuz, kernel_initramfs)
+            utils_lib.run_cmd(self, cmd, msg='Switch kernel', expect_ret=0)
+            cmd = "sudo kexec -e"
             self.log.info("CMD: %s", cmd)
             self.session.session.sendline("%s" % cmd)
             time.sleep(10)

@@ -17,7 +17,8 @@ cases:
     test_functional_kdump.py:KdumpTest.test_kdump_unknown_nmi_panic_disabled
     test_functional_kdump.py:KdumpTest.test_kdump_unknown_nmi_panic_enabled_sysrq_trigger
     test_functional_kdump.py:KdumpTest.test_kdump_each_cpu
-    test_functional_kdump.py:KdumpTest.test_kdump_fastboot
+    test_functional_kdump.py:KdumpTest.test_kdump_fastboot_systemctl_kexec
+    test_functional_kdump.py:KdumpTest.test_kdump_fastboot_kexec_e
     test_general_verification.py:GeneralVerification.test_check_gpgkey
     test_general_verification.py:GeneralVerification.test_check_timezone
     test_general_verification.py:GeneralVerification.test_check_virtwhat
