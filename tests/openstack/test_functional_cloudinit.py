@@ -15,6 +15,8 @@ class CloudinitTest(Test):
         self.ssh_wait_timeout = 600
         pre_delete = False
         pre_stop = False
+        if self.name.name.endswith("test_cloudinit_create_vm_login_repeatedly"):
+            return
         if self.name.name.endswith("test_cloudinit_login_with_publickey"):
             pre_delete = True
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
@@ -192,6 +194,24 @@ class CloudinitTest(Test):
                               msg='check /var/log/cloud-init-output.log',
                               is_get_console=False)
 
+    def test_cloudinit_create_vm_login_repeatedly(self):
+        """
+        :avocado: tags=tier3,cloudinit,test_cloudinit_create_vm_login_repeatedly
+        RHEL-188320 - CLOUDINIT-TC:create vm and login repeately
+        bz#: 1803928
+        create vm and login with ssh-key, run 50 times, because of race condition bug
+        """
+        pre_delete = True
+        for x in range(50):
+            self.log.info(str(x)+" run: create VM and login")
+            self.session = self.cloud.init_vm(pre_delete=pre_delete,
+                                          pre_stop=False)
+            output = self.session.cmd_output('whoami')
+            self.assertEqual(
+                self.vm.vm_username, output,
+                str(x)+" run: Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
+                % output)
+            time.sleep(30)
 
     def tearDown(self):
         self.session.close()
