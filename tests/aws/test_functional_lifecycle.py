@@ -3,6 +3,7 @@ from avocado_cloud.app.aws import EC2Snapshot
 from avocado_cloud.app.aws import aws
 import time
 import random
+from avocado_cloud.utils import utils_lib
 
 
 class LifeCycleTest(Test):
@@ -293,6 +294,31 @@ class LifeCycleTest(Test):
         ret = self.vm.modify_instance_type(old_type)
         self.assertTrue(ret, msg="Failed to restore instance type!")
 
+    def test_boot_nr_cpus(self):
+        '''
+        :avocado: tags=test_boot_nr_cpus
+        polarion_id:
+        bz#: 1844522
+        '''
+        self.log.info("Check system can boot with nr_cpu=1 and 2")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        for cpu in range(1,3):
+            cmd = 'sudo grubby --update-kernel=ALL --args="nr_cpus={}"'.format(cpu)
+            utils_lib.run_cmd(self, cmd, expect_ret=0, msg='boot with nr_cpus={}'.format(cpu))
+            self.log.info('Reboot system!')
+            self.vm.reboot(wait=True)
+            if 'metal' in self.vm.instance_type:
+                self.log.info("Wait {}".format(self.ssh_wait_timeout))
+                time.sleep(self.ssh_wait_timeout)
+            else:
+                self.log.info("Wait 60s")
+                time.sleep(60)
+            self.session.connect(timeout=self.ssh_wait_timeout)
+            utils_lib.run_cmd(self, 'lscpu', msg='list cpus')
+            cmd = "sudo cat /proc/cpuinfo |grep processor|wc -l"
+            utils_lib.run_cmd(self, cmd, expect_kw=str(cpu), msg='check cpus')
+            utils_lib.run_cmd(self, 'lscpu', msg='list cpus')
+
     def test_boot_fipsenabled(self):
         '''
         :avocado: tags=test_boot_fipsenabled
@@ -304,17 +330,6 @@ class LifeCycleTest(Test):
         cmd = 'uname -r'
         output = aws.run_cmd(self, cmd, expect_ret=0)
         if 'el7' in output:
-            # # rhel7 no arm support now, so skip checking arm
-            # blkid = None
-            # cmd = 'sudo lscpu'
-            # output = aws.run_cmd(self, cmd, expect_ret=0)
-            # if 'aarch64' in output:
-            #     cmd = 'sudo blkid /dev/nvme0n1p2 -o value|head -1'
-            #     blkid = aws.run_cmd(self,cmd,msg='Get boot uuid!')
-            #     cmd = 'sudo grubby --update-kernel=ALL --args="fips=1 \
-            # boot=UUID=%s"' % blkid
-            # else:
-            #     cmd = 'sudo grubby --update-kernel=ALL --args="fips=1"'
             cmd = 'sudo dracut -v -f'
             aws.run_cmd(self,
                         cmd,
@@ -333,12 +348,6 @@ class LifeCycleTest(Test):
             self.session.connect(timeout=self.ssh_wait_timeout)
             aws.run_cmd(self, 'cat /proc/cmdline', expect_kw='fips=1')
             aws.run_cmd(self, 'dmesg', msg='save dmesg')
-            # if blkid is not None:
-            #     cmd = 'sudo grubby --update-kernel=ALL  --remove-args=\
-            # "fips=1 boot=UUID=%s"' % blkid
-            # else:
-            #     cmd = 'sudo grubby --update-kernel=ALL  --remove-args=\
-            # "fips=1"'
             cmd = 'sudo grubby --update-kernel=ALL  --remove-args="fips=1"'
             aws.run_cmd(self, cmd, msg='Disable fips!')
         else:
@@ -462,6 +471,19 @@ class LifeCycleTest(Test):
             aws.cleanup_stored(self.teststmpdir,
                                self.params,
                                resource_id=self.vm.res_id)
+        if "test_boot_nr_cpus" in self.name.name:
+            for cpu in range(1,3):
+                cmd = 'sudo grubby --update-kernel=ALL --remove-args="nr_cpus={}"'.format(cpu)
+                utils_lib.run_cmd(self, cmd, msg='remove nr_cpus={}'.format(cpu))
+
+            self.log.info('Reboot system!')
+            self.vm.reboot(wait=True)
+            if 'metal' in self.vm.instance_type:
+                self.log.info("Wait {}".format(self.ssh_wait_timeout))
+                time.sleep(self.ssh_wait_timeout)
+            else:
+                self.log.info("Wait 60s")
+                time.sleep(60)
         if self.session.session.is_responsive(
         ) is not None and self.vm.is_started():
             aws.gcov_get(self)

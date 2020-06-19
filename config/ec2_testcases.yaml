@@ -10,6 +10,7 @@ cases:
     test_functional_lifecycle.py:LifeCycleTest.test_create_snapshot_vmrunning
     test_functional_lifecycle.py:LifeCycleTest.test_create_snapshot_vmstopped
     test_functional_lifecycle.py:LifeCycleTest.test_change_instance_type
+    test_functional_lifecycle.py:LifeCycleTest.test_boot_nr_cpus
     test_functional_lifecycle.py:LifeCycleTest.test_boot_fipsenabled
     test_functional_lifecycle.py:LifeCycleTest.test_boot_debugkernel
     test_functional_kdump.py:KdumpTest.test_kdump_no_specify_cpu
