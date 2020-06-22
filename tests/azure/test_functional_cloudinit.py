@@ -8,6 +8,7 @@ from avocado_cloud.app.azure import AzureAccount
 from avocado_cloud.app.azure import AzureNIC
 from avocado_cloud.app.azure import AzurePublicIP
 from avocado_cloud.app.azure import AzureNicIpConfig
+from avocado_cloud.app.azure import AzureImage
 from distutils.version import LooseVersion
 from avocado_cloud.utils.utils_azure import command
 
@@ -24,9 +25,15 @@ class CloudinitTest(Test):
             if LooseVersion(self.project) < LooseVersion('7.8'):
                 self.cancel(
                     "Skip case because RHEL-{} ondemand image doesn't support gen2".format(self.project))
-            cloud = Setup(self.params, self.name, size="DC2s")
+            cloud = Setup(self.params, self.name, size="DS2_v2")
         else:
             cloud = Setup(self.params, self.name)
+        if self.case_short_name == "test_cloudinit_provision_gen2_vm":
+            self.image = AzureImage(self.params, generation="V2")
+            self.image.create()
+            cloud.vm.image = self.image.name
+            cloud.vm.vm_name += "-gen2"
+            cloud.vm.use_unmanaged_disk = False
         self.vm = cloud.vm
         self.package = self.params.get("packages", "*/Other/*")
         if self.case_short_name in [
