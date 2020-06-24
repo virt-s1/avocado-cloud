@@ -13,6 +13,7 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_extend_root_partition_and_filesystem
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_regenerate_sshd_keypairs
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_resize_partition_in_gpt
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_resize_partition_in_mbr
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_start_sector_equal_to_partition_size
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_upgrade_downgrade_package
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_multiple_nics
