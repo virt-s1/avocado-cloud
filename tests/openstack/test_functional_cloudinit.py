@@ -213,5 +213,73 @@ class CloudinitTest(Test):
                 % output)
             time.sleep(30)
 
+    def _growpart_auto_resize_partition(self, label):
+        """
+        :param label: msdos/gpt
+        """
+        self.session.cmd_output("sudo su -")
+        self.assertEqual(
+            self.session.cmd_status_output("which growpart")[0], 0,
+            "No growpart command.")
+
+        device = "/tmp/testdisk"
+        if os.path.exists(device):
+            self.session.cmd_output("rm -f {}".format(device))
+        self.session.cmd_output("truncate -s 2G {}".format(device))
+        self.session.cmd_output(
+            "parted -s {} mklabel {}".format(device, label))
+        part_type = "primary" if label == "msdos" else ""
+        part_name = "xfs" if label == "gpt" else ""
+        # 1 partition
+        self.session.cmd_output(
+            "parted -s {} mkpart {} {} 0 1000".format(device, part_type, part_name))
+        self.session.cmd_output("parted -s {} print".format(device))
+        self.assertEqual(
+            self.session.cmd_status_output("growpart {} 1".format(device))[0],
+            0, "Fail to run growpart")
+        self.assertEqual(
+            "2147MB",
+            self.session.cmd_output(
+                "parted -s %s print|grep ' 1 '|awk '{print $3}'" % device),
+            "Fail to resize partition")
+        # 2 partitions
+        self.session.cmd_output("parted -s {} rm 1".format(device))
+        self.session.cmd_output(
+            "parted -s {} mkpart {} {} 0 1000".format(device, part_type, part_name))
+        self.session.cmd_output(
+            "parted -s {} mkpart {} {} 1800 1900".format(device, part_type, part_name))
+        self.session.cmd_output("parted -s {} print".format(device))
+        exit_status, output = self.session.cmd_status_output(
+            "growpart {} 1".format(device))
+        self.assertEqual(exit_status, 0,
+                         "Run growpart failed: {}".format(output))
+        self.assertEqual(
+            "1800MB",
+            self.session.cmd_output(
+                "parted -s %s print|grep ' 1 '|awk '{print $3}'" % device),
+            "Fail to resize partition")
+
+    def test_cloudutils_growpart_auto_resize_partition_in_gpt(self):
+        """
+        :avocado: tags=tier1,cloud_utils_growpart
+        RHEL-171053: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
+                     partition in gpt
+        BZ#1695091
+        """
+        self.log.info("RHEL-171053: CLOUDINIT-TC: [cloud-utils-growpart] \
+Auto resize partition in gpt")
+        self._growpart_auto_resize_partition("gpt")
+
+
+    def test_cloudutils_growpart_auto_resize_partition_in_mbr(self):
+        """
+        :avocado: tags=tier1,cloud_utils_growpart
+        RHEL-188633: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
+                     partition in MBR
+        """
+        self.log.info("")
+        self._growpart_auto_resize_partition("msdos")
+
+
     def tearDown(self):
         self.session.close()

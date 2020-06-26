@@ -8,3 +8,5 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_warn
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_error
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_login_repeatedly
+    test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_gpt
+    test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_mbr
