@@ -14,6 +14,7 @@ from avocado_cloud.utils.utils_azure import command
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
+
 class CloudinitTest(Test):
     def setUp(self):
         account = AzureAccount(self.params)
@@ -489,13 +490,15 @@ disk mount point")
         RHEL-188130: WALA-TC: [Cloudinit] Check cloud-init service status
         The 4 cloud-init services status should be "active"
         """
-        self.log.info("RHEL-188130: WALA-TC: [Cloudinit] Check cloud-init service status")
+        self.log.info(
+            "RHEL-188130: WALA-TC: [Cloudinit] Check cloud-init service status")
         service_list = ['cloud-init-local',
                         'cloud-init',
                         'cloud-config',
                         'cloud-final']
         for service in service_list:
-            output = self.session.cmd_output("sudo systemctl is-active {}".format(service))
+            output = self.session.cmd_output(
+                "sudo systemctl is-active {}".format(service))
             self.assertEqual(output, 'active',
                              "{} status is not correct: {}".format(service, output))
 
@@ -505,10 +508,12 @@ disk mount point")
         RHEL-188029: WALA-TC: [Cloudinit] Check CRITICAL cloud-init log
         Check cloud-init log. There shouldn't be CRITICAL logs.
         """
-        self.log.info("RHEL-188029: WALA-TC: [Cloudinit] Check CRITICAL cloud-init log")
+        self.log.info(
+            "RHEL-188029: WALA-TC: [Cloudinit] Check CRITICAL cloud-init log")
         output = self.session.cmd_output(
             "sudo grep -i 'critical' /var/log/cloud-init.log")
-        self.assertEqual("", output, "There're CRITICAL logs: {0}".format(output))
+        self.assertEqual(
+            "", output, "There're CRITICAL logs: {0}".format(output))
 
     def test_cloudinit_check_cloudinit_log(self):
         """
@@ -574,29 +579,24 @@ disk mount point")
                 "sudo ls /run/cloud-init/dhclient.hooks/*.json")[0], 0,
             "Should not run cloud-init if it is not enabled")
 
-    def test_cloudinit_auto_resize_partition_in_gpt(self):
+    def _cloudinit_auto_resize_partition(self, label):
         """
-        :avocado: tags=tier1,cloud_utils_growpart
-        RHEL-171053: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
-                     partition in gpt
-        BZ#1695091
+        :param label: msdos/gpt
         """
-        self.log.info("RHEL-171053: CLOUDINIT-TC: [cloud-utils-growpart] \
-Auto resize partition in gpt")
         self.session.cmd_output("sudo su -")
         self.assertEqual(
             self.session.cmd_status_output("which growpart")[0], 0,
             "No growpart command.")
-        # self.vm.unmanaged_disk_attach(
-        #     name=self.vm.vm_name+"-disk1", size="5")
         device = "/tmp/testdisk"
         if "/dev" not in device:
             self.session.cmd_output("rm -f {}".format(device))
         self.session.cmd_output("truncate -s 2G {}".format(device))
-        self.session.cmd_output("parted -s {} mklabel gpt".format(device))
+        self.session.cmd_output(
+            "parted -s {} mklabel {}".format(device, label))
+        part_type = "primary" if label == "msdos" else ""
         # 1 partition
         self.session.cmd_output(
-            "parted -s {} mkpart xfs 0 1000".format(device))
+            "parted -s {} mkpart {} xfs 0 1000".format(device, part_type))
         self.session.cmd_output("parted -s {} print".format(device))
         self.assertEqual(
             self.session.cmd_status_output("growpart {} 1".format(device))[0],
@@ -609,9 +609,9 @@ Auto resize partition in gpt")
         # 2 partitions
         self.session.cmd_output("parted -s {} rm 1".format(device))
         self.session.cmd_output(
-            "parted -s {} mkpart xfs 0 1000".format(device))
+            "parted -s {} mkpart {} xfs 0 1000".format(device, part_type))
         self.session.cmd_output(
-            "parted -s {} mkpart xfs 1800 1900".format(device))
+            "parted -s {} mkpart {} xfs 1800 1900".format(device, part_type))
         self.session.cmd_output("parted -s {} print".format(device))
         exit_status, output = self.session.cmd_status_output(
             "growpart {} 1".format(device))
@@ -622,6 +622,27 @@ Auto resize partition in gpt")
             self.session.cmd_output(
                 "parted -s %s print|grep ' 1 '|awk '{print $3}'" % device),
             "Fail to resize partition")
+
+    def test_cloudinit_auto_resize_partition_in_gpt(self):
+        """
+        :avocado: tags=tier1,cloud_utils_growpart
+        RHEL-171053: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
+                     partition in gpt
+        BZ#1695091
+        """
+        self.log.info("RHEL-171053: CLOUDINIT-TC: [cloud-utils-growpart] \
+Auto resize partition in gpt")
+        self._cloudinit_auto_resize_partition("gpt")
+
+    def test_cloudinit_auto_resize_partition_in_mbr(self):
+        """
+        :avocado: tags=tier1,cloud_utils_growpart
+        RHEL-188633: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
+                     partition in MBR
+        """
+        self.log.info("RHEL-188633: CLOUDINIT-TC: [cloud-utils-growpart] \
+Auto resize partition in gpt")
+        self._cloudinit_auto_resize_partition("msdos")
 
     def test_cloudinit_start_sector_equal_to_partition_size(self):
         """
@@ -796,9 +817,9 @@ EOF""".format(device, size))
             "yum upgrade /tmp/{} -y --disablerepo=*".format(self.package))[0],
             "Fail to upgrade package through yum")
         self.assertNotIn("disabled", self.session.cmd_output("systemctl is-enabled cloud-init-local cloud-init cloud-config cloud-final"),
-                        "After upgrade through yum, the cloud-init services are not enabled")
+                         "After upgrade through yum, the cloud-init services are not enabled")
         self.assertNotIn("inactive", self.session.cmd_output("systemctl is-active cloud-init-local cloud-init cloud-config cloud-final"),
-                        "After upgrade through yum, the cloud-init services are not active")
+                         "After upgrade through yum, the cloud-init services are not active")
         self.session.cmd_output("rm -f /var/log/cloud-init*")
         self.session.close()
         self.vm.reboot()
