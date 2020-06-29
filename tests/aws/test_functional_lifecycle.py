@@ -300,9 +300,11 @@ class LifeCycleTest(Test):
         polarion_id:
         bz#: 1844522
         '''
-        self.log.info("Check system can boot with nr_cpu=1 and 2")
+        expect_cpus = self.params.get('cpu', '*/instance_types/*')
         self.session.connect(timeout=self.ssh_wait_timeout)
         for cpu in range(1,3):
+            if cpu > int(expect_cpus):
+                break
             cmd = 'sudo grubby --update-kernel=ALL --args="nr_cpus={}"'.format(cpu)
             utils_lib.run_cmd(self, cmd, expect_ret=0, msg='boot with nr_cpus={}'.format(cpu))
             self.log.info('Reboot system!')

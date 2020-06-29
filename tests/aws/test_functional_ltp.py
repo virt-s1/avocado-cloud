@@ -27,8 +27,7 @@ class LTPRun(Test):
         mini_mem = self.params.get('memory', '*/instance_types/*')
         if int(mini_mem) < 2:
             self.cancel('Cancel case as low memory')
-        cmd = 'sudo lscpu'
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = aws.run_cmd(self, 'sudo lscpu', expect_ret=0)
         if 'aarch64' in output and int(mini_mem) < 16:
             self.cancel('Cancel case as low memory')
         if self.vm.instance_type in black_list:
@@ -83,8 +82,7 @@ at least which ltp not handle')
                       file_name='net_stress.ipsec_icmp')
         self.log.info("Try to remove ccm module after test.")
         try:
-            cmd = 'sudo modprobe -r ccm'
-            aws.run_cmd(self, cmd, expect_ret=0)
+            aws.run_cmd(self, 'sudo modprobe -r ccm', expect_ret=0)
         except Exception as err:
             aws.handle_exception(self.vm, err)
             self.fail("Got exceptions during test!")
