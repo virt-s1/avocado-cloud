@@ -213,6 +213,27 @@ class CloudinitTest(Test):
                 % output)
             time.sleep(30)
 
+    def test_cloudutils_growpart_resize_partition_first_boot(self):
+        """
+        :avocado: tags=tier1,cloud_utils_growpart
+        RHEL-188669: CLOUDINIT-TC:[cloud-utils-growpart]resize partition during VM first boot
+        """
+        self.log.info("RHEL-188669: CLOUDINIT-TC:[cloud-utils-growpart]resize partition \
+during VM first boot")
+        self.session.cmd_output("sudo su -")
+        device = "/dev/vda"
+        # Partition Table: gpt, partition number is 3
+        # Partition Table: msdos, partition number is 1
+        part_type = self.session.cmd_output("parted -s %s print|grep 'Partition Table'|awk '{print $3}'" %device)
+        part_number = "3" if part_type == "gpt" else "1"
+        # VM flavor m1.medium, size 40G
+        self.assertEqual(
+            "42.9GB",
+            self.session.cmd_output(
+                "parted -s %s print|grep ' %s '|awk '{print $3}'" %(device, part_number)),
+            "Fail to resize partition during first boot")
+        
+
     def _growpart_auto_resize_partition(self, label):
         """
         :param label: msdos/gpt
