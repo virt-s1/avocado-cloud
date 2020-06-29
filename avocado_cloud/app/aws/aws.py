@@ -202,9 +202,8 @@ def check_session(self):
     if not self.session.connect(timeout=self.ssh_wait_timeout):
         self.log.error("session connect failed!")
     try:
-        cmd = 'uname -r'
         run_cmd(self,
-                cmd,
+                'uname -r',
                 expect_ret=0,
                 msg='Check whether session is working!')
         remove_resource_blacklist(self)
@@ -659,8 +658,7 @@ def gcov_get(self):
     self.session.connect(timeout=self.ssh_wait_timeout)
     cmd = 'sudo rm -rf ec2_cov.info'
     run_cmd(self, cmd)
-    cmd = 'sudo su'
-    run_cmd(self, cmd)
+    run_cmd(self, 'sudo su')
     cmd = 'sudo lcov  -c -b /root/rpmbuild/BUILD/kernel*/linux-*/ -o \
 ec2_cov.info'
 
@@ -683,18 +681,15 @@ def get_memleaks(self):
     '''
         '''
     self.log.info("Check memory leaks")
-    cmd = 'sudo uname -a'
-    output = run_cmd(self, cmd, expect_ret=0)
+    output = run_cmd(self, 'uname -a', expect_ret=0)
     if 'debug' not in output:
         self.log.info('Not in debug kernel')
         return False
-    cmd = 'cat /proc/cmdline'
-    output = run_cmd(self, cmd, expect_ret=0)
+    output = run_cmd(self, 'cat /proc/cmdline', expect_ret=0)
     if 'kmemleak=on' not in output:
         self.log.info('kmemleak is not on')
         return False
-    cmd = 'sudo su'
-    run_cmd(self, cmd, expect_ret=0)
+    run_cmd(self, 'sudo su', expect_ret=0)
     cmd = 'echo scan > /sys/kernel/debug/kmemleak'
     run_cmd(self, cmd, expect_ret=0, timeout=1800)
 

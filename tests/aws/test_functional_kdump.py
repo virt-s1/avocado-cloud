@@ -43,8 +43,7 @@ class KdumpTest(Test):
         utils_lib.run_cmd(self, "find /var/crash", msg="After cleanup")
 
     def _trigger_kdump_on_cpu(self, cpu=None):
-        cmd = 'sudo su'
-        aws.run_cmd(self, cmd, msg="Switch to root")
+        aws.run_cmd(self, 'sudo su', msg="Switch to root")
         cmd = 'echo 1 > /proc/sys/kernel/sysrq'
         aws.run_cmd(self,
                     cmd,
@@ -74,16 +73,12 @@ class KdumpTest(Test):
         aws.init_test(self)
         time.sleep(30)
         self._get_kdump_status()
-        status, output = self.session.cmd_status_output(
-            "grep processor /proc/cpuinfo |wc -l")
-        if status == 0:
-            self.cpu_count = output
+        self.cpu_count = utils_lib.run_cmd(self,
+                    "grep processor /proc/cpuinfo |wc -l",
+                    expect_ret=0)
         self.log.info("CPU(s): %s" % self.cpu_count)
-        self.log.debug("output: %s" % output)
-        cmd = "lscpu"
-        self.log.info("CMD: %s" % cmd)
-        aws.run_cmd(self,
-                    cmd,
+        utils_lib.run_cmd(self,
+                    'lscpu',
                     expect_ret=0,
                     cancel_not_kw='Xen',
                     msg="Not run in xen instance")
