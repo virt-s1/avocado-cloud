@@ -309,12 +309,13 @@ if crashed successfully!")
         :avocado: tags=test_kdump_fastboot_systemctl_kexec,acceptance,
                        fast_check
         polarion_id:
-        bz#: 1758323
+        bz#: 1758323, 1841578
         "systemctl kexec": Shut down and reboot the system via kexec.
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
         self.session.connect(timeout=self.ssh_wait_timeout)
+        utils_lib.run_cmd(self,'uname -r', cancel_not_kw='el7,el6', msg='Not full support earlier than el8, skip!')
         cmd = 'sudo rpm -qa|grep -e "kernel-[0-9]"'
         output = utils_lib.run_cmd(self, cmd, msg='Get kernel version')
         kernels_list = output.split('\n')
@@ -335,11 +336,12 @@ if crashed successfully!")
         :avocado: tags=test_kdump_fastboot_kexec_e,acceptance,
                        fast_check
         polarion_id:
-        bz#: 1758323
+        bz#: 1758323, 1841578
         "kexec -e": Run the currently loaded kernel. Note that it will reboot into the loaded kernel without calling shutdown(8).
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
+        utils_lib.run_cmd(self,'uname -r', cancel_not_kw='el7,el6', msg='Not full support earlier than el8, skip!')
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo rpm -qa|grep -e "kernel-[0-9]"'
         output = utils_lib.run_cmd(self, cmd, msg='Get kernel version')
