@@ -1,6 +1,7 @@
 from avocado import Test
 from avocado_cloud.app.aws import aws
 from avocado_cloud.app.aws import EC2Volume
+from avocado_cloud.utils import utils_lib
 import time
 import re
 import json
@@ -24,7 +25,7 @@ class StorageTest(Test):
                                              '*/instance_types/*')) - 1
         start_time = time.time()
         while True:
-            output = aws.run_cmd(self,
+            output = utils_lib.run_cmd(self,
                                  lsblk_cmd,
                                  expect_ret=0,
                                  msg='Get online disk count.')
@@ -42,7 +43,7 @@ later! expected: %s lsblk: %s assigned: %s" %
                 break
             end_time = time.time()
             if int(end_time) - int(start_time) > 60:
-                aws.run_cmd(self, 'dmesg', expect_ret=0)
+                utils_lib.run_cmd(self, 'dmesg', expect_ret=0)
                 self.fail(
                     "volume cound not match assinged after attached 60s!")
             time.sleep(5)
@@ -53,7 +54,7 @@ later! expected: %s lsblk: %s assigned: %s" %
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo lsblk -d'
-        output = aws.run_cmd(self,
+        output = utils_lib.run_cmd(self,
                              cmd,
                              expect_ret=0,
                              msg='Get online disk count.')
@@ -67,13 +68,13 @@ later! expected: %s lsblk: %s assigned: %s" %
         testing
         '''
         cmd = 'lsblk -l -o NAME -d|grep -v NAME'
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         disk_list = output.split('\n')
         if 'xvda' in disk_list:
             disk_list.remove('xvda')
         else:
             cmd = " sudo lsblk -o NAME,MOUNTPOINT|grep -w '/'"
-            out = aws.run_cmd(self, cmd)
+            out = utils_lib.run_cmd(self, cmd)
             bootdisk = re.findall('nvme[0-9]+', out)[0]
             self.log.info("Boot disk is %s" % bootdisk)
             disk_list.remove('%sn1' % bootdisk)
@@ -89,14 +90,14 @@ later! expected: %s lsblk: %s assigned: %s" %
         '''
         test_disk = self._get_test_disk()
         cmd = 'sudo yum install -y blktrace fio nvme-cli git sysstat'
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
         cmd = 'which git'
-        aws.run_cmd(self, cmd, expect_ret=0)
-        aws.run_cmd(self, 'sudo rm -rf blktests', expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, 'sudo rm -rf blktests', expect_ret=0)
         cmd = 'git clone https://github.com/osandov/blktests.git'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = "echo 'TEST_DEVS=(/dev/%s)' > blktests/config" % test_disk
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
 
     def setUp(self):
         self.session = None
@@ -141,7 +142,7 @@ later! expected: %s lsblk: %s assigned: %s" %
         cmd = 'sudo lsblk -d -O -J'
         disk_discard = None
         try:
-            output = aws.run_cmd(self, cmd)
+            output = utils_lib.run_cmd(self, cmd)
             disks_dict = json.loads(output)
             disk_discard = None
             for disk in disks_dict["blockdevices"]:
@@ -153,7 +154,7 @@ later! expected: %s lsblk: %s assigned: %s" %
         except ValueError as err:
             self.log.info("lsblk no json support")
             cmd = 'sudo lsblk -o NAME,DISC-MAX -d|grep -v NAME'
-            output = aws.run_cmd(self, cmd)
+            output = utils_lib.run_cmd(self, cmd)
             for disk in output.split('\n'):
                 if '0B' not in disk:
                     disk_discard = disk.split(' ')[0]
@@ -162,14 +163,14 @@ later! expected: %s lsblk: %s assigned: %s" %
         if disk_discard is None:
             self.cancel("No disk supports discard found.")
         cmd = 'sudo lsblk |grep -i part'
-        output = aws.run_cmd(self, cmd)
+        output = utils_lib.run_cmd(self, cmd)
         if disk_discard not in output:
             cmd = "sudo mkfs.xfs /dev/%s" % disk_discard
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
             cmd = "sudo mount /dev/%s /mnt" % disk_discard
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = "sudo fstrim -v /mnt"
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
 
     def test_nvme_basic(self):
         '''
@@ -180,17 +181,17 @@ later! expected: %s lsblk: %s assigned: %s" %
         self.session = self.session
         aws.check_session(self)
         cmd = 'lsblk'
-        out = aws.run_cmd(self, cmd)
+        out = utils_lib.run_cmd(self, cmd)
         if 'nvme' not in out:
             self.cancel('No nvme disk found!')
         aws.install_pkgs(self.session, 'pciutils')
         find_nvme_pci = 'sudo lspci|grep Non-Volatile'
         find_nvme_module = 'sudo lsmod|grep nvme'
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     find_nvme_pci,
                     expect_ret=0,
                     msg='Try to find nvme pci!')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     find_nvme_module,
                     expect_ret=0,
                     msg='Try to find nvme module in loading drivers!')
@@ -198,24 +199,24 @@ later! expected: %s lsblk: %s assigned: %s" %
         aws.install_pkgs(self.session, 'nvme-cli')
         nvme_list = 'sudo nvme list'
         self.log.info("CMD: %s" % nvme_list)
-        output = aws.run_cmd(self, nvme_list, expect_ret=0)
+        output = utils_lib.run_cmd(self, nvme_list, expect_ret=0)
         search_for = re.compile(r'/dev/nvme\dn\d')
         nvme_blks = search_for.findall(output)
         if len(nvme_blks) > 0:
             self.log.info("Found nvme devices %s" % nvme_blks)
         else:
             self.fail("No nvme blks found %s" % output)
-        output = aws.run_cmd(self, 'lsblk', expect_ret=0)
+        output = utils_lib.run_cmd(self, 'lsblk', expect_ret=0)
         if 'xvda' in output:
             bootdisk = 'xvda'
         else:
             cmd = " sudo lsblk -o NAME,MOUNTPOINT|grep -w '/'"
-            out = aws.run_cmd(self, cmd)
+            out = utils_lib.run_cmd(self, cmd)
             bootdisk = re.findall('nvme[0-9]+', out)[0]
         self.log.info("Boot disk is %s" % bootdisk)
         for nvme_blk in nvme_blks:
             nvme_read = 'sudo nvme read %s --data-size=10000' % nvme_blk
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         nvme_read,
                         expect_ret=0,
                         expect_kw=r'read: Success',
@@ -223,7 +224,7 @@ later! expected: %s lsblk: %s assigned: %s" %
             if bootdisk not in nvme_blk:
                 nvme_write = 'echo "write test"|sudo nvme write %s \
 --data-size=10000' % nvme_blk
-                aws.run_cmd(self,
+                utils_lib.run_cmd(self,
                             nvme_write,
                             expect_ret=0,
                             expect_kw=r'write: Success',
@@ -242,7 +243,7 @@ later! expected: %s lsblk: %s assigned: %s" %
         self.session = self.session
         aws.check_session(self)
         fdisk_cmd = 'sudo fdisk -l'
-        aws.run_cmd(self, fdisk_cmd, expect_ret=0)
+        utils_lib.run_cmd(self, fdisk_cmd, expect_ret=0)
 
     def test_check_disk_count(self):
         '''
@@ -319,7 +320,7 @@ later! expected: %s lsblk: %s assigned: %s" %
             if not i.attach_to_instance(self.vm.instance_id, disk_dict.get(i)):
                 aws.get_debug_log(self)
                 self.fail("Attached failed!")
-        aws.run_cmd(self, 'dmesg|tail -20', msg='save dmesg after attached!')
+        utils_lib.run_cmd(self, 'dmesg|tail -20', msg='save dmesg after attached!')
         time.sleep(30)
         count2 = self._get_disk_online()
         if count2 - count1 != 4:
@@ -369,13 +370,13 @@ later! expected: %s lsblk: %s assigned: %s" %
             self.cancel("No local disk have, cancel case!")
         self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_session(self)
-        aws.run_cmd(self, 'which virsh', cancel_not_kw="no virsh")
+        utils_lib.run_cmd(self, 'which virsh', cancel_not_kw="no virsh")
 
-        # aws.run_cmd(self, 'lscpu', expect_ret=0,cancel_not_kw="Xen,aarch64,
+        # utils_lib.run_cmd(self, 'lscpu', expect_ret=0,cancel_not_kw="Xen,aarch64,
         #     AuthenticAMD")
 
         cmd = 'sudo grubby --update-kernel=ALL --args="intel_iommu=on"'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         if not self.vm.is_stopped():
             self.vm.stop(loops=4)
         if not self.vm.is_stopped():
@@ -385,52 +386,52 @@ later! expected: %s lsblk: %s assigned: %s" %
         if self.vm.start(wait=True):
             self.session.connect(timeout=self.ssh_wait_timeout)
             aws.check_session(self)
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         'cat /proc/cmdline',
                         msg='Get instance boot cmdline')
-            aws.run_cmd(self, 'sudo lspci', msg="get pci list")
+            utils_lib.run_cmd(self, 'sudo lspci', msg="get pci list")
             cmd = 'sudo find /sys/devices -name *nvme*n1p1*'
-            tmp_root = aws.run_cmd(self, cmd, msg="get boot nvme pci")
+            tmp_root = utils_lib.run_cmd(self, cmd, msg="get boot nvme pci")
             boot_pci = tmp_root.split('/')[-2]
             cmd = 'sudo find /sys/devices -name *nvme*|grep -v %s|\
 grep -i pci|grep n1' % boot_pci
-            tmp_pci = aws.run_cmd(self, cmd, msg="get test pci")
+            tmp_pci = utils_lib.run_cmd(self, cmd, msg="get test pci")
             tmp_pci = tmp_pci.split('/')[-4]
             # cmd = 'sudo lspci|grep -i Non-Volatile|tail -1'
-            # tmp_pci = aws.run_cmd(self, cmd,msg="get last nvme pci device")
+            # tmp_pci = utils_lib.run_cmd(self, cmd,msg="get last nvme pci device")
             # tmp_pci = tmp_pci.split(' ')[0]
             tmp_pci = tmp_pci.replace('.', '_')
             tmp_pci = tmp_pci.replace(':', '_')
 
-            pci_dev_1 = aws.run_cmd(
+            pci_dev_1 = utils_lib.run_cmd(
                 self,
                 'sudo virsh nodedev-list|grep %s |tail -1' % tmp_pci,
                 msg='pick up device to detach')
             if pci_dev_1.endswith('1'):
                 pci_dev_0 = pci_dev_1.rstrip('1') + '0'
-                aws.run_cmd(self,
+                utils_lib.run_cmd(self,
                             'sudo virsh nodedev-detach %s' % pci_dev_0,
                             msg='detach pci device',
                             expect_ret=0)
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         'sudo virsh nodedev-detach %s' % pci_dev_1,
                         msg='detach pci device',
                         expect_ret=0)
 
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         'sudo virsh nodedev-reattach %s' % pci_dev_1,
                         msg='reattach pci device',
                         expect_ret=0)
             if pci_dev_1.endswith('1'):
-                aws.run_cmd(self,
+                utils_lib.run_cmd(self,
                             'sudo virsh nodedev-reattach %s' % pci_dev_0,
                             msg='reattach pci device',
                             expect_ret=0)
-            aws.run_cmd(self, 'dmesg|tail -20', expect_ret=0)
+            utils_lib.run_cmd(self, 'dmesg|tail -20', expect_ret=0)
 
             cmd = 'sudo grubby --update-kernel=ALL \
 --remove-args="intel_iommu=on"'
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
 
         else:
             self.fail("Failed to start instance!")
@@ -448,7 +449,7 @@ grep -i pci|grep n1' % boot_pci
         aws.check_session(self)
         aws.check_cmd(self, cmd='iostat')
         cmd = 'sudo  iostat -x -o JSON'
-        output = aws.run_cmd(self, cmd)
+        output = utils_lib.run_cmd(self, cmd)
         try:
             res_dict = json.loads(output)
             for x in res_dict["sysstat"]["hosts"][0]["statistics"][0]["disk"]:
@@ -460,9 +461,9 @@ grep -i pci|grep n1' % boot_pci
         except ValueError as err:
             self.log.info("cmd has no json support")
             cmd = "sudo iostat -x"
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
             cmd = "sudo iostat -x|awk -F' ' '{print $NF}'"
-            output = aws.run_cmd(self, cmd, expect_ret=0)
+            output = utils_lib.run_cmd(self, cmd, expect_ret=0)
             compare = False
             for util in output.split('\n'):
                 if 'util' in util:
@@ -505,14 +506,14 @@ grep -i pci|grep n1' % boot_pci
         cmd = ''
         cmd = 'cd blktests;sudo ./check block'
         # Not all cases are pass due to test tool issue
-        output = aws.run_cmd(self, cmd, timeout=1200)
+        output = utils_lib.run_cmd(self, cmd, timeout=1200)
         if output is None:
             self.fail("Cannot get output!")
         if output.count('[failed]') > 1:
             self.fail("%s failed found" % output.count('[failed]'))
 
         cmd = 'dmesg'
-        aws.run_cmd(self, cmd, msg="dmesg after test")
+        utils_lib.run_cmd(self, cmd, msg="dmesg after test")
 
     def test_blktests_nvme(self):
         '''
@@ -543,13 +544,13 @@ grep -i pci|grep n1' % boot_pci
                     self.fail("Attached failed!")
         self._get_blktest()
         cmd = 'cd blktests;sudo ./check nvme'
-        output = aws.run_cmd(self, cmd, timeout=1200)
+        output = utils_lib.run_cmd(self, cmd, timeout=1200)
         # Not all cases are pass due to test tool issue
-        output = aws.run_cmd(self, cmd, timeout=1200)
+        output = utils_lib.run_cmd(self, cmd, timeout=1200)
         if output.count('[failed]') > 1:
             self.fail("%s failed found" % output.count('[failed]'))
         cmd = 'dmesg'
-        aws.run_cmd(self, cmd, msg="dmesg after test")
+        utils_lib.run_cmd(self, cmd, msg="dmesg after test")
 
     def test_fio_cpuclock(self):
         '''
@@ -560,9 +561,9 @@ grep -i pci|grep n1' % boot_pci
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
         aws.check_session(self)
-        aws.run_cmd(self, 'sudo lscpu', cancel_not_kw="aarch64")
+        utils_lib.run_cmd(self, 'sudo lscpu', cancel_not_kw="aarch64")
         cmd = 'sudo fio --cpuclock-test'
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     cmd,
                     expect_ret=0,
                     expect_kw="Pass",
@@ -578,7 +579,7 @@ grep -i pci|grep n1' % boot_pci
         self.session = self.session
         aws.check_session(self)
         cmd = 'sudo fio --crctest'
-        aws.run_cmd(
+        utils_lib.run_cmd(
             self,
             cmd,
             expect_ret=0,

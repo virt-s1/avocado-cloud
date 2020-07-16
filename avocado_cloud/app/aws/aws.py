@@ -9,6 +9,7 @@ import commands
 from avocado_cloud.app.aws import EC2Volume
 from avocado_cloud.app.aws import EC2VM
 from avocado_cloud.app import Setup
+from avocado_cloud.utils import utils_lib
 
 LOG = logging.getLogger('avocado.test')
 logging.basicConfig(level=logging.DEBUG)
@@ -202,7 +203,7 @@ def check_session(self):
     if not self.session.connect(timeout=self.ssh_wait_timeout):
         self.log.error("session connect failed!")
     try:
-        run_cmd(self,
+        utils_lib.run_cmd(self,
                 'uname -r',
                 expect_ret=0,
                 msg='Check whether session is working!')
@@ -370,7 +371,7 @@ def check_dmesg(self, log_keyword, match_word_exact=False):
     if match_word_exact:
         check_cmd = 'dmesg|grep -iw %s' % log_keyword
     ret = False
-    out = run_cmd(self,
+    out = utils_lib.run_cmd(self,
                   check_cmd,
                   expect_ret=0,
                   msg='Get dmesg log from guest!')
@@ -542,111 +543,6 @@ def set_ssh_wait_timeout(vm):
     return ssh_wait_timeout
 
 
-def run_cmd(self,
-            cmd,
-            expect_ret=None,
-            expect_not_ret=None,
-            expect_kw=None,
-            expect_not_kw=None,
-            expect_output=None,
-            msg=None,
-            cancel_kw=None,
-            cancel_not_kw=None,
-            timeout=60):
-    """run cmd with/without check return status/keywords and save log
-
-    Arguments:
-        self {Test instance} -- avocado test instance
-        cmd {string} -- cmd to run
-        expect_ret {int} -- expected return status
-        expect_not_ret {int} -- unexpected return status
-        expect_kw {string} -- string expected in output,seperate by ',' if
-                              check multi words
-        expect_not_kw {string} -- string not expected in output, seperate by
-                                  ',' if check multi words
-        expect_output {string} -- string exactly the same as output
-        cancel_kw {string} -- cancel case if kw not found, seperate by ','
-                              if check multi words
-        cancel_not_kw {string} -- cancel case if kw found, seperate by ','
-                              if check multi words
-        msg {string} -- addtional info to mark cmd run.
-
-    Keyword Arguments:
-        check_ret {bool} -- [whether check return] (default: {False})
-    """
-    self.log.info("CMD: %s", cmd)
-    status = None
-    output = None
-    exception_hit = False
-    try:
-        status, output = self.session.cmd_status_output(cmd, timeout=timeout)
-    except Exception as err:
-        self.log.error("Run cmd failed as %s" % err)
-        status = None
-        exception_hit = True
-    if exception_hit:
-        try:
-            self.log.info("Try to close and reconnect")
-            self.session.close()
-            self.session.connect(timeout=self.ssh_wait_timeout)
-        except Exception as err:
-            self.log.error("")
-            handle_exception(self.vm, err)
-        self.log.info("Test connection via uname, if still fail, restart vm")
-        try:
-            status, output = self.session.cmd_status_output('uname -r',
-                                                            timeout=120)
-            status, output = self.session.cmd_status_output(cmd,
-                                                            timeout=timeout)
-        except Exception as err:
-            self.log.error("")
-            handle_exception(self.vm, err)
-
-    if msg is not None:
-        self.log.info(msg)
-    if expect_ret is not None:
-        self.assertEqual(status,
-                         expect_ret,
-                         msg='ret is %s, expected is %s, output %s' %
-                         (status, expect_ret, output))
-    if expect_not_ret is not None:
-        self.assertNotEqual(
-            status,
-            expect_not_ret,
-            msg='ret is %s, expected not ret is %s, output %s' %
-            (status, expect_not_ret, output))
-    if expect_kw is not None:
-        for key_word in expect_kw.split(','):
-            self.assertIn(key_word,
-                          output,
-                          msg='expcted %s not found in %s' %
-                          (key_word, output))
-    if expect_not_kw is not None:
-        for key_word in expect_not_kw.split(','):
-            self.assertNotIn(key_word,
-                             output,
-                             msg='Unexpcted %s found in %s' %
-                             (key_word, output))
-    if expect_output is not None:
-        self.assertEqual(expect_output,
-                         output,
-                         msg='exactly expected %s, result %s' %
-                         (expect_output, output))
-    if cancel_kw is not None:
-        cancel_yes = True
-        for key_word in cancel_kw.split(','):
-            if key_word in output:
-                cancel_yes = False
-        if cancel_yes:
-            self.cancel("None of %s found, cancel case" % cancel_kw)
-    if cancel_not_kw is not None:
-        for key_word in cancel_not_kw.split(','):
-            if key_word in output:
-                self.cancel("%s found, cancel case" % key_word)
-    self.log.info("CMD out:%s" % output)
-    return output
-
-
 def gcov_get(self):
     '''
     get lcov log from guest
@@ -657,12 +553,12 @@ def gcov_get(self):
     self.log.info('Collect code coverage report!')
     self.session.connect(timeout=self.ssh_wait_timeout)
     cmd = 'sudo rm -rf ec2_cov.info'
-    run_cmd(self, cmd)
-    run_cmd(self, 'sudo su')
+    utils_lib.run_cmd(self, cmd)
+    utils_lib.run_cmd(self, 'sudo su')
     cmd = 'sudo lcov  -c -b /root/rpmbuild/BUILD/kernel*/linux-*/ -o \
 ec2_cov.info'
 
-    run_cmd(self, cmd, expect_ret=0)
+    utils_lib.run_cmd(self, cmd, expect_ret=0)
 
     remote_path = "ec2_cov.info"
     local_path = "%s/lcov/%s_%s_ec2_cov.info" % (self.job.logdir,
@@ -681,20 +577,20 @@ def get_memleaks(self):
     '''
         '''
     self.log.info("Check memory leaks")
-    output = run_cmd(self, 'uname -a', expect_ret=0)
+    output = utils_lib.run_cmd(self, 'uname -a', expect_ret=0)
     if 'debug' not in output:
         self.log.info('Not in debug kernel')
         return False
-    output = run_cmd(self, 'cat /proc/cmdline', expect_ret=0)
+    output = utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_ret=0)
     if 'kmemleak=on' not in output:
         self.log.info('kmemleak is not on')
         return False
-    run_cmd(self, 'sudo su', expect_ret=0)
+    utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
     cmd = 'echo scan > /sys/kernel/debug/kmemleak'
-    run_cmd(self, cmd, expect_ret=0, timeout=1800)
+    utils_lib.run_cmd(self, cmd, expect_ret=0, timeout=1800)
 
     cmd = 'cat /sys/kernel/debug/kmemleak'
-    output = run_cmd(self, cmd, expect_ret=0, timeout=1800)
+    output = utils_lib.run_cmd(self, cmd, expect_ret=0, timeout=1800)
     if len(output) > 0:
         self.fail('Memory leak found!')
 
@@ -708,11 +604,11 @@ def check_cmd(self, cmd=None):
     if ret == 0:
         return True
     self.log.info("No %s found!" % cmd)
-    arch = run_cmd(self, 'uname -p')
+    arch = utils_lib.run_cmd(self, 'uname -p')
     pkg_find = "sudo yum provides %s" % cmd
-    output = run_cmd(self, pkg_find, expect_ret=0)
+    output = utils_lib.run_cmd(self, pkg_find, expect_ret=0)
     pkg_list = re.findall(".*%s" % arch, output)
-    run_cmd(self, "sudo yum install -y %s" % pkg_list[0], expect_ret=0)
+    utils_lib.run_cmd(self, "sudo yum install -y %s" % pkg_list[0], expect_ret=0)
 
 
 def get_debug_log(self):
@@ -721,7 +617,7 @@ def get_debug_log(self):
     '''
     cmd_list = ['dmesg', 'sudo lsblk', 'sudo lspci']
     for cmd in cmd_list:
-        run_cmd(self, cmd, msg='Get %s output as failure!' % cmd)
+        utils_lib.run_cmd(self, cmd, msg='Get %s output as failure!' % cmd)
 
 
 def get_drift(self):
@@ -735,7 +631,7 @@ def get_drift(self):
     if ntp_server is None:
         ntp_server = 'de.ntp.org.cn'
     cmd = "ntpdate  -q %s" % ntp_server
-    output = run_cmd(self, cmd, expect_ret=0)
+    output = utils_lib.run_cmd(self, cmd, expect_ret=0)
     tmp_list = re.findall('offset [-0-9.]+', output)
     if tmp_list is None:
         self.fail("Failed to get offset!")

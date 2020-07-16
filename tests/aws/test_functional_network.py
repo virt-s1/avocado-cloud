@@ -4,6 +4,7 @@ from avocado_cloud.app.aws import NetworkInterface
 import time
 import decimal
 import re
+from avocado_cloud.utils import utils_lib
 
 
 class NetworkTest(Test):
@@ -125,7 +126,7 @@ class NetworkTest(Test):
         self.session = self.session1
         aws.check_session(self)
         cmd = "sudo ethtool -i eth0"
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         if 'ena' in output:
             self.log.info('ena found!')
             mtu_range = [0, 127, 128, 4500, 9216, 9217]
@@ -194,7 +195,7 @@ bandwidth higher than 40G')
         if self.params.get('ixgbevf', '*/instance_types/*') > 0:
             self.log.info("Configure shows this instance supports ixgbevf")
         else:
-            aws.run_cmd(self, eth_cmd, expect_ret=0, cancel_kw='ixgbevf')
+            utils_lib.run_cmd(self, eth_cmd, expect_ret=0, cancel_kw='ixgbevf')
 
         self.log.info("Trying to check sriov ixbgevf interface!")
 
@@ -236,7 +237,7 @@ bandwidth higher than 40G')
         if self.params.get('ena', '*/instance_types/*') > 0:
             self.log.info("Configure shows this instance supports ena")
         else:
-            aws.run_cmd(self, eth_cmd, expect_ret=0, cancel_kw='ena')
+            utils_lib.run_cmd(self, eth_cmd, expect_ret=0, cancel_kw='ena')
 
         self.log.info("Trying to check sriov ena interface!")
 
@@ -273,7 +274,7 @@ bandwidth higher than 40G')
         self.session = self.session1
         aws.check_session(self)
         cmd = "ethtool -i eth0"
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         if "driver: ena" not in output:
             self.cancel("No ena driver found!")
         self.log.info("Trying to check sriov ena boot messages!")
@@ -290,13 +291,13 @@ bandwidth higher than 40G')
         aws.check_session(self)
         cmd_string = 'modprobe -r ena;modprobe ena'
         cmd = 'sudo echo "%s" >/tmp/mod.sh' % cmd_string
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'sudo chmod 755 /tmp/mod.sh'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'sudo su'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = '/tmp/mod.sh'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
 
         aws.check_dmesg(self, 'ena', match_word_exact=True)
 
@@ -309,19 +310,19 @@ bandwidth higher than 40G')
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         cmd = 'sudo ethtool -i eth0'
-        output = aws.run_cmd(self, cmd, msg='Check network driver!')
+        output = utils_lib.run_cmd(self, cmd, msg='Check network driver!')
         if 'driver: vif' not in output:
             self.cancel('No xen_netfront used!')
         aws.check_session(self)
         cmd_string = 'modprobe -r xen_netfront;modprobe xen_netfront'
         cmd = 'sudo echo "%s" >/tmp/mod.sh' % cmd_string
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'sudo chmod 755 /tmp/mod.sh'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'sudo su'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = '/tmp/mod.sh'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
 
         aws.check_dmesg(self, 'ena', match_word_exact=True)
 
@@ -333,22 +334,22 @@ bandwidth higher than 40G')
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         cmd = 'sudo lspci'
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
         self.cancel('Cancel this case as bug 1687330 which is TESTONLY!')
         cmd = 'sudo find /sys -name reset* -type f|grep pci'
-        output = aws.run_cmd(self, cmd)
+        output = utils_lib.run_cmd(self, cmd)
         if 'reset' not in output:
             self.cancel("No pci support reset!")
         for pci_reset in output.split('\n'):
             cmd = 'sudo su'
-            aws.run_cmd(self, cmd)
+            utils_lib.run_cmd(self, cmd)
             cmd = 'echo 1 > %s' % pci_reset
-            aws.run_cmd(self, cmd, expect_ret=0, timeout=120)
+            utils_lib.run_cmd(self, cmd, expect_ret=0, timeout=120)
         aws.check_dmesg(self, 'fail')
         aws.check_dmesg(self, 'error')
         aws.check_dmesg(self, 'warn')
         cmd = 'dmesg'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='Call Trace')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='Call Trace')
 
     def test_ethtool_C_coalesce(self):
         '''
@@ -359,9 +360,9 @@ bandwidth higher than 40G')
         self.session = self.session1
         aws.check_session(self)
         cmd = ' sudo  ethtool -c eth0'
-        aws.run_cmd(self, cmd, msg='Show current settings.')
+        utils_lib.run_cmd(self, cmd, msg='Show current settings.')
         cmd = "ethtool -C eth0  rx-usecs 3"
-        output = aws.run_cmd(self, cmd)
+        output = utils_lib.run_cmd(self, cmd)
         if "Operation not supported" in output:
             self.cancel("Operation not supported!")
         if "Operation not permitted" in output:
@@ -378,11 +379,11 @@ bandwidth higher than 40G')
 
         for coalesce in coalesce_list:
             cmd = 'sudo ethtool -C eth0 %s 2' % coalesce
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
             cmd = 'sudo  ethtool -c eth0'
-            aws.run_cmd(self, cmd, expect_kw="%s: 2" % coalesce)
+            utils_lib.run_cmd(self, cmd, expect_kw="%s: 2" % coalesce)
         cmd = 'dmesg|tail -20'
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
 
     def test_ethtool_G(self):
         '''
@@ -393,58 +394,58 @@ bandwidth higher than 40G')
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         aws.check_session(self)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'ethtool -i eth0|grep driver',
                     msg='Check network is ENA',
                     cancel_kw='ena')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'ethtool -i eth0',
                     msg='Check ENA driver version',
                     cancel_not_kw='version: 2.0')
         self.log.info("Test change rx/tx ring setting.")
         cmd = "ethtool -g eth0"
-        aws.run_cmd(self, cmd, msg='Display setting before changing it.')
+        utils_lib.run_cmd(self, cmd, msg='Display setting before changing it.')
         cmd = "ethtool -g eth0|grep RX|head -1"
-        output = aws.run_cmd(self, cmd, msg='Get max rx set')
+        output = utils_lib.run_cmd(self, cmd, msg='Get max rx set')
         rx_max = output.split('\t')[-1]
         lower_list = [1, 0, 25, 255]
         for i in lower_list:
             cmd = "sudo ethtool -G eth0 rx %s tx %s" % (i, i)
-            aws.run_cmd(self, cmd, msg='Change rx,tx setting to lower %s' % i)
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self, cmd, msg='Change rx,tx setting to lower %s' % i)
+            utils_lib.run_cmd(self,
                         "ethtool -g eth0",
                         msg='After changed %s' % i,
                         expect_kw='RX:\t\t256,TX:\t\t256')
 
         cmd = "sudo ethtool -G eth0 rx -1 tx -1"
-        aws.run_cmd(self, cmd, msg='Change rx,tx setting to lower -1')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self, cmd, msg='Change rx,tx setting to lower -1')
+        utils_lib.run_cmd(self,
                     "ethtool -g eth0",
                     msg='After changed -1',
                     expect_kw='RX:\t\t256,TX:\t\t256')
         cmd = "sudo ethtool -G eth0 rx 512 tx 512"
-        aws.run_cmd(self, cmd, msg='Change rx,tx setting to 512')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self, cmd, msg='Change rx,tx setting to 512')
+        utils_lib.run_cmd(self,
                     "ethtool -g eth0",
                     msg='After changed 512',
                     expect_kw='RX:\t\t512,TX:\t\t512')
 
         cmd = "sudo ethtool -G eth0 rx %s tx 1024" % rx_max
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     cmd,
                     msg='Change rx setting to %s, tx to 1024' % rx_max)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     "ethtool -g eth0",
                     msg='After changed rx setting to %s, tx to 1024' % rx_max,
                     expect_kw='RX:\t\t%s,TX:\t\t1024' % rx_max)
 
         cmd = "sudo ethtool -G eth0 rx 10240 tx 1025"
-        aws.run_cmd(self, cmd, msg='Change rx setting to 10240,tx to 1025')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self, cmd, msg='Change rx setting to 10240,tx to 1025')
+        utils_lib.run_cmd(self,
                     "ethtool -g eth0",
                     msg='After changed rx setting to %s,tx to 1025' % rx_max,
                     expect_kw='RX:\t\t%s,TX:\t\t1024' % rx_max)
-        aws.run_cmd(self, 'dmesg|tail -20')
+        utils_lib.run_cmd(self, 'dmesg|tail -20')
 
     def test_ethtool_K_offload(self):
         '''
@@ -455,9 +456,9 @@ bandwidth higher than 40G')
         self.session = self.session1
         aws.check_session(self)
         cmd = ' sudo  ethtool -k eth0'
-        aws.run_cmd(self, cmd, msg='Show current settings.')
+        utils_lib.run_cmd(self, cmd, msg='Show current settings.')
         cmd = 'sudo ethtool -i eth0'
-        output = aws.run_cmd(self, cmd, msg='Check network driver!')
+        output = utils_lib.run_cmd(self, cmd, msg='Check network driver!')
         if 'driver: ena' in output:
             option_dict = {
                 'tx': 'tx-checksumming',
@@ -496,21 +497,21 @@ bandwidth higher than 40G')
 
         for option in option_dict.keys():
             cmd = 'sudo ethtool -K eth0 %s off' % option
-            aws.run_cmd(self, cmd)
+            utils_lib.run_cmd(self, cmd)
             cmd = 'sudo ethtool -k eth0'
-            aws.run_cmd(self, cmd, expect_kw="%s: off" % option_dict[option])
+            utils_lib.run_cmd(self, cmd, expect_kw="%s: off" % option_dict[option])
             cmd = 'sudo ethtool -K eth0 %s on' % option
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
             cmd = 'sudo ethtool -k eth0'
-            aws.run_cmd(self, cmd, expect_kw="%s: on" % option_dict[option])
+            utils_lib.run_cmd(self, cmd, expect_kw="%s: on" % option_dict[option])
 
         cmd = 'dmesg|tail -20'
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
         aws.check_dmesg(self, 'fail')
         aws.check_dmesg(self, 'error')
         aws.check_dmesg(self, 'warn')
         cmd = 'dmesg'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='Call Trace')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='Call Trace')
 
     def test_ethtool_s_msglvl(self):
         '''
@@ -521,7 +522,7 @@ bandwidth higher than 40G')
         self.session = self.session1
         aws.check_session(self)
         cmd = "ethtool eth0"
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         if "Current message level" not in output:
             self.cancel("Operation not supported!")
         self.log.info("Trying to change msglvl")
@@ -531,20 +532,20 @@ bandwidth higher than 40G')
             'hw', 'wol'
         ]
         cmd = 'sudo  ethtool -s eth0 msglvl 0'
-        aws.run_cmd(self, cmd, msg='Disable all msglvl for now!')
+        utils_lib.run_cmd(self, cmd, msg='Disable all msglvl for now!')
         for msglvl in msglvl_list:
             cmd = 'sudo ethtool -s eth0 msglvl %s on' % msglvl
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
             cmd = "sudo ethtool eth0"
-            aws.run_cmd(self, cmd, expect_kw=msglvl)
+            utils_lib.run_cmd(self, cmd, expect_kw=msglvl)
 
         for msglvl in msglvl_list:
             cmd = 'sudo ethtool -s eth0 msglvl %s off' % msglvl
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
             cmd = "sudo ethtool eth0|grep -v 'link modes'"
-            aws.run_cmd(self, cmd, expect_not_kw=msglvl)
+            utils_lib.run_cmd(self, cmd, expect_not_kw=msglvl)
         cmd = 'dmesg|tail -20'
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
 
     def test_ethtool_X(self):
         '''
@@ -556,17 +557,17 @@ bandwidth higher than 40G')
         aws.check_session(self)
         self.log.info("Test change rxfh setting.")
         cmd = "ethtool -x eth0"
-        aws.run_cmd(self, cmd, msg='Display setting before changing it.')
+        utils_lib.run_cmd(self, cmd, msg='Display setting before changing it.')
         cmd = "ethtool -X eth0 default"
-        output = aws.run_cmd(self, cmd)
+        output = utils_lib.run_cmd(self, cmd)
         if "Operation not supported" in output:
             self.cancel("Operation not supported!")
         self.log.info("As bug 1693098, will not check return value for now.")
-        # aws.run_cmd(self, cmd, expect_ret=0,msg='Try to set rxfh with \
+        # utils_lib.run_cmd(self, cmd, expect_ret=0,msg='Try to set rxfh with \
         # -X option.')
-        aws.run_cmd(self, cmd, msg='Try to set rxfh with -X option.')
+        utils_lib.run_cmd(self, cmd, msg='Try to set rxfh with -X option.')
         cmd = "ethtool -x eth0"
-        aws.run_cmd(self, cmd, msg='Display setting after changed it.')
+        utils_lib.run_cmd(self, cmd, msg='Display setting after changed it.')
 
     def test_ethtool_P(self):
         '''
@@ -579,7 +580,7 @@ bandwidth higher than 40G')
         self.session = self.session1
         aws.check_session(self)
         cmd = "ethtool -P eth0"
-        output = aws.run_cmd(self,
+        output = utils_lib.run_cmd(self,
                              cmd,
                              expect_not_kw='00:00:00:00:00:00',
                              msg='ethtool can read mac successfully')
@@ -589,7 +590,7 @@ bandwidth higher than 40G')
 [0-9a-z]{2}:[0-9a-z]{2}', output))
         self.log.info("Get mac: %s" % mac)
         cmd = "ip addr show eth0"
-        output = aws.run_cmd(self,
+        output = utils_lib.run_cmd(self,
                              cmd,
                              expect_kw=mac,
                              msg='compare with ip showed mac')
@@ -610,21 +611,21 @@ bandwidth higher than 40G')
             time.sleep(5)
             self.log.info('Check network in guest, loop%s' % i)
             cmd = "lspci"
-            output1 = aws.run_cmd(self, cmd)
+            output1 = utils_lib.run_cmd(self, cmd)
             cmd = "ifconfig"
-            output1 = aws.run_cmd(self, cmd)
+            output1 = utils_lib.run_cmd(self, cmd)
             if 'eth%s' % netdev_index not in output1:
                 self.log.info("Added nic not found")
         self.network.detach_from_instance(self.vm1.instance_id)
         time.sleep(5)
         cmd = "ifconfig"
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
         self.network.delete()
         self.assertIn('eth%d' % netdev_index,
                       output1,
                       msg='eth%d not found after attached nic' % netdev_index)
         cmd = 'dmesg'
-        aws.run_cmd(self, cmd, expect_not_kw='Call Trace')
+        utils_lib.run_cmd(self, cmd, expect_not_kw='Call Trace')
 
     def tearDown(self):
 
@@ -633,7 +634,7 @@ bandwidth higher than 40G')
         ) is not None and self.vm1.is_started():
             if self.name.name.endswith("test_pci_reset"):
                 cmd = 'sudo dmesg --clear'
-                aws.run_cmd(self, cmd, msg='Clear dmesg')
+                utils_lib.run_cmd(self, cmd, msg='Clear dmesg')
             aws.gcov_get(self)
             aws.get_memleaks(self)
             self.session.close()

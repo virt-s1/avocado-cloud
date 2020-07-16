@@ -98,7 +98,7 @@ document"
                     expect_ret=0,
                     expect_not_kw='Traceback',
                     msg='check /var/log/cloud-init.log')
-        if 'release 7' not in aws.run_cmd(self,
+        if 'release 7' not in utils_lib.run_cmd(self,
                                           'sudo cat /etc/redhat-release'):
             utils_lib.run_cmd(self,
                         'sudo cat /var/log/cloud-init-output.log',

@@ -14,27 +14,23 @@ class GeneralVerification(Test):
     def _check_boot_time(self, max_boot_time):
 
         self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = "sudo which systemd-analyze"
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, "sudo which systemd-analyze", expect_ret=0)
         time_start = int(time.time())
-        cmd = "sudo systemd-analyze "
         while True:
-            output = aws.run_cmd(self, cmd)
+            output = utils_lib.run_cmd(self, "sudo systemd-analyze ")
             if 'Bootup is not yet finished' not in output:
                 break
             time_end = int(time.time())
-            aws.run_cmd(self, 'sudo systemctl list-jobs')
+            utils_lib.run_cmd(self, 'sudo systemctl list-jobs')
             if time_end - time_start > 60:
                 self.fail("Bootup is not yet finished after 60s")
             self.log.info("Wait for bootup finish......")
             time.sleep(1)
 
         cmd = "sudo systemd-analyze blame > /tmp/blame.log"
-        aws.run_cmd(self, cmd, expect_ret=0)
-        cmd = "cat /tmp/blame.log"
-        aws.run_cmd(self, cmd, expect_ret=0)
-        cmd = "sudo systemd-analyze"
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, "cat /tmp/blame.log", expect_ret=0)
+        output = utils_lib.run_cmd(self, "sudo systemd-analyze", expect_ret=0)
         boot_time = re.findall("=.*s", output)[0]
         boot_time = boot_time.strip("=\n")
         boot_time_sec = re.findall('[0-9.]+s', boot_time)[0]
@@ -50,8 +46,6 @@ class GeneralVerification(Test):
                              max_boot_time,
                              msg='Boot time over %s(s)' % max_boot_time)
 
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
-
     def setUp(self):
         self.session = None
         self.vm = None
@@ -64,7 +58,7 @@ class GeneralVerification(Test):
         polarion_id: RHEL7-103849
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r"sudo cat /etc/redhat-release",
                     expect_ret=0,
                     cancel_not_kw="Beta",
@@ -75,9 +69,7 @@ has some pkg not signed")
             |grep -v 'Key ID'|grep -v gpg-pubkey|grep -v ltp"
 
         self.session.cmd_output('\n')
-        aws.run_cmd(self, check_cmd, expect_not_ret=0)
-
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, check_cmd, expect_not_ret=0)
 
     def test_check_timezone(self):
         '''
@@ -88,7 +80,6 @@ has some pkg not signed")
         utils_lib.run_cmd(self, 'date', expect_ret=0,
                     expect_kw='UTC',
                     msg='Check timezone is UTC.')
-        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
     def test_check_virtwhat(self):
         '''
@@ -96,10 +87,8 @@ has some pkg not signed")
         polarion_id: RHEL7-103857
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        install_cmd = r'sudo yum install -y virt-what'
-        aws.run_cmd(self, install_cmd)
-        cmd = r"sudo virt-what"
-        virt_what_output = aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, r'sudo yum install -y virt-what')
+        virt_what_output = utils_lib.run_cmd(self, r"sudo virt-what", expect_ret=0)
         lscpu_output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
         if 'Xen' in lscpu_output:
             self.log.info("Found it is a xen system!")
@@ -120,14 +109,13 @@ has some pkg not signed")
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'sudo lscpu',
                     expect_ret=0,
                     cancel_kw="Xen",
                     msg="Only run in xen instance")
 
-        cmd = r'sudo mount -t xenfs xenfs /proc/xen/'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, r'sudo mount -t xenfs xenfs /proc/xen/', expect_ret=0)
         utils_lib.run_cmd(self,
                     'sudo ls /proc/xen',
                     expect_ret=0,
@@ -140,7 +128,7 @@ has some pkg not signed")
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
                     cancel_kw="Xen",
@@ -152,29 +140,26 @@ has some pkg not signed")
 xe-guest-utilities/7.12.0/1.fc29/x86_64/xe-guest-utilities-7.12.0-1.fc29.\
 x86_64.rpm'
 
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'yum localinstall -y xe-guest-utilities-7.12.0-1.fc29.x86_64.rpm'
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
         cmd = 'rpm -ivh xe-guest-utilities-7.12.0-1.fc29.x86_64.rpm --force \
 --nodeps'
 
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
         xenstore_read = '/usr/libexec/xe-guest-utilities/xenstore-read'
-        cmd = "%s domid" % xenstore_read
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, "%s domid" % xenstore_read, expect_ret=0)
         cmd = "%s name" % xenstore_read
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = "%s memory/target" % xenstore_read
-        aws.run_cmd(self, cmd, expect_ret=0)
-        if 'vif' in aws.run_cmd(self, 'ethtool -i eth0', expect_ret=0):
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
+        if 'vif' in utils_lib.run_cmd(self, 'ethtool -i eth0', expect_ret=0):
             cmd = "%s device/vif/0/mac" % xenstore_read
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
 
         xenstore_list = '/usr/libexec/xe-guest-utilities/xenstore-list'
-        cmd = "%s device" % xenstore_list
-        aws.run_cmd(self, cmd, expect_ret=0)
-        cmd = "%s control" % xenstore_list
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, "%s device" % xenstore_list, expect_ret=0)
+        utils_lib.run_cmd(self, "%s control" % xenstore_list, expect_ret=0)
 
     def test_xenfs_write_inability(self):
         '''
@@ -190,9 +175,9 @@ x86_64.rpm'
                     cancel_kw="Xen",
                     msg="Only run in xen instance")
 
-        aws.run_cmd(self, 'sudo umount /proc/xen')
+        utils_lib.run_cmd(self, 'sudo umount /proc/xen')
         cmd = r'sudo mount -t xenfs xenfs /proc/xen/'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
         script_str = '''
 #!/usr/bin/env python
@@ -240,7 +225,7 @@ if __name__ == "__main__":
         bz#: 1777179
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self, 'dmesg', expect_ret=0, expect_not_kw='Call Trace')
+        utils_lib.run_cmd(self, 'dmesg', expect_ret=0, expect_not_kw='Call Trace')
 
     def test_check_dmesg_unknownsymbol(self):
         '''
@@ -249,7 +234,7 @@ if __name__ == "__main__":
         bz#: 1649215
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'dmesg',
                     expect_ret=0,
                     expect_not_kw='Unknown symbol',
@@ -262,7 +247,7 @@ if __name__ == "__main__":
         bz#: 1779454
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self, 'dmesg', expect_ret=0, expect_not_kw='unable')
+        utils_lib.run_cmd(self, 'dmesg', expect_ret=0, expect_not_kw='unable')
 
     def test_check_journalctl_traceback(self):
         '''
@@ -274,9 +259,9 @@ if __name__ == "__main__":
         # redirect journalctl output to a file as it is not get return
         # normally in RHEL7
         cmd = 'journalctl > /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'cat /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='Traceback,Backtrace')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='Traceback,Backtrace')
 
     def test_check_journalctl_dumpedcore(self):
         '''
@@ -288,9 +273,9 @@ if __name__ == "__main__":
         # redirect journalctl output to a file as it is not get return
         # normally in RHEL7
         cmd = 'journalctl > /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'cat /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='dumped core')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='dumped core')
 
     def test_check_journalctl_invalid(self):
         '''
@@ -303,9 +288,9 @@ if __name__ == "__main__":
         # normally in RHEL7
         # skip sshd to filter out invalid user message
         cmd = 'journalctl|grep -v sshd|grep -v MTU > /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = 'cat /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='invalid,Invalid')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='invalid,Invalid')
 
     def test_check_modload(self):
         '''
@@ -314,8 +299,6 @@ if __name__ == "__main__":
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, 'lsmod', expect_ret=0)
-
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
     def test_check_console_log(self):
         '''
@@ -351,8 +334,6 @@ content manually!\n %s" % output)
         else:
             self.fail(output)
 
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
-
     def test_check_release_name(self):
         '''
         :avocado: tags=test_check_release_name,fast_check
@@ -362,31 +343,27 @@ content manually!\n %s" % output)
         self.session.connect(timeout=self.ssh_wait_timeout)
         check_cmd = r"sudo cat /etc/redhat-release"
         self.log.info("Check release name cmd: %s" % check_cmd)
-        status, output = self.session.cmd_status_output(check_cmd)
-        kernel_ver = aws.run_cmd(self, 'uname -r')
-        self.log.info("Guest kernel version: %s " % kernel_ver)
-        if status == 0:
-            if '2.6.32' in kernel_ver:
-                self.assertIn(
-                    'Red Hat Enterprise Linux Server release 6',
-                    output,
-                    msg="It should be like: Red Hat Enterprise Linux \
+        output = utils_lib.run_cmd(self,check_cmd, expect_ret=0)
+        kernel_ver = utils_lib.run_cmd(self, 'uname -r', msg="Get kernel version")
+        if '2.6.32' in kernel_ver:
+            self.assertIn(
+                'Red Hat Enterprise Linux Server release 6',
+                output,
+                msg="It should be like: Red Hat Enterprise Linux \
 Server release 6.n\n but it is %s" % output)
-            elif '3.10.0' in kernel_ver:
-                self.assertIn(
-                    'Red Hat Enterprise Linux Server release 7',
-                    output,
-                    msg="It should be like: Red Hat Enterprise Linux \
+        elif '3.10.0' in kernel_ver:
+            self.assertIn(
+                'Red Hat Enterprise Linux Server release 7',
+                output,
+                msg="It should be like: Red Hat Enterprise Linux \
 Server release 7.n\n but it is %s" % output)
-            elif 'el8' in kernel_ver:
-                self.assertIn(
-                    'Red Hat Enterprise Linux release 8',
-                    output,
-                    msg="It should be like: Red Hat Enterprise Linux \
+        elif 'el8' in kernel_ver:
+            self.assertIn(
+                'Red Hat Enterprise Linux release 8',
+                output,
+                msg="It should be like: Red Hat Enterprise Linux \
 release 8.n\n but it is %s" % output)
-            self.log.info("Check PASS: %s" % output)
-        else:
-            self.fail("Failed to get /etc/redhat-release information!")
+        self.log.info("Check PASS: %s" % output)
 
     def test_check_vulnerabilities(self):
         '''
@@ -394,19 +371,19 @@ release 8.n\n but it is %s" % output)
         polarion_id: N/A
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        # aws.run_cmd(self, 'lscpu', expect_ret=0,cancel_not_kw="aarch64",
+        # utils_lib.run_cmd(self, 'lscpu', expect_ret=0,cancel_not_kw="aarch64",
         #     msg="Not run in arm instance")
 
-        aws.run_cmd(self, "rpm -qa|grep microcode", msg='Get microcode version')
+        utils_lib.run_cmd(self, "rpm -qa|grep microcode", msg='Get microcode version')
         check_cmd = r"sudo grep . /sys/devices/system/cpu/vulnerabilities/* | \
 sed 's/:/^/' | column -t -s^"
 
-        aws.run_cmd(self, check_cmd, expect_ret=0)
-        # aws.run_cmd(self, check_cmd, expect_ret=0,
+        utils_lib.run_cmd(self, check_cmd, expect_ret=0)
+        # utils_lib.run_cmd(self, check_cmd, expect_ret=0,
         #     expect_not_kw='Vulnerable')
         self.log.info('All ec2 instances has "spec_store_bypass Vulnerable", \
 so skip it currently')
-        output = aws.run_cmd(self, 'uname -r', expect_ret=0)
+        output = utils_lib.run_cmd(self, 'uname -r', expect_ret=0)
         if 'metal' in self.vm.instance_type:
             self.log.info(
                 "Bare metal instance should not have any vulnerable.")
@@ -427,7 +404,7 @@ Retpoline'|grep -v mds| sed 's/:/^/' | column -t -s^"
 /* |grep -v spec_store_bypass|grep -v 'tsx_async_abort'|grep -v mds|grep -v \
 itlb_multihit|sed 's/:/^/' | column -t -s^"
 
-        aws.run_cmd(self, check_cmd, expect_ret=0, expect_not_kw='Vulnerable')
+        utils_lib.run_cmd(self, check_cmd, expect_ret=0, expect_not_kw='Vulnerable')
 
     def test_check_avclog(self):
         '''
@@ -436,8 +413,7 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = "sudo ausearch -m AVC -ts today"
-        aws.run_cmd(self, cmd, expect_not_ret=0, msg='Checking avc log!')
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, cmd, expect_not_ret=0, msg='Checking avc log!')
 
     def test_check_avclog_nfs(self):
         '''
@@ -448,29 +424,28 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
 
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo yum install -y nfs-utils'
-        aws.run_cmd(self, cmd, msg='Install nfs-utils')
-        output = aws.run_cmd(self, 'uname -r', expect_ret=0)
+        utils_lib.run_cmd(self, cmd, msg='Install nfs-utils')
+        output = utils_lib.run_cmd(self, 'uname -r', expect_ret=0)
 
         if 'el7' in output or 'el6' in output:
             cmd = "sudo systemctl start nfs"
         else:
             cmd = 'sudo systemctl start nfs-server.service'
 
-        aws.run_cmd(self, cmd, expect_ret=0)
-        aws.run_cmd(self, "sudo mkdir /tmp/testrw")
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, "sudo mkdir /tmp/testrw")
         cmd = "sudo chmod -R 777 /tmp/testrw"
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = "sudo exportfs -o rw,insecure_locks,all_squash,fsid=1 \
 *:/tmp/testrw"
 
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = "sudo mount -t nfs 127.0.0.1:/tmp/testrw /mnt"
-        aws.run_cmd(self, cmd, expect_ret=0)
-        aws.run_cmd(self, "sudo umount /mnt")
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, "sudo umount /mnt")
 
         cmd = "sudo ausearch -m AVC -ts today"
-        aws.run_cmd(self, cmd, expect_not_ret=0, msg='Checking avc log!')
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, cmd, expect_not_ret=0, msg='Checking avc log!')
 
     def test_check_nouveau(self):
         '''
@@ -490,7 +465,6 @@ in blacklist and not loaded bug1645772")
                     expect_ret=0,
                     expect_kw="rd.blacklist=nouveau",
                     msg="Checking cmdline")
-        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
     def test_check_secure_ioerror(self):
         '''
@@ -503,12 +477,9 @@ in blacklist and not loaded bug1645772")
         '''
         self.log.info("Check /var/log/secure")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = "sudo cat /var/log/secure"
-        aws.run_cmd(self, cmd, expect_ret=0)
-        cmd = "sudo cp /var/log/secure /tmp"
-        aws.run_cmd(self, cmd, expect_ret=0)
-        cmd = "sudo cat  /var/log/secure"
-        aws.run_cmd(self, cmd, expect_not_kw="Input/output error")
+        utils_lib.run_cmd(self, "sudo cat /var/log/secure", expect_ret=0)
+        utils_lib.run_cmd(self, "sudo cp /var/log/secure /tmp", expect_ret=0)
+        utils_lib.run_cmd(self, "sudo cat  /var/log/secure", expect_not_kw="Input/output error")
 
     def test_check_rngd(self):
         '''
@@ -537,11 +508,9 @@ in RHEL7|6, bug1625874")
         bz#: 1740443
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = "sudo systemctl>/tmp/systemctl.log"
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, "sudo systemctl>/tmp/systemctl.log", expect_ret=0)
         cmd = "cat /tmp/systemctl.log|grep -v dnf-makecache"
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='failed')
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='failed')
 
     def test_check_cpupower(self):
         '''
@@ -552,12 +521,11 @@ in RHEL7|6, bug1625874")
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = "sudo cpupower info"
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='core dumped')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='core dumped')
         cmd = "sudo cpupower idle-info"
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='core dumped')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='core dumped')
         cmd = "sudo cpupower frequency-info"
-        aws.run_cmd(self, cmd, expect_ret=0, expect_not_kw='core dumped')
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='core dumped')
 
     def test_check_pkgs_list(self):
         '''
@@ -565,7 +533,7 @@ in RHEL7|6, bug1625874")
         polarion_id: N/A
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self, "sudo rpm -qa", expect_ret=0)
+        utils_lib.run_cmd(self, "sudo rpm -qa", expect_ret=0)
 
     def test_check_boot_time(self):
         '''
@@ -598,40 +566,25 @@ in RHEL7|6, bug1625874")
         bz#: 1726487
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        output = aws.run_cmd(self, 'lscpu', expect_ret=0)
+        output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
+        if 'Xen' in output:
+            expect_clocks = 'xen,tsc,hpet,acpi_pm'
+        elif 'aarch64' in output:
+            expect_clocks = 'arch_sys_counter'
+        elif 'AuthenticAMD' in output and 'KVM' in output:
+            expect_clocks = 'kvm-clock,tsc,acpi_pm'
+        elif 'GenuineIntel' in output and 'KVM' in output:
+            expect_clocks = 'kvm-clock,tsc,acpi_pm'
+        else:
+            expect_clocks = 'tsc,hpet,acpi_pm'
+
         cmd = 'sudo cat /sys/devices/system/clocksource/clocksource0/\
 available_clocksource'
-
-        if 'Xen' in output:
-            aws.run_cmd(self,
-                        cmd,
-                        expect_ret=0,
-                        expect_kw='xen,tsc,hpet,acpi_pm',
-                        msg='Checking available clocksource')
-        elif 'aarch64' in output:
-            aws.run_cmd(self,
-                        cmd,
-                        expect_ret=0,
-                        expect_kw='arch_sys_counter',
-                        msg='Checking available clocksource')
-        elif 'AuthenticAMD' in output and 'KVM' in output:
-            aws.run_cmd(self,
-                        cmd,
-                        expect_ret=0,
-                        expect_kw='kvm-clock,tsc,acpi_pm',
-                        msg='Checking available clocksource')
-        elif 'GenuineIntel' in output and 'KVM' in output:
-            aws.run_cmd(self,
-                        cmd,
-                        expect_ret=0,
-                        expect_kw='kvm-clock,tsc,acpi_pm',
-                        msg='Checking available clocksource')
-        else:
-            aws.run_cmd(self,
-                        cmd,
-                        expect_ret=0,
-                        expect_kw='tsc,hpet,acpi_pm',
-                        msg='Checking available clocksource')
+        utils_lib.run_cmd(self,
+                    cmd,
+                    expect_ret=0,
+                    expect_kw=expect_clocks,
+                    msg='Checking available clocksource')
 
     def test_change_clocksource(self):
         '''
@@ -639,31 +592,31 @@ available_clocksource'
         polarion_id:
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        output = aws.run_cmd(self, 'lscpu', expect_ret=0)
+        output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
         cmd = 'sudo cat /sys/devices/system/clocksource/clocksource0/\
 current_clocksource'
 
-        aws.run_cmd(self, cmd, expect_ret=0, msg='Check current clock source')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, msg='Check current clock source')
         cmd = 'sudo cat /sys/devices/system/clocksource/clocksource0/\
 available_clocksource'
 
-        output = aws.run_cmd(self, cmd, expect_ret=0)
-        aws.run_cmd(self, 'sudo su', expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
         for clocksource in output.split(' '):
             cmd = 'echo %s > /sys/devices/system/clocksource/clocksource0/\
 current_clocksource' % clocksource
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         cmd,
                         expect_ret=0,
                         msg='Change clocksource to %s' % clocksource)
             cmd = 'cat /sys/devices/system/clocksource/clocksource0/\
 current_clocksource'
 
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         cmd,
                         expect_kw=clocksource,
                         msg='Check current clock source')
-        aws.run_cmd(self, 'dmesg|tail -30', expect_ret=0)
+        utils_lib.run_cmd(self, 'dmesg|tail -30', expect_ret=0)
 
     def test_change_tracer(self):
         '''
@@ -674,27 +627,27 @@ current_clocksource'
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo mount -t debugfs nodev /sys/kernel/debug'
-        aws.run_cmd(self, cmd, msg='mount debugfs')
+        utils_lib.run_cmd(self, cmd, msg='mount debugfs')
 
         cmd = 'sudo cat /sys/kernel/debug/tracing/current_tracer'
-        aws.run_cmd(self, cmd, expect_ret=0, msg='Check current tracer')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, msg='Check current tracer')
         cmd = 'sudo cat /sys/kernel/debug/tracing/available_tracers'
 
-        output = aws.run_cmd(self, cmd, expect_ret=0)
-        aws.run_cmd(self, 'sudo su', expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
         for tracer in output.split(' '):
             cmd = 'echo %s > /sys/kernel/debug/tracing/current_tracer' % tracer
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         cmd,
                         expect_ret=0,
                         msg='Change tracer to %s' % tracer)
             cmd = 'sudo cat /sys/kernel/debug/tracing/current_tracer'
 
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         cmd,
                         expect_kw=tracer,
                         msg='Check current tracer')
-        aws.run_cmd(self, 'dmesg|tail -30', expect_ret=0)
+        utils_lib.run_cmd(self, 'dmesg|tail -30', expect_ret=0)
 
     def test_check_tsc_deadline_timer(self):
         '''
@@ -703,26 +656,24 @@ current_clocksource'
         des: check TSC deadline timer enabled in dmesg
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
                     cancel_not_kw="Xen,aarch64,AuthenticAMD")
 
         cmd = "grep tsc_deadline_timer /proc/cpuinfo"
-        aws.run_cmd(self, cmd, expect_ret=0, expect_kw='tsc_deadline_timer')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='tsc_deadline_timer')
         cmd = "dmesg|grep 'TSC deadline timer enabled'"
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
 
         cmd = "sudo cat /sys/devices/system/clockevents/clockevent0/\
 current_device"
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     cmd,
                     expect_ret=0,
                     expect_kw='lapic-deadline',
                     msg='Check guest timer')
-
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
     def test_check_timedrift_reboot(self):
         '''
@@ -737,11 +688,11 @@ current_device"
                     expect_ret=0,
                     cancel_kw="release 7,release 6",
                     msg="Only run in RHEL7 and RHEL6")
-        aws.run_cmd(self, "sudo systemctl stop ntpd")
-        aws.run_cmd(self, "sudo systemctl disable ntpd")
-        aws.run_cmd(self, "sudo systemctl stop chronyd")
-        aws.run_cmd(self, "sudo systemctl disable chronyd")
-        aws.run_cmd(self, "sudo timedatectl set-ntp 0")
+        utils_lib.run_cmd(self, "sudo systemctl stop ntpd")
+        utils_lib.run_cmd(self, "sudo systemctl disable ntpd")
+        utils_lib.run_cmd(self, "sudo systemctl stop chronyd")
+        utils_lib.run_cmd(self, "sudo systemctl disable chronyd")
+        utils_lib.run_cmd(self, "sudo timedatectl set-ntp 0")
 
         offset1 = aws.get_drift(self)
         self.vm.reboot()
@@ -760,8 +711,6 @@ current_device"
         self.assertLess(drift, 30, msg="Drift is over 1 seconds")
         self.log.info("Average drift is less than 1 seconds. %d/30" % drift)
 
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
-
     def test_check_timedrift_stress(self):
         '''
         :avocado: tags=test_check_timedrift_stress
@@ -770,31 +719,29 @@ current_device"
         polarion_id: RHEL7-110673
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r"sudo cat /etc/redhat-release",
                     expect_ret=0,
                     cancel_kw="release 7,release 6",
                     msg="Only run in RHEL7 and RHEL6")
 
-        aws.run_cmd(self, "sudo systemctl stop ntpd")
-        aws.run_cmd(self, "sudo systemctl disable ntpd")
-        aws.run_cmd(self, "sudo systemctl stop chronyd")
-        aws.run_cmd(self, "sudo systemctl disable chronyd")
-        aws.run_cmd(self, "sudo timedatectl set-ntp 0")
+        utils_lib.run_cmd(self, "sudo systemctl stop ntpd")
+        utils_lib.run_cmd(self, "sudo systemctl disable ntpd")
+        utils_lib.run_cmd(self, "sudo systemctl stop chronyd")
+        utils_lib.run_cmd(self, "sudo systemctl disable chronyd")
+        utils_lib.run_cmd(self, "sudo timedatectl set-ntp 0")
         offset1 = aws.get_drift(self)
         stress_url = self.params.get('stress_url')
         aws.install_pkgs(self.session, stress_url)
-        cpu_count = aws.run_cmd(
+        cpu_count = utils_lib.run_cmd(
             self, 'cat /proc/cpuinfo |grep -i "model name"|wc -l')
-        aws.run_cmd(self, "stress -c %s -t 120" % cpu_count, timeout=160)
+        utils_lib.run_cmd(self, "stress -c %s -t 120" % cpu_count, timeout=160)
         offset2 = aws.get_drift(self)
 
         x = decimal.Decimal(offset2) - decimal.Decimal(offset1)
         drift = math.fabs(x) * 10
         self.assertLess(drift, 10, msg="Drift is over 1 seconds")
         self.log.info("Average drift is less than 1 seconfs. %d/10" % drift)
-
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
     def test_check_microcode_load(self):
         '''
@@ -804,22 +751,22 @@ current_device"
         polarion_id: N/A
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        lscpu_output = aws.run_cmd(self, 'lscpu', expect_ret=0)
-        aws.run_cmd(self,
+        lscpu_output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
+        utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
                     cancel_not_kw="aarch64,AMD",
                     msg="Only run in intel platform")
         cmd = 'rpm -qa|grep microcode'
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd)
         cmd = 'dmesg|grep microcode|grep -v "no microcode"'
         if 'Xen' in lscpu_output or 'KVM' in lscpu_output:
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         cmd,
                         expect_not_ret=0,
                         msg='microcode should not load in VMs')
         else:
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         cmd,
                         expect_ret=0,
                         msg='microcode should load in bare metals')
@@ -845,8 +792,7 @@ current_device"
         '''
         expect_mem = self.params.get('memory', '*/instance_types/*')
         allow_ratio = 10
-        cmd = 'sudo kdumpctl showmem'
-        output = aws.run_cmd(self, cmd)
+        output = utils_lib.run_cmd(self, 'sudo kdumpctl showmem')
         if output == '':
             reserved = 0
         else:
@@ -856,9 +802,9 @@ current_device"
             except Exception as err:
                 self.log.info('Unable to get kdump saved mem size!')
                 reserved = 0
-        aws.run_cmd(self, 'sudo cat /proc/meminfo', expect_ret=0)
+        utils_lib.run_cmd(self, 'sudo cat /proc/meminfo', expect_ret=0)
         cmd = ' grep MemTotal /proc/meminfo'
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         mem_in_kb = int(re.findall('[0-9]+', output)[0]) + int(reserved) * 1024
         expect_in_kb = expect_mem * 1024 * 1024
 
@@ -877,23 +823,23 @@ current_device"
         '''
         self.log.info("Check memory leaks")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'uname -a',
                     expect_ret=0,
                     cancel_kw="debug",
                     msg="Only run in debug kernel")
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'cat /proc/cmdline',
                     expect_ret=0,
                     cancel_kw="kmemleak=on",
                     msg="Only run with kmemleak=on")
 
-        aws.run_cmd(self, 'sudo su', expect_ret=0)
+        utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
         cmd = 'echo scan > /sys/kernel/debug/kmemleak'
-        aws.run_cmd(self, cmd, expect_ret=0, timeout=1800)
+        utils_lib.run_cmd(self, cmd, expect_ret=0, timeout=1800)
 
         cmd = 'cat /sys/kernel/debug/kmemleak'
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         if len(output) > 0:
             self.fail('Memory leak found!')
 
@@ -912,11 +858,11 @@ master.zip"
 
         self.log.info("Download %s" % virt_utils_url)
         cmd = "wget %s ; unzip master.zip" % virt_utils_url
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = "virt-utils-master/vm_check/vm_check.sh"
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         cmd = "tar zcf vmlog.tar.gz workspace/log"
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         remote_path = "vmlog.tar.gz"
         local_path = "%s/%s_vmlog.tar.gz" % (self.job.logdir,
                                              self.vm.instance_type)
@@ -924,10 +870,10 @@ master.zip"
                       (remote_path, local_path))
         self.session.copy_files_from(remote_path, local_path, timeout=600)
 
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
     def tearDown(self):
         if self.session.session.is_responsive(
         ) is not None and self.vm.is_started():
             aws.gcov_get(self)
+            utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
             self.session.close()
