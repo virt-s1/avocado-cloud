@@ -24,12 +24,12 @@ class LifeCycleTest(Test):
         self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_session(self)
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'whoami',
                     expect_ret=0,
                     expect_output=self.vm.vm_username,
                     msg="New VM is created: %s" % self.vm.instance_id)
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
     def test_start_vm(self):
         '''
@@ -47,7 +47,7 @@ class LifeCycleTest(Test):
             self.log.info("Instance is started: %s" % self.vm.instance_id)
             self.session.connect(timeout=self.ssh_wait_timeout)
             aws.check_session(self)
-            aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+            utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
         else:
             self.fail("Failed to start instance!")
 
@@ -64,15 +64,15 @@ class LifeCycleTest(Test):
             self.cancel("Only run in bare metal instances!")
         self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_session(self)
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
                     cancel_not_kw="Xen,aarch64,AuthenticAMD")
 
         cmd = 'sudo grubby --update-kernel=ALL --args="intel_iommu=on"'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
         if not self.vm.is_stopped():
             self.vm.stop(loops=4)
         if not self.vm.is_stopped():
@@ -82,13 +82,13 @@ class LifeCycleTest(Test):
         if self.vm.start(wait=True):
             self.session.connect(timeout=self.ssh_wait_timeout)
             aws.check_session(self)
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         'cat /proc/cmdline',
                         msg='Get instance boot cmdline')
             cmd = 'sudo grubby --update-kernel=ALL \
 --remove-args="intel_iommu=on"'
 
-            aws.run_cmd(self, cmd, expect_ret=0)
+            utils_lib.run_cmd(self, cmd, expect_ret=0)
 
         else:
             self.fail("Failed to start instance!")
@@ -103,9 +103,8 @@ class LifeCycleTest(Test):
         time.sleep(10)
         aws.check_session(self)
 
-        cmd = 'last|grep reboot'
-        aws.run_cmd(self,
-                    cmd,
+        utils_lib.run_cmd(self,
+                    'last|grep reboot',
                     expect_ret=0,
                     msg="Before rebooting %s" % self.vm.instance_id)
         self.log.info("Rebooting %s" % self.vm.instance_id)
@@ -119,8 +118,8 @@ class LifeCycleTest(Test):
             if self.session.session.is_responsive():
                 self.fail("SSH connection keeps live!")
             self.session.connect(timeout=self.ssh_wait_timeout)
-            aws.run_cmd(self,
-                        cmd,
+            utils_lib.run_cmd(self,
+                        'last|grep reboot',
                         expect_ret=0,
                         msg="After reboot %s" % self.vm.instance_id)
             self.log.info("Reboot %s successfully" % self.vm.instance_id)
@@ -138,7 +137,7 @@ class LifeCycleTest(Test):
         aws.check_session(self)
 
         self.log.info("Before rebooting %s" % self.vm.instance_id)
-        output1 = self.session.cmd_output('last|grep reboot')
+        output1 = utils_lib.run_cmd(self, 'last|grep reboot')
         self.log.info("VM last reboot log:\n %s" % output1)
         # session.cmd_ouput failes to get ret status as reboot close connection
         # considering add a function to guest.py to handle this. For now, use
@@ -155,7 +154,7 @@ class LifeCycleTest(Test):
             self.fail("SSH connection keeps live!")
 
         self.session.connect(timeout=self.ssh_wait_timeout)
-        output2 = self.session.cmd_output('last|grep reboot')
+        output2 = utils_lib.run_cmd(self, 'last|grep reboot')
         self.log.info("VM last reboot log:\n %s" % output2)
         # self.assertEqual(output1, output2, "Reboot %s operation failed!" % \
         #     self.vm.instance_id)
@@ -176,10 +175,10 @@ class LifeCycleTest(Test):
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_session(self)
-        aws.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
         self.log.info("Before shuting down %s" % self.vm.instance_id)
-        output = self.session.cmd_output('last|grep reboot')
+        output = utils_lib.run_cmd(self, 'last|grep reboot')
         self.log.info("VM last reboot log:\n %s" % output)
         self.log.info("Stopping vm from inside itself %s" %
                       self.vm.instance_id)
@@ -260,7 +259,7 @@ class LifeCycleTest(Test):
         polarion_id: RHEL7-103853
         '''
         cmd = 'lscpu'
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         if 'aarch64' in output:
             self.log.info("arm instance")
             instance_list = [
@@ -330,15 +329,14 @@ class LifeCycleTest(Test):
         self.log.info("Check system can boot with fips=1")
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'uname -r'
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
         if 'el7' in output:
-            cmd = 'sudo dracut -v -f'
-            aws.run_cmd(self,
-                        cmd,
+            utils_lib.run_cmd(self,
+                       'sudo dracut -v -f',
                         msg='regenerate the initramfs!',
                         timeout=600)
             cmd = 'sudo grubby --update-kernel=ALL --args="fips=1"'
-            aws.run_cmd(self, cmd, msg='Enable fips!', timeout=600)
+            utils_lib.run_cmd(self, cmd, msg='Enable fips!', timeout=600)
             self.log.info('Reboot system!')
             self.vm.reboot(wait=True)
             if 'metal' in self.vm.instance_type:
@@ -348,13 +346,13 @@ class LifeCycleTest(Test):
                 self.log.info("Wait 300s")
                 time.sleep(300)
             self.session.connect(timeout=self.ssh_wait_timeout)
-            aws.run_cmd(self, 'cat /proc/cmdline', expect_kw='fips=1')
-            aws.run_cmd(self, 'dmesg', msg='save dmesg')
+            utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='fips=1')
+            utils_lib.run_cmd(self, 'dmesg', msg='save dmesg')
             cmd = 'sudo grubby --update-kernel=ALL  --remove-args="fips=1"'
-            aws.run_cmd(self, cmd, msg='Disable fips!')
+            utils_lib.run_cmd(self, cmd, msg='Disable fips!')
         else:
             cmd = 'sudo fips-mode-setup --enable'
-            aws.run_cmd(self, cmd, msg='Enable fips!', timeout=600)
+            utils_lib.run_cmd(self, cmd, msg='Enable fips!', timeout=600)
             self.log.info('Reboot system!')
             self.vm.reboot(wait=True)
             if 'metal' in self.vm.instance_type:
@@ -364,13 +362,13 @@ class LifeCycleTest(Test):
                 self.log.info("Wait 300s")
                 time.sleep(300)
             self.session.connect(timeout=self.ssh_wait_timeout)
-            aws.run_cmd(self,
+            utils_lib.run_cmd(self,
                         'sudo fips-mode-setup --check',
                         expect_kw='enabled')
-            aws.run_cmd(self, 'cat /proc/cmdline', expect_kw='fips=1')
-            aws.run_cmd(self, 'dmesg', msg='save dmesg')
+            utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='fips=1')
+            utils_lib.run_cmd(self, 'dmesg', msg='save dmesg')
             cmd = 'sudo fips-mode-setup --disable'
-            aws.run_cmd(self, cmd, msg='Disable fips!')
+            utils_lib.run_cmd(self, cmd, msg='Disable fips!')
         self.log.info('Reboot system!')
         self.vm.reboot(wait=True)
         if 'metal' in self.vm.instance_type:
@@ -392,32 +390,29 @@ class LifeCycleTest(Test):
         mini_mem = self.params.get('memory', '*/instance_types/*')
         if int(mini_mem) < 2:
             self.cancel('Cancel case as low memory')
-        cmd = 'sudo lscpu'
-        output = aws.run_cmd(self, cmd, expect_ret=0)
+        output = utils_lib.run_cmd(self, 'sudo lscpu', expect_ret=0)
         if 'aarch64' in output and int(mini_mem) < 4:
             self.cancel('Cancel case as low memory')
 
-        cmd = 'sudo uname -r'
-        kernel_ver = aws.run_cmd(self, cmd, expect_ret=0)
+        kernel_ver = utils_lib.run_cmd(self, 'uname -r', expect_ret=0)
         if 'el7' in kernel_ver:
             debug_kernel = "/boot/vmlinuz-" + kernel_ver.strip('\n') + ".debug"
         else:
             debug_kernel = "/boot/vmlinuz-" + kernel_ver.strip('\n') + "+debug"
 
-        cmd = "sudo grubby --info=%s" % debug_kernel
-        aws.run_cmd(self,
-                    cmd,
+        utils_lib.run_cmd(self,
+                    "sudo grubby --info=%s" % debug_kernel,
                     expect_ret=0,
                     msg="check kernel-debug installed")
         cmd = "sudo grubby --info=%s|grep index|cut -d'=' -f2" % debug_kernel
-        debug_kernel_index = aws.run_cmd(self,
+        debug_kernel_index = utils_lib.run_cmd(self,
                                          cmd,
                                          expect_ret=0,
                                          msg="check kernel-debug index")
         cmd = "sudo grubby --set-default-index=%s" % debug_kernel_index
-        aws.run_cmd(self, cmd, expect_ret=0, msg="change default boot index")
+        utils_lib.run_cmd(self, cmd, expect_ret=0, msg="change default boot index")
         cmd = 'sudo grubby --update-kernel=ALL --args="kmemleak=on"'
-        aws.run_cmd(self, cmd, expect_ret=0, msg="enable kmemleak")
+        utils_lib.run_cmd(self, cmd, expect_ret=0, msg="enable kmemleak")
         self.vm.reboot(wait=True)
         if 'metal' in self.vm.instance_type:
             self.log.info("Wait %s" % self.ssh_wait_timeout)
@@ -426,40 +421,36 @@ class LifeCycleTest(Test):
             self.log.info("Wait 120s")
             time.sleep(120)
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'uname -r',
                     expect_ret=0,
                     expect_kw='debug',
                     msg="checking debug kernel booted")
-        aws.run_cmd(self, 'dmesg', expect_ret=0, msg="saving dmesg output")
-        cmd = 'sudo su'
-        aws.run_cmd(self, cmd, expect_ret=0)
+        utils_lib.run_cmd(self, 'dmesg', expect_ret=0, msg="saving dmesg output")
+        utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
         cmd = 'journalctl > /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0, msg="saving journalctl output")
-        cmd = 'cat /tmp/journalctl.log'
-        aws.run_cmd(self, cmd, expect_ret=0)
-        cmd = "sudo systemd-analyze blame > /tmp/blame.log"
-        aws.run_cmd(self, cmd)
-        cmd = "cat /tmp/blame.log"
-        aws.run_cmd(self, cmd)
+        utils_lib.run_cmd(self, cmd, expect_ret=0, msg="saving journalctl output")
+        utils_lib.run_cmd(self, 'cat /tmp/journalctl.log', expect_ret=0)
+        utils_lib.run_cmd(self, "sudo systemd-analyze blame > /tmp/blame.log")
+        utils_lib.run_cmd(self, "cat /tmp/blame.log")
         cmd = "sudo systemd-analyze "
         time_start = int(time.time())
         while True:
-            output = aws.run_cmd(self, cmd)
+            output = utils_lib.run_cmd(self, cmd)
             if 'Bootup is not yet finished' not in output:
                 break
             time_end = int(time.time())
-            aws.run_cmd(self, 'sudo systemctl list-jobs')
+            utils_lib.run_cmd(self, 'sudo systemctl list-jobs')
             if time_end - time_start > 120:
                 self.fail("Bootup is not yet finished after 120s")
             self.log.info("Wait for bootup finish......")
             time.sleep(1)
         if int(mini_mem) < 17:
             cmd = 'sudo echo scan > /sys/kernel/debug/kmemleak'
-            aws.run_cmd(self, cmd, expect_ret=0, timeout=1800)
+            utils_lib.run_cmd(self, cmd, expect_ret=0, timeout=1800)
 
             cmd = 'sudo cat /sys/kernel/debug/kmemleak'
-            output = aws.run_cmd(self, cmd, expect_ret=0)
+            output = utils_lib.run_cmd(self, cmd, expect_ret=0)
             if len(output) > 0:
                 self.fail('Memory leak found!')
 

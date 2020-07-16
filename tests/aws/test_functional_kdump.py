@@ -43,9 +43,9 @@ class KdumpTest(Test):
         utils_lib.run_cmd(self, "find /var/crash", msg="After cleanup")
 
     def _trigger_kdump_on_cpu(self, cpu=None):
-        aws.run_cmd(self, 'sudo su', msg="Switch to root")
+        utils_lib.run_cmd(self, 'sudo su', msg="Switch to root")
         cmd = 'echo 1 > /proc/sys/kernel/sysrq'
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     cmd,
                     msg="Make sure it allows trigger panic via sysrq")
         cpuN = cpu
@@ -99,13 +99,13 @@ class KdumpTest(Test):
             self.cancel("Cancel it as bug 1654962 in arm instances which \
 no plan to fix it in the near future!")
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo rm -rf /var/crash/*',
                     expect_ret=0,
                     msg='clean /var/crash firstly')
-        aws.run_cmd(self, r'sudo sync', expect_ret=0)
+        utils_lib.run_cmd(self, r'sudo sync', expect_ret=0)
         self.log.info("Before system crash %s" % self.vm.instance_id)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'find /var/crash',
                     expect_ret=0,
                     msg='list /var/crash')
@@ -120,12 +120,12 @@ no plan to fix it in the near future!")
             time.sleep(30)
         self.session.connect(timeout=640)
         self.log.info("After system crash %s" % self.vm.instance_id)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'find /var/crash',
                     expect_ret=0,
                     msg='list /var/crash after crash')
         cmd = r'sudo cat /var/crash/1*/vmcore-dmesg.txt|tail -50'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_kw='write_sysrq_trigger')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='write_sysrq_trigger')
 
     def test_kdump_unknown_nmi_panic_disabled(self):
         '''
@@ -139,21 +139,21 @@ no plan to fix it in the near future!")
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'lscpu',
                     cancel_not_kw='aarch64',
                     msg='Not support in arm instance')
         time.sleep(10)
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo rm -rf /var/crash/*',
                     expect_ret=0,
                     msg='clean /var/crash firstly')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo sysctl kernel.unknown_nmi_panic=0',
                     expect_ret=0,
                     msg='enable unknown_nmi_panic')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo sysctl -a|grep -i nmi',
                     expect_ret=0,
                     expect_kw='kernel.unknown_nmi_panic = 0')
@@ -163,12 +163,12 @@ no plan to fix it in the near future!")
         time.sleep(10)
         if not self.session.session.is_responsive():
             self.fail("SSH connection should live!")
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo ls /var/crash/',
                     expect_ret=0,
                     msg='list /var/crash after crash')
         cmd = r'sudo dmesg|tail -10'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_kw='NMI received')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='NMI received')
 
     def test_kdump_unknown_nmi_panic_enabled(self):
         '''
@@ -182,21 +182,21 @@ no plan to fix it in the near future!")
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'lscpu',
                     cancel_not_kw='aarch64',
                     msg='Not support in arm instance')
         time.sleep(10)
 
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo rm -rf /var/crash/*',
                     expect_ret=0,
                     msg='clean /var/crash firstly')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo sysctl kernel.unknown_nmi_panic=1',
                     expect_ret=0,
                     msg='enable unknown_nmi_panic')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo sysctl -a|grep -i nmi',
                     expect_ret=0,
                     expect_kw='kernel.unknown_nmi_panic = 1')
@@ -214,12 +214,12 @@ if crashed successfully!")
             self.log.info("Wait 30s")
             time.sleep(30)
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo ls /var/crash/',
                     expect_ret=0,
                     msg='list /var/crash after crash')
         cmd = r'sudo cat /var/crash/1*/vmcore-dmesg.txt|tail -50'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_kw='nmi_panic')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='nmi_panic')
 
     def test_kdump_unknown_nmi_panic_enabled_sysrq_trigger(self):
         '''
@@ -232,26 +232,26 @@ if crashed successfully!")
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'lscpu',
                     cancel_not_kw='aarch64',
                     msg='Not support in arm instance')
         time.sleep(10)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo rm -rf /var/crash/*',
                     expect_ret=0,
                     msg='clean /var/crash firstly')
-        aws.run_cmd(self, r'sudo sync', expect_ret=0)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self, r'sudo sync', expect_ret=0)
+        utils_lib.run_cmd(self,
                     r'sudo sysctl kernel.unknown_nmi_panic=1',
                     expect_ret=0,
                     msg='enable unknown_nmi_panic')
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'sudo sysctl -a|grep -i nmi',
                     expect_ret=0,
                     expect_kw='kernel.unknown_nmi_panic = 1')
         self.log.info("Before system crash %s" % self.vm.instance_id)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'find /var/crash',
                     expect_ret=0,
                     msg='list /var/crash')
@@ -266,12 +266,12 @@ if crashed successfully!")
             time.sleep(30)
         self.session.connect(timeout=640)
         self.log.info("After system crash %s" % self.vm.instance_id)
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     r'find /var/crash',
                     expect_ret=0,
                     msg='list /var/crash after crash')
         cmd = r'sudo cat /var/crash/1*/vmcore-dmesg.txt|tail -50'
-        aws.run_cmd(self, cmd, expect_ret=0, expect_kw='write_sysrq_trigger')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='write_sysrq_trigger')
 
     def test_kdump_each_cpu(self):
         '''

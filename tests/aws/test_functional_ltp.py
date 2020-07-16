@@ -14,6 +14,7 @@ class LTPRun(Test):
         self.vm = None
         self.ssh_wait_timeout = None
         aws.init_test(self)
+        self.session.connect(timeout=self.ssh_wait_timeout)
 
     def test_ltp_hugemmap(self):
         '''
@@ -23,11 +24,10 @@ class LTPRun(Test):
         '''
         # some a1 instance has not enough memory to run this case, skip them
         black_list = ['a1.large', 'a1.xlarge', 'a1.medium']
-        self.session.connect(timeout=self.ssh_wait_timeout)
         mini_mem = self.params.get('memory', '*/instance_types/*')
         if int(mini_mem) < 2:
             self.cancel('Cancel case as low memory')
-        output = aws.run_cmd(self, 'sudo lscpu', expect_ret=0)
+        output = utils_lib.run_cmd(self, 'sudo lscpu', expect_ret=0)
         if 'aarch64' in output and int(mini_mem) < 16:
             self.cancel('Cancel case as low memory')
         if self.vm.instance_type in black_list:
@@ -47,7 +47,7 @@ class LTPRun(Test):
         # in bare metal instance
         # but in large metal instances, it is expected. So do not do it in
         # bare metal instances
-        aws.run_cmd(self,
+        utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
                     cancel_not_kw="Xen",
@@ -82,7 +82,7 @@ at least which ltp not handle')
                       file_name='net_stress.ipsec_icmp')
         self.log.info("Try to remove ccm module after test.")
         try:
-            aws.run_cmd(self, 'sudo modprobe -r ccm', expect_ret=0)
+            utils_lib.run_cmd(self, 'sudo modprobe -r ccm', expect_ret=0)
         except Exception as err:
             aws.handle_exception(self.vm, err)
             self.fail("Got exceptions during test!")
