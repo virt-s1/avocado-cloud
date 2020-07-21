@@ -33,7 +33,11 @@ chpasswd: {{ expire: False }}
 
 ssh_pwauth: 1
 """.format(self.vm.vm_username, self.vm.vm_password)
-        self.vm.user_data = base64.b64encode(user_data.encode())
+        if self.cloud.cloud_provider == 'alibaba':
+            self.vm.user_data = base64.b64encode(user_data.encode())
+        else:
+            self.vm.user_data = base64.b64encode(
+                user_data.encode('utf-8')).decode('utf-8')
         self.vm.keypair = None
         self.vm.create(wait=True)
         if self.vm.is_stopped():

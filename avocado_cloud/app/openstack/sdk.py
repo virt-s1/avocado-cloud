@@ -72,15 +72,20 @@ class OpenstackVM(VM):
     def create(self, wait=False, auto_ip=True):
         image_id = self.conn.compute.find_image(self.image_name).id
 
-        server = self.conn.compute.create_server(name=self.vm_name,
-                                                 image_id=image_id,
-                                                 flavor_id=self.flavor_id,
-                                                 networks=[{
-                                                     "uuid":
-                                                     self.network_id
-                                                 }],
-                                                 key_name=self.keypair,
-                                                 userdata=self.user_data)
+        args = {
+            'name': self.vm_name,
+            'image_id': image_id,
+            'flavor_id': self.flavor_id,
+            'networks': [{
+                "uuid": self.network_id
+            }],
+        }
+        if self.keypair:
+            args['key_name'] = self.keypair
+        if self.user_data:
+            args['user_data'] = self.user_data
+
+        server = self.conn.compute.create_server(**args)
 
         if wait:
             if self.create_timeout:
