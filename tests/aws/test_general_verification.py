@@ -466,6 +466,24 @@ in blacklist and not loaded bug1645772")
                     expect_kw="rd.blacklist=nouveau",
                     msg="Checking cmdline")
 
+    def test_check_nvme_io_timeout(self):
+        '''
+        :avocado: tags=test_check_nvme_io_timeout,fast_check
+        polarion_id: N/A
+        bz#: 1859088
+        '''
+        self.log.info("nvme_core.io_timeout=4294967295 is recommended in ec2, make sure it is \
+in cmdline as bug1859088")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        utils_lib.run_cmd(self,
+                    "sudo cat /sys/module/nvme_core/parameters/io_timeout",
+                    msg="Checking actual value")
+        utils_lib.run_cmd(self,
+                    "sudo cat /proc/cmdline",
+                    expect_ret=0,
+                    expect_kw="nvme_core.io_timeout=4294967295",
+                    msg="Checking cmdline")
+
     def test_check_secure_ioerror(self):
         '''
         :avocado: tags=test_check_secure_ioerror,fast_check

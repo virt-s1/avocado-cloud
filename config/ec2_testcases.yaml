@@ -42,6 +42,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_avclog
     test_general_verification.py:GeneralVerification.test_check_avclog_nfs
     test_general_verification.py:GeneralVerification.test_check_nouveau
+    test_general_verification.py:GeneralVerification.test_check_nvme_io_timeout
     test_general_verification.py:GeneralVerification.test_check_secure_ioerror
     test_general_verification.py:GeneralVerification.test_check_rngd
     test_general_verification.py:GeneralVerification.test_check_service
