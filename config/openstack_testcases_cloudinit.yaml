@@ -7,7 +7,9 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_critical
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_warn
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_error
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_instance_data_json
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_login_repeatedly
     test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_resize_partition_first_boot
     test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_gpt
     test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_mbr
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password

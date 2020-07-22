@@ -17,6 +17,11 @@ class CloudinitTest(Test):
         pre_stop = False
         if self.name.name.endswith("test_cloudinit_create_vm_login_repeatedly"):
             return
+        if self.name.name.endswith("test_cloudinit_login_with_password"):
+            if self.vm.exists():
+                self.vm.delete(wait=True)
+            self.session = self.cloud.init_session()
+            return
         if self.name.name.endswith("test_cloudinit_login_with_publickey"):
             pre_delete = True
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
@@ -36,6 +41,11 @@ class CloudinitTest(Test):
             self.vm.vm_username, output,
             "Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
             % output)
+        self.assertIn(
+            "%s ALL=(ALL) NOPASSWD:ALL" % self.vm.vm_username,
+            self.session.cmd_output(
+                "sudo cat /etc/sudoers.d/90-cloud-init-users"),
+            "No sudo privilege")
 
     def test_cloudinit_check_hostname(self):
         """
@@ -194,6 +204,21 @@ class CloudinitTest(Test):
                               msg='check /var/log/cloud-init-output.log',
                               is_get_console=False)
 
+    def test_cloudinit_check_instance_data_json(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-182312 - CLOUDINIT-TC:cloud-init can successfully write data to instance-data.json
+        bz#: 1744526
+        """     
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'ls -l /run/cloud-init/instance-data.json'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='No such file or directory',
+                          msg='check /run/cloud-init/instance-data.json',
+                          is_get_console=False)
+
     def test_cloudinit_create_vm_login_repeatedly(self):
         """
         :avocado: tags=tier3,cloudinit,test_cloudinit_create_vm_login_repeatedly
@@ -298,9 +323,45 @@ Auto resize partition in gpt")
         RHEL-188633: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
                      partition in MBR
         """
-        self.log.info("")
+        self.log.info("RHEL-188633: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
+                     partition in MBR")
         self._growpart_auto_resize_partition("msdos")
 
+
+    def test_cloudinit_login_with_password(self):
+        """
+        :avocado: tags=tier1,cloudinit
+        RHEL7-103830: CLOUDINIT-TC: VM can successfully login
+        after provisioning(with password authentication)
+        1. Create a VM with only password authentication
+        2. Login with password, should have sudo privilege
+        """
+        import base64     
+        self.log.info(
+            "RHEL7-103830: CLOUDINIT-TC: VM can successfully login "
+            "after provisioning(with password authentication)")
+        
+        user_data = """\
+#cloud-config
+
+user: {0}
+password: {1}
+chpasswd: {{ expire: False }}
+ssh_pwauth: 1
+""".format(self.vm.vm_username, self.vm.vm_password)
+        self.vm.user_data = base64.b64encode(
+                user_data.encode('utf-8')).decode('utf-8')
+        self.vm.keypair = None
+        self.vm.create(wait=True)
+        self.session.connect(authentication="password")
+        self.assertEqual(self.vm.vm_username,
+                         self.session.cmd_output("whoami"),
+                         "Fail to login with password")
+        self.assertIn(
+            "%s ALL=(ALL) NOPASSWD:ALL" % self.vm.vm_username,
+            self.session.cmd_output(
+                "sudo cat /etc/sudoers.d/90-cloud-init-users"),
+            "No sudo privilege")    
 
     def tearDown(self):
         self.session.close()
