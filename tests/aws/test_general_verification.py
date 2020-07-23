@@ -861,6 +861,31 @@ current_device"
         if len(output) > 0:
             self.fail('Memory leak found!')
 
+    def test_collect_insights_result(self):
+        '''
+        :avocado: tags=test_collect_insights_result
+        polarion_id:
+        bz#:
+        '''
+
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        utils_lib.run_cmd(self,
+                    'sudo insights-client --register',
+                    msg="try to register system")
+        utils_lib.run_cmd(self,
+                    'sudo insights-client --status',
+                    cancel_kw="System is registered",
+                    msg="Check system register status")
+        utils_lib.run_cmd(self,
+                    'sudo insights-client --check-result',
+                    expect_ret=0,
+                    msg="checking system")
+        utils_lib.run_cmd(self,
+                    'sudo insights-client --show-result',
+                    expect_ret=0,
+                    msg="show insights result")
+
+
     def test_collect_log(self):
         '''
         :avocado: tags=test_collect_log
