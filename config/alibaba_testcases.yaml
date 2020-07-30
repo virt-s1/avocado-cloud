@@ -1,6 +1,6 @@
 cases:
+  test_functional_lifecycle.py:LifeCycleTest.test_create_vm_password
   test_functional_lifecycle.py:LifeCycleTest.test_create_vm_sshkey
-  test_functional_checkup.py:GeneralTest.test_validation
   test_functional_checkup.py:GeneralTest.test_check_boot_message
   test_functional_checkup.py:GeneralTest.test_check_fstab
   test_functional_checkup.py:GeneralTest.test_check_bash_prompt
@@ -25,3 +25,5 @@ cases:
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_vm
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_inside_vm
   test_functional_lifecycle.py:LifeCycleTest.test_delete_vm
+  test_zcleanup.py:CleanUp.test_release_nics
+  test_zcleanup.py:CleanUp.test_release_cloud_disks

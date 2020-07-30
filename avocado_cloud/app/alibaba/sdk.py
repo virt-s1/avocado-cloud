@@ -69,7 +69,6 @@ class AlibabaVM(VM):
             time.sleep(10)
             self.wait_for_status(status="Stopped")
         self._data = None
-        a = self.id
         self.ecs.allocate_public_ip_address(self.id)
         time.sleep(5)
 
@@ -201,11 +200,13 @@ class AlibabaVM(VM):
                         break
 
     def query_nics(self):
+        """Get NIC list of the current instance."""
         logging.info("Getting NICs attached to the ECS")
         return self.ecs.describe_nics(instance_id=self.id, nic_name=None).get(
             "NetworkInterfaceSets").get("NetworkInterfaceSet")
 
     def query_secondary_nics(self):
+        """Get Secondary NIC list of the current instance."""
         logging.info("Getting Secondary NICs attached to the ECS")
         return self.ecs.describe_nics(
             instance_id=self.id, nic_type="Secondary").get(
@@ -213,6 +214,7 @@ class AlibabaVM(VM):
 
     # SDK issue, can not get the primary nic.
     def query_primary_nic(self):
+        """Get primary NIC of the current instance."""
         logging.info("Getting Primary NIC attached to the ECS")
         logging.debug(self.id)
         logging.debug(
@@ -224,22 +226,54 @@ class AlibabaVM(VM):
                 "NetworkInterfaceSets").get("NetworkInterfaceSet")[0]
 
     def list_nics(self):
+        """List NICs with default NetworkInterfaceName in the current region.
+
+        Returns a list of NetworkInterfaceSet.
+        """
         logging.info("List all NICs in this region")
         return self.ecs.describe_nics().get("NetworkInterfaceSets").get(
             "NetworkInterfaceSet")
 
     def get_private_ip_address(self, nic):
+        """Get private ip of the specified NIC."""
         logging.info("Getting private IP address")
         return nic.get("PrivateIpAddress")
 
     def get_nic_id(self, nic):
-        #logging.info("Getting NIC ID")
+        """Get NIC ID of the specified NIC."""
+        logging.info("Getting NIC ID")
         return nic.get("NetworkInterfaceId")
 
     def get_nic_type(self, nic):
-        '''Get the NIC's type, returns "Primary" or "Secondary".'''
-        #logging.info("Getting NIC Type")
+        """Get type of the specified NIC.
+        
+        Returns 'Primary' or 'Secondary'.
+        """
+        logging.info("Getting NIC Type")
         return nic.get("Type")
+
+    def delete_nic(self, nic_id):
+        """Delete the specified NIC."""
+        logging.debug("Delete NIC")
+        self.ecs.delete_nic(nic_id)
+
+    def delete_nics(self, nic_name='default', wait=False):
+        """Delete the specified NICs by the name."""
+        logging.debug("Delete NICs (Name: {0})".format(nic_name))
+        nics = self.ecs.describe_nics(nic_name=nic_name).get(
+            "NetworkInterfaceSets").get("NetworkInterfaceSet")
+        for nic in nics:
+            self.delete_nic(nic['NetworkInterfaceId'])
+        if wait:
+            for count in utils_misc.iterate_timeout(
+                    60, "Timed out waiting for nics to be created.", wait=1):
+                remaining = len(
+                    self.ecs.describe_nics(nic_name=nic_name).get(
+                        "NetworkInterfaceSets").get("NetworkInterfaceSet"))
+                logging.debug(
+                    'Remaining {0} NIC(s) to be deleted.'.format(remaining))
+                if remaining == 0:
+                    break
 
     def create_cloud_disk(self, wait=False, **args):
         logging.info("Create cloud disk")
@@ -255,24 +289,35 @@ class AlibabaVM(VM):
         return output
 
     def delete_cloud_disk(self, disk_id, wait=False):
+        """Delete specified cloud disk."""
         logging.info("Delete a cloud disk")
+        disk_id = disk_id.encode('ascii')
         self.ecs.delete_disk(disk_id)
         if wait:
             for count in utils_misc.iterate_timeout(
                     180, "Timed out waiting for cloud disk to be deleted",
                     wait=5):
                 res = self.query_cloud_disks(disk_id=disk_id)
-                if res is None:
+                if res == []:
                     break
+
+    def delete_cloud_disks(self, wait=False):
+        """Delete default cloud disks."""
+        logging.info('Delete cloud disks')
+        disks = self.query_cloud_disks()
+        for disk in disks:
+            self.delete_cloud_disk(disk['DiskId'], wait)
 
     def query_cloud_disks(self, disk_id=None, **args):
         logging.info("Describe cloud disks")
+        if disk_id is not None:
+            disk_id = disk_id.encode("ascii")
         output = self.ecs.describe_disks(diskids=disk_id)
         if output:
             return output.get("Disks").get("Disk")
         return output
 
-    def attach_cloud_disks(self, disk_id=None, wait=False, **args):
+    def attach_cloud_disks(self, disk_id, wait=False, **args):
         logging.info("Attach cloud disk to VM")
         disk_id = disk_id.encode("ascii")
         output = self.ecs.attach_disk(self.id, disk_id)
@@ -313,15 +358,11 @@ class AlibabaVM(VM):
         return self.data.get('Status')
 
     def is_started(self):
-        """
-        Return True if VM is running.
-        """
+        """Return True if VM is running."""
         return self._get_status() == 'Running'
 
     def is_stopped(self):
-        """
-        Return True if VM is stopped.
-        """
+        """Return True if VM is stopped."""
         return self._get_status() == 'Stopped'
 
     def show(self):
@@ -329,7 +370,5 @@ class AlibabaVM(VM):
         return self.data
 
     def modify_instance_type(self, new_type):
-        """
-        Modify Instance Type
-        """
+        """Modify Instance Type."""
         self.ecs.modify_instance_spec(self.id, new_type)

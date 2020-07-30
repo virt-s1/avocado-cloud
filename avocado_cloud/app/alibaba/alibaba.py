@@ -27,6 +27,7 @@ from aliyunsdkecs.request.v20140526 import CreateNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import AttachNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import DescribeNetworkInterfacesRequest
 from aliyunsdkecs.request.v20140526 import DetachNetworkInterfaceRequest
+from aliyunsdkecs.request.v20140526 import DeleteNetworkInterfaceRequest
 
 
 class AliyunConfig(object):
@@ -276,9 +277,14 @@ class AlibabaSDK(object):
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
 
+    # Disk
     def describe_disks(self, diskids=None):
+        """Describe cloud disks.
+
+        diskids should be a string like '"id1","id2","id3"'.
+        """
         request = DescribeDisksRequest.DescribeDisksRequest()
-        key_list = ["RegionId", "ZoneId", "DiskName", "Category", "PageSize"]
+        key_list = ["ZoneId", "DiskName", "Category", "PageSize"]
         self.vm_params.setdefault("Category", "cloud_ssd")
         self.vm_params.setdefault("PageSize", "100")
         if diskids:
@@ -289,7 +295,7 @@ class AlibabaSDK(object):
 
     def create_disk(self):
         request = CreateDiskRequest.CreateDiskRequest()
-        key_list = ["RegionId", "ZoneId", "DiskName", "DiskCategory", "Size"]
+        key_list = ["ZoneId", "DiskName", "DiskCategory", "Size"]
         self.vm_params.setdefault("DiskCategory", "cloud_ssd")
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
@@ -361,6 +367,13 @@ class AlibabaSDK(object):
         request = DetachNetworkInterfaceRequest.DetachNetworkInterfaceRequest()
         key_list = ["InstanceId", "NetworkInterfaceId"]
         self.vm_params["InstanceId"] = instance_id
+        self.vm_params["NetworkInterfaceId"] = nic_id
+        request = self._add_params(request, key_list, self.vm_params)
+        return self._send_request(request)
+
+    def delete_nic(self, nic_id):
+        request = DeleteNetworkInterfaceRequest.DeleteNetworkInterfaceRequest()
+        key_list = ["NetworkInterfaceId"]
         self.vm_params["NetworkInterfaceId"] = nic_id
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
