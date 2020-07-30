@@ -38,24 +38,24 @@ class AliyunConfig(object):
     ossutilconfig = {"path": os.path.join(aliyuncli, ".ossutilconfig")}
 
     configure["content"] = """\
-    [default]
-    output = json
-    region = %(region)s
-    """
+[default]
+output = json
+region = %(region)s
+"""
 
     credentials["content"] = """\
-    [default]
-    aliyun_access_key_secret = %(access_key_secret)s
-    aliyun_access_key_id = %(access_key_id)s
-    """
+[default]
+aliyun_access_key_secret = %(access_key_secret)s
+aliyun_access_key_id = %(access_key_id)s
+"""
 
     ossutilconfig["content"] = """\
-    [Credentials]
-    language=CH
-    endpoint=oss-%(region)s.aliyuncs.com
-    accessKeyID=%(access_key_id)s
-    accessKeySecret=%(access_key_secret)s
-    """
+[Credentials]
+language=CH
+endpoint=oss-%(region)s.aliyuncs.com
+accessKeyID=%(access_key_id)s
+accessKeySecret=%(access_key_secret)s
+"""
 
     def __init__(self,
                  access_key_id=None,
@@ -94,12 +94,12 @@ class AlibabaSDK(object):
         # VM parameters
         self.vm_params = dict()
         self.vm_params["InstanceType"] = params.get('name', '*/Flavor/*')
-        self.vm_params["region"] = region
+        self.vm_params["RegionId"] = region
         self.vm_params["InstanceName"] = params.get('vm_name',
                                                     '*/VM/*').replace(
                                                         '_', '-')
         self.vm_params["HostName"] = self.vm_params["InstanceName"]
-        self.vm_params["username"] = params.get('username', '*/VM/*')
+        self.vm_params["Username"] = params.get('username', '*/VM/*')
         self.vm_params["Password"] = params.get('password', '*/VM/*')
         self.vm_params["KeyPairName"] = params.get('keypair', '*/VM/*')
         self.vm_params["ZoneId"] = params.get('az', '*/VM/*')
@@ -155,7 +155,7 @@ class AlibabaSDK(object):
             "InstanceChargeType", "ImageId", "InstanceType",
             "InternetChargeType", "SecurityGroupId", "VSwitchId",
             "SystemDiskCategory", "HostName", "InstanceName",
-            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn", "RegionId",
+            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn",
             "ZoneId"
         ]
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
@@ -348,7 +348,7 @@ class AlibabaSDK(object):
                       nic_ids=None):
         request = DescribeNetworkInterfacesRequest.\
             DescribeNetworkInterfacesRequest()
-        key_list = ["InstanceId", "RegionId", "Type"]
+        key_list = ["InstanceId", "Type"]
         self.vm_params["InstanceId"] = instance_id
         self.vm_params["Type"] = nic_type
         if nic_name:
