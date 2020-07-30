@@ -1,0 +1,10 @@
+*.pyc
+*.swp
+*~
+tags
+.idea/
+.vscode/
+build/
+dist/
+#ignore confidential file for azure
+config/azure_common.yaml
