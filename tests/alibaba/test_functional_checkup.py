@@ -425,6 +425,8 @@ will not check kernel-devel package.')
 
     def test_check_virt_what(self):
         self.log.info("Check the virt-what")
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            self.cancel("Alibaba baremetal, skip this case.")
         virt_type = self.params.get('virt', '*/{0}/*'.format(self.vm.flavor),
                                     'kvm')
         self.assertIn(virt_type, self.session.cmd_output("sudo virt-what"),
@@ -553,7 +555,7 @@ will not check kernel-devel package.')
         pass_criteria:
             n/a
         """
-        self.log.info("Collet Metadata")
+        self.log.info("Collect Metadata")
 
         guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
         guest_logpath = guest_path + "/log"
