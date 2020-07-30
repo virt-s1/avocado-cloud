@@ -28,23 +28,7 @@ class CloudDiskTest(Test):
             if self.local_disk_count == 0:
                 self.cancel("No local disk. Skip this case.")
         self.disk_ids = self.cloud.init_cloud_disks(self.cloud_disk_count)
-        if self.cloud.cloud_provider == "huawei" and \
-           self.params.get('virt', '*/{0}/*'.format(self.vm.flavor)) == "kvm":
-            self.scsi_disk = True
-            self.disk_ids_scsi = self.cloud.init_cloud_disks(
-                self.cloud_disk_count, scsi=True)
-        if self.cloud.cloud_provider == "alibaba":
-            self.dev_name = "vd"
-        elif self.cloud.cloud_provider == "huawei" and \
-                self.params.get(
-                    'virt', '*/{0}/*'.format(self.vm.flavor)) == "xen":
-            self.dev_name = "xvd"
-        elif self.cloud.cloud_provider == "huawei" and \
-                self.params.get(
-                    'virt', '*/{0}/*'.format(self.vm.flavor)) == "kvm":
-            self.dev_name = "vd"
-        else:
-            self.dev_name = "vd"
+        self.dev_name = "vd"
 
     def _cloud_disk_test(self,
                          initial="b",
@@ -75,7 +59,8 @@ class CloudDiskTest(Test):
         cmd = "fdisk -l /dev/{0} | grep /dev/{0}"
         output = self.session.cmd_output(cmd.format(dev_fullname))
 
-        if self.cloud.cloud_provider == 'alibaba' and 'GPT' in output:
+        # WORKAROUND: Alibaba local volume untrimmed issue
+        if 'GPT' in output:
             self.log.info('WORKAROUND: Alibaba local volume untrimmed issue.')
             self.session.cmd_output(
                 'dd if=/dev/zero of=/dev/{0} bs=5000 count=1'.format(
@@ -383,12 +368,7 @@ echo test_content > /mnt/{0}/test_file"
     def test_local_disks(self):
         self.log.info("Test local disks on VM")
         self.session.cmd_output('sudo su -')
-
-        if self.cloud.cloud_provider == "alibaba":
-            initial = 'b'
-        else:
-            initial = 'a'
-
+        initial = 'b'
         self._cloud_disk_test(initial=initial,
                               disk_count=self.local_disk_count,
                               disk_type=self.local_disk_type,

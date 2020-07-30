@@ -33,11 +33,7 @@ chpasswd: {{ expire: False }}
 
 ssh_pwauth: 1
 """.format(self.vm.vm_username, self.vm.vm_password)
-        if self.cloud.cloud_provider == 'alibaba':
-            self.vm.user_data = base64.b64encode(user_data.encode())
-        else:
-            self.vm.user_data = base64.b64encode(
-                user_data.encode('utf-8')).decode('utf-8')
+        self.vm.user_data = base64.b64encode(user_data.encode())
         self.vm.keypair = None
         self.vm.create(wait=True)
         if self.vm.is_stopped():
@@ -47,16 +43,16 @@ ssh_pwauth: 1
         self.assertEqual(
             self.vm.vm_username, output, "Create VM with password error: \
 output of cmd `who` unexpected -> %s" % output)
-        # Test change password for Alibaba cloud
-        if self.cloud.cloud_provider == 'alibaba':
-            self.vm.vm_password = "Redhat123$"
-            self.vm.reset_password(new_password=self.vm.vm_password)
-            self.vm.reboot(wait=True)
-            self.session = self.cloud.init_session()
-            self.session.connect(authentication="password")
-            output = self.session.cmd_output('whoami')
-            self.assertEqual(
-                self.vm.vm_username, output, "Start VM error after change \
+
+        # Test change password
+        self.vm.vm_password = "Redhat123$"
+        self.vm.reset_password(new_password=self.vm.vm_password)
+        self.vm.reboot(wait=True)
+        self.session = self.cloud.init_session()
+        self.session.connect(authentication="password")
+        output = self.session.cmd_output('whoami')
+        self.assertEqual(
+            self.vm.vm_username, output, "Start VM error after change \
 password: output of cmd `who` unexpected -> %s" % output)
 
     def test_create_vm_sshkey(self):
