@@ -108,6 +108,12 @@ done
         2. Stop VM. Add 1 more NIC. Should not be added
         3. Stop VM. Detach all NICs. Device should be removed inside guest
         """
+        # Set timeout for Alibaba baremetal
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         # 1. Attach max NICs and check all can get IP
         count = self.vm.nic_count - 1
         self.log.info("Step 1: Attach %s NICs." % count)
@@ -115,7 +121,7 @@ done
         self.assertEqual(len(self.vm.query_nics()), count + 1,
                          "Total NICs number is not %d" % (count + 1))
         self.vm.start(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
 
         guest_cmd = """
 primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
@@ -167,7 +173,7 @@ done
                          "Fail to remove all NICs outside guest")
         self.vm.start(wait=True)
         self.assertTrue(self.vm.is_started(), "Fail to start VM")
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         guest_cmd = "ip addr | grep -e 'eth.*mtu' -e 'ens.*mtu' | wc -l"
 
         self.assertEqual(self.session.cmd_output(guest_cmd), "1",

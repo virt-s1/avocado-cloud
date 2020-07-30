@@ -33,12 +33,19 @@ chpasswd: {{ expire: False }}
 
 ssh_pwauth: 1
 """.format(self.vm.vm_username, self.vm.vm_password)
+        # Set timeout for Alibaba baremetal
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         self.vm.user_data = base64.b64encode(user_data.encode())
         self.vm.keypair = None
         self.vm.create(wait=True)
         if self.vm.is_stopped():
             self.vm.start(wait=True)
-        self.session.connect(authentication="password")
+        self.session.connect(authentication="password",
+                             timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output, "Create VM with password error: \
@@ -49,7 +56,8 @@ output of cmd `who` unexpected -> %s" % output)
         self.vm.reset_password(new_password=self.vm.vm_password)
         self.vm.reboot(wait=True)
         self.session = self.cloud.init_session()
-        self.session.connect(authentication="password")
+        self.session.connect(authentication="password",
+                             timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output, "Start VM error after change \
@@ -63,8 +71,14 @@ password: output of cmd `who` unexpected -> %s" % output)
             % output)
 
     def test_start_vm(self):
+        # Set timeout for Alibaba baremetal
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         self.vm.start(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output,
@@ -80,9 +94,15 @@ password: output of cmd `who` unexpected -> %s" % output)
             output)
 
     def test_reboot_vm(self):
+        # Set timeout for Alibaba baremetal
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         before = self.session.cmd_output('last reboot')
         self.vm.reboot(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output,
@@ -93,10 +113,16 @@ password: output of cmd `who` unexpected -> %s" % output)
             "Reboot VM error: before -> %s; after -> %s" % (before, after))
 
     def test_reboot_inside_vm(self):
+        # Set timeout for Alibaba baremetal
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         before = self.session.cmd_output('last reboot')
         self.session.send_line('sudo reboot')
         time.sleep(10)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output,

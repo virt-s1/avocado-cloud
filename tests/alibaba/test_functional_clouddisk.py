@@ -231,6 +231,12 @@ echo test_content > /mnt/{0}/test_file"
                              "Disk not detached.\n {0}".format(output))
 
     def test_offline_attach_detach_cloud_disks(self):
+        # Set timeout for Alibaba baremetal
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         self.log.info("Offline attach a cloud disk to VM")
         vols = self.vm.query_cloud_disks()
         for vol in vols:
@@ -256,7 +262,7 @@ echo test_content > /mnt/{0}/test_file"
             self.assertEqual(s.lower().replace('_', '-'), u"in-use",
                              "Disk status is not in-use")
         self.vm.start(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output,
@@ -280,7 +286,7 @@ echo test_content > /mnt/{0}/test_file"
             self.assertEqual(s.lower(), u'available',
                              "Disk status is not available")
         self.vm.start(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output,
@@ -298,6 +304,12 @@ echo test_content > /mnt/{0}/test_file"
                              "Disk not detached.\n {0}".format(output))
 
     def test_offline_attach_detach_scsi_cloud_disks(self):
+        # Set timeout for Alibaba baremetal
+        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         self.dev_name = "sd"
         if self.params.get('virt', '*/{0}/*'.format(self.vm.flavor)) != "kvm":
             self.log.info(
@@ -325,7 +337,7 @@ echo test_content > /mnt/{0}/test_file"
             self.assertEqual(s.lower().replace('_', '-'), u"in-use",
                              "Disk status is not in-use")
         self.vm.start(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output,
@@ -348,7 +360,7 @@ echo test_content > /mnt/{0}/test_file"
             self.assertEqual(s.lower(), u'available',
                              "Disk status is not available")
         self.vm.start(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output,
