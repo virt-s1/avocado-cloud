@@ -39,7 +39,7 @@ class Setup(object):
             self.vm.stop(wait=True)
         session = self.init_session()
         if self.vm.is_started():
-            session.connect(timeout=300)
+            session.connect(timeout=600)
         return session
 
     def init_session(self):

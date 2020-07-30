@@ -190,6 +190,10 @@
 /etc/systemd/system/cloud-init.target.wants/cloud-init-local.service
 /etc/systemd/system/cloud-init.target.wants/cloud-init.service
 /etc/systemd/system/multi-user.target.wants/systemd-resolved.service
+/etc/dracut.conf.d/virtio-drivers.conf
+/etc/systemd/system/systemd-resolved.service.d/override.conf
+/etc/modprobe.d/intel-eth.conf
+/etc/dracut.conf.d/omit-intel.conf
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id

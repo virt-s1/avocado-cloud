@@ -16,3 +16,10 @@ augenrules
 Failed to init entropy source hwrng
 failed: Cannot assign requested address
 DEVICESCAN failed: glob(3) aborted matching pattern /dev/discs/disc
+kernel: ERST: Error Record Serialization Table (ERST) support is initialized
+error: kex_exchange_identification:
+failed to assign [io  size 0x
+failed to assign [mem size 0x
+: Failed to check link status
+#################### KNOWN ISSUES BELOW ####################
+kernel: GPT: Use GNU Parted to correct GPT errors.
