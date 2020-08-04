@@ -30,7 +30,7 @@ def init_test(test_ins, instance_index=0):
 
     pre_delete = False
     pre_stop = False
-    if test_ins.name.name.endswith("test_create_vm"):
+    if test_ins.name.name.endswith(('test_check_firstlaunch_time')):
         pre_delete = True
 
     test_ins.log.info("Test tempdir: %s" % test_ins.teststmpdir)

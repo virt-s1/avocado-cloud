@@ -17,20 +17,6 @@ class LifeCycleTest(Test):
         self.ssh_wait_timeout = None
         aws.init_test(self)
 
-    def test_create_vm(self):
-        '''
-        :avocado: tags=test_create_vm
-        '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.check_session(self)
-
-        utils_lib.run_cmd(self,
-                    'whoami',
-                    expect_ret=0,
-                    expect_output=self.vm.vm_username,
-                    msg="New VM is created: %s" % self.vm.instance_id)
-        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
-
     def test_start_vm(self):
         '''
         :avocado: tags=test_start_vm
@@ -46,7 +32,6 @@ class LifeCycleTest(Test):
         if self.vm.start(wait=True):
             self.log.info("Instance is started: %s" % self.vm.instance_id)
             self.session.connect(timeout=self.ssh_wait_timeout)
-            aws.check_session(self)
             utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
         else:
             self.fail("Failed to start instance!")
@@ -63,7 +48,6 @@ class LifeCycleTest(Test):
             self.log.info("Instance is xen/kvm")
             self.cancel("Only run in bare metal instances!")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        aws.check_session(self)
         utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
 
         utils_lib.run_cmd(self,
