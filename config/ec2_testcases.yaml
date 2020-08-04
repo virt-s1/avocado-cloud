@@ -1,5 +1,4 @@
 cases:
-    test_functional_lifecycle.py:LifeCycleTest.test_create_vm
     test_functional_lifecycle.py:LifeCycleTest.test_start_vm
     test_functional_lifecycle.py:LifeCycleTest.test_start_vm_iommu
     test_functional_lifecycle.py:LifeCycleTest.test_reboot_vm_from_control
@@ -48,6 +47,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_service
     test_general_verification.py:GeneralVerification.test_check_cpupower
     test_general_verification.py:GeneralVerification.test_check_pkgs_list
+    test_general_verification.py:GeneralVerification.test_check_firstlaunch_time
     test_general_verification.py:GeneralVerification.test_check_boot_time
     test_general_verification.py:GeneralVerification.test_check_reboot_time
     test_general_verification.py:GeneralVerification.test_check_available_clocksource

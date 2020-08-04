@@ -553,6 +553,15 @@ in RHEL7|6, bug1625874")
         self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, "sudo rpm -qa", expect_ret=0)
 
+    def test_check_firstlaunch_time(self):
+        '''
+        :avocado: tags=test_check_firstlaunch_time,fast_check
+        polarion_id:
+        bz#: 1862930
+        '''
+        max_boot_time = self.params.get('max_boot_time')
+        self._check_boot_time(max_boot_time)
+
     def test_check_boot_time(self):
         '''
         :avocado: tags=test_check_boot_time,fast_check
