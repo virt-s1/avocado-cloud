@@ -38,7 +38,7 @@ class GeneralVerification(Test):
         if 'min' in boot_time:
             boot_time_min = re.findall('[0-9]+min', boot_time)[0]
             boot_time_min = boot_time_min.strip('min')
-            boot_time_sec = int(boot_time_min) * 60 + int(boot_time_sec)
+            boot_time_sec = int(boot_time_min) * 60 + decimal.Decimal(boot_time_sec).to_integral()
         self.log.info(
             "Boot time is %s(s), less than max_boot_time %s in cfg file! " %
             (boot_time_sec, max_boot_time))
@@ -51,13 +51,13 @@ class GeneralVerification(Test):
         self.vm = None
         self.ssh_wait_timeout = None
         aws.init_test(self)
+        self.session.connect(timeout=self.ssh_wait_timeout)
 
     def test_check_gpgkey(self):
         '''
         :avocado: tags=test_check_gpgkey,fast_check
         polarion_id: RHEL7-103849
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     r"sudo cat /etc/redhat-release",
                     expect_ret=0,
@@ -76,7 +76,6 @@ has some pkg not signed")
         :avocado: tags=test_check_timezone,fast_check
         polarion_id: RHEL7-103856
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, 'date', expect_ret=0,
                     expect_kw='UTC',
                     msg='Check timezone is UTC.')
@@ -86,7 +85,6 @@ has some pkg not signed")
         :avocado: tags=test_check_virtwhat,fast_check,kernel_tier1
         polarion_id: RHEL7-103857
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, r'sudo yum install -y virt-what')
         virt_what_output = utils_lib.run_cmd(self, r"sudo virt-what", expect_ret=0)
         lscpu_output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
@@ -107,8 +105,6 @@ has some pkg not signed")
         :avocado: tags=test_xenfs_mount,fast_check
         polarion_id:
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
-
         utils_lib.run_cmd(self,
                     'sudo lscpu',
                     expect_ret=0,
@@ -126,8 +122,6 @@ has some pkg not signed")
         :avocado: tags=test_xe_guest_utilities,fast_check
         polarion_id:
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
-
         utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
@@ -167,8 +161,6 @@ x86_64.rpm'
         polarion_id:
         BZ# 1663266
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
-
         utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
@@ -199,7 +191,6 @@ if __name__ == "__main__":
         :avocado: tags=test_check_dmesg_error,fast_check
         polarion_id: RHEL7-103851
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_dmesg(self, 'error')
 
     def test_check_dmesg_fail(self):
@@ -207,7 +198,6 @@ if __name__ == "__main__":
         :avocado: tags=test_check_dmesg_fail,fast_check
         polarion_id: RHEL7-103851
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_dmesg(self, 'fail')
 
     def test_check_dmesg_warn(self):
@@ -215,7 +205,6 @@ if __name__ == "__main__":
         :avocado: tags=test_check_dmesg_warn,fast_check
         polarion_id: RHEL7-103851
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_dmesg(self, 'warn')
 
     def test_check_dmesg_calltrace(self):
@@ -224,7 +213,6 @@ if __name__ == "__main__":
         polarion_id: RHEL7-103851
         bz#: 1777179
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, 'dmesg', expect_ret=0, expect_not_kw='Call Trace')
 
     def test_check_dmesg_unknownsymbol(self):
@@ -233,7 +221,6 @@ if __name__ == "__main__":
         polarion_id:
         bz#: 1649215
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     'dmesg',
                     expect_ret=0,
@@ -246,7 +233,6 @@ if __name__ == "__main__":
         polarion_id:
         bz#: 1779454
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, 'dmesg', expect_ret=0, expect_not_kw='unable')
 
     def test_check_journalctl_traceback(self):
@@ -255,7 +241,6 @@ if __name__ == "__main__":
         polarion_id:
         bz#: 1801999, 1736818
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         # redirect journalctl output to a file as it is not get return
         # normally in RHEL7
         cmd = 'journalctl > /tmp/journalctl.log'
@@ -269,7 +254,6 @@ if __name__ == "__main__":
         polarion_id:
         bz#: 1797973
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         # redirect journalctl output to a file as it is not get return
         # normally in RHEL7
         cmd = 'journalctl > /tmp/journalctl.log'
@@ -283,7 +267,6 @@ if __name__ == "__main__":
         polarion_id:
         BZ#:1750417
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         # redirect journalctl output to a file as it is not get return
         # normally in RHEL7
         # skip sshd to filter out invalid user message
@@ -297,7 +280,6 @@ if __name__ == "__main__":
         :avocado: tags=test_check_modload,fast_check
         polarion_id:
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, 'lsmod', expect_ret=0)
 
     def test_check_console_log(self):
@@ -308,7 +290,6 @@ if __name__ == "__main__":
         support
         polarion_id: RHEL-117929
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         # as console log may not appear imediately, so wait maximum 600s
         time_start = int(time.time())
         while True:
@@ -340,7 +321,6 @@ content manually!\n %s" % output)
         check /etc/redhat-release have the correct name
         polarion_id: RHEL7-103850
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         check_cmd = r"sudo cat /etc/redhat-release"
         self.log.info("Check release name cmd: %s" % check_cmd)
         output = utils_lib.run_cmd(self,check_cmd, expect_ret=0)
@@ -370,7 +350,6 @@ release 8.n\n but it is %s" % output)
         :avocado: tags=test_check_vulnerabilities,fast_check
         polarion_id: N/A
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         # utils_lib.run_cmd(self, 'lscpu', expect_ret=0,cancel_not_kw="aarch64",
         #     msg="Not run in arm instance")
 
@@ -411,7 +390,6 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
         :avocado: tags=test_check_avclog,fast_check,kernel_tier1
         polarion_id: N/A
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = "sudo ausearch -m AVC -ts today"
         utils_lib.run_cmd(self, cmd, expect_not_ret=0, msg='Checking avc log!')
 
@@ -421,8 +399,6 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
         polarion_id: N/A
         '''
         self.log.info("Check no permission denied at nfs server - bug1655493")
-
-        self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo yum install -y nfs-utils'
         utils_lib.run_cmd(self, cmd, msg='Install nfs-utils')
         output = utils_lib.run_cmd(self, 'uname -r', expect_ret=0)
@@ -454,7 +430,6 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
         '''
         self.log.info("nouveau is not required in ec2, make sure it is \
 in blacklist and not loaded bug1645772")
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     "sudo lsmod",
                     expect_ret=0,
@@ -474,7 +449,6 @@ in blacklist and not loaded bug1645772")
         '''
         self.log.info("nvme_core.io_timeout=4294967295 is recommended in ec2, make sure it is \
 in cmdline as bug1859088")
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     "sudo cat /sys/module/nvme_core/parameters/io_timeout",
                     msg="Checking actual value")
@@ -494,7 +468,6 @@ in cmdline as bug1859088")
         Check there is no io error in /var/log/secure
         '''
         self.log.info("Check /var/log/secure")
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, "sudo cat /var/log/secure", expect_ret=0)
         utils_lib.run_cmd(self, "sudo cp /var/log/secure /tmp", expect_ret=0)
         utils_lib.run_cmd(self, "sudo cat  /var/log/secure", expect_not_kw="Input/output error")
@@ -506,7 +479,6 @@ in cmdline as bug1859088")
         '''
         self.log.info("check rngd service is enabled in RHEL8, not required \
 in RHEL7|6, bug1625874")
-        self.session.connect(timeout=self.ssh_wait_timeout)
         output = utils_lib.run_cmd(self, "uname -r", expect_ret=0)
         if 'el8' in output:
             utils_lib.run_cmd(self,
@@ -525,7 +497,6 @@ in RHEL7|6, bug1625874")
         polarion_id: N/A
         bz#: 1740443
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, "sudo systemctl>/tmp/systemctl.log", expect_ret=0)
         cmd = "cat /tmp/systemctl.log|grep -v dnf-makecache"
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='failed')
@@ -537,7 +508,6 @@ in RHEL7|6, bug1625874")
         polarion_id: N/A
         bz#: 1626505, 1659883
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = "sudo cpupower info"
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='core dumped')
         cmd = "sudo cpupower idle-info"
@@ -550,7 +520,6 @@ in RHEL7|6, bug1625874")
         :avocado: tags=test_check_pkgs_list,fast_check
         polarion_id: N/A
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, "sudo rpm -qa", expect_ret=0)
 
     def test_check_firstlaunch_time(self):
@@ -558,6 +527,7 @@ in RHEL7|6, bug1625874")
         :avocado: tags=test_check_firstlaunch_time,fast_check
         polarion_id:
         bz#: 1862930
+        check the first launch boot time.
         '''
         max_boot_time = self.params.get('max_boot_time')
         self._check_boot_time(max_boot_time)
@@ -567,14 +537,24 @@ in RHEL7|6, bug1625874")
         :avocado: tags=test_check_boot_time,fast_check
         polarion_id: RHEL7-93100
         bz#: 1776710
+        check the boot time after stop-start.
         '''
         max_boot_time = self.params.get('max_boot_time')
+        self.vm.stop(wait=True, loops=20)
+        self.vm.start(wait=True)
+        if 'metal' in self.vm.instance_type:
+            self.log.info("Wait %s" % self.ssh_wait_timeout)
+            time.sleep(self.ssh_wait_timeout)
+        else:
+            self.log.info("Wait 30s")
+            time.sleep(30)
         self._check_boot_time(max_boot_time)
 
     def test_check_reboot_time(self):
         '''
         :avocado: tags=test_check_reboot_time,fast_check
         polarion_id: RHEL7-93100
+        check the boot time after reboot.
         '''
         self.vm.reboot()
         if 'metal' in self.vm.instance_type:
@@ -592,7 +572,6 @@ in RHEL7|6, bug1625874")
         polarion_id:
         bz#: 1726487
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
         if 'Xen' in output:
             expect_clocks = 'xen,tsc,hpet,acpi_pm'
@@ -618,7 +597,6 @@ available_clocksource'
         :avocado: tags=test_change_clocksource,fast_check
         polarion_id:
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
         cmd = 'sudo cat /sys/devices/system/clocksource/clocksource0/\
 current_clocksource'
@@ -652,7 +630,6 @@ current_clocksource'
         polarion_id:
         bz#: 1650273
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo mount -t debugfs nodev /sys/kernel/debug'
         utils_lib.run_cmd(self, cmd, msg='mount debugfs')
 
@@ -682,7 +659,6 @@ current_clocksource'
         polarion_id: RHEL7-111006
         des: check TSC deadline timer enabled in dmesg
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     'lscpu',
                     expect_ret=0,
@@ -709,7 +685,6 @@ current_device"
         we are considering it as fail.
         polarion_id: RHEL7-110672
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     "sudo cat /etc/redhat-release",
                     expect_ret=0,
@@ -745,7 +720,6 @@ current_device"
         seconds, we are considering it as fail.
         polarion_id: RHEL7-110673
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     r"sudo cat /etc/redhat-release",
                     expect_ret=0,
@@ -777,7 +751,6 @@ current_device"
         This case checks it from dmesg output.
         polarion_id: N/A
         '''
-        self.session.connect(timeout=self.ssh_wait_timeout)
         lscpu_output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
         utils_lib.run_cmd(self,
                     'lscpu',
@@ -849,7 +822,6 @@ current_device"
         polarion_id: RHEL-117648
         '''
         self.log.info("Check memory leaks")
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     'uname -a',
                     expect_ret=0,
@@ -876,8 +848,6 @@ current_device"
         polarion_id:
         bz#:
         '''
-
-        self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
                     'sudo insights-client --register',
                     msg="try to register system")
@@ -901,7 +871,6 @@ current_device"
         polarion_id: N/A
         '''
         self.log.info("This case is only saving log for future check purpose")
-        self.session.connect(timeout=self.ssh_wait_timeout)
         aws.check_cmd(self, cmd='wget')
         aws.check_cmd(self, cmd='tar')
         aws.check_cmd(self, cmd='unzip')
