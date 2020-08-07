@@ -39,6 +39,7 @@
 # v2.22    2020-05-28  charles.shih  Add some commands for cloud-init
 # v2.23    2020-06-01  charles.shih  Update commands for cloud-init
 # v2.23.1  2020-07-30  charles.shih  Bugfix on cloud-init command
+# v2.24    2020-07-30  charles.shih  Add commands for memory
 
 # Notes:
 # On AWS the default user is ec2-user and it is an sudoer without needing a password;
@@ -182,6 +183,7 @@ run_cmd 'ps -eo pid,tt,user,fname,tmout,f,wchan'
 run_cmd 'free'
 run_cmd 'free -k'
 run_cmd 'free -m'
+run_cmd 'free -g'
 run_cmd 'free -h'
 run_cmd 'cat /proc/meminfo'
 run_cmd 'lscpu'
