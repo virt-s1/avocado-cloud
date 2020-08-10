@@ -18,9 +18,12 @@ class CleanUp(Test):
 
         :avocado: tags=test_release_nics
         """
+        nic_count = len(self.vm.list_nics())
+        if nic_count == 0:
+            self.cancel('No NIC to be released, skip this case.')
+
         self.log.info("Release {0} NIC(s) named {1}.".format(
-            len(self.vm.list_nics()),
-            self.vm.ecs.vm_params.get('NetworkInterfaceName')))
+            nic_count, self.vm.ecs.vm_params.get('NetworkInterfaceName')))
         self.vm.delete_nics(wait=True)
 
     def test_release_cloud_disks(self):
@@ -28,9 +31,12 @@ class CleanUp(Test):
 
         :avocado: tags=test_release_cloud_disks
         """
+        disk_count = len(self.vm.query_cloud_disks())
+        if disk_count == 0:
+            self.cancel('No Cloud Disk to be released, skip this case.')
+
         self.log.info("Release {0} disk(s) named {1}.".format(
-            len(self.vm.query_cloud_disks()),
-            self.vm.ecs.vm_params.get('DiskName')))
+            disk_count, self.vm.ecs.vm_params.get('DiskName')))
         self.vm.delete_cloud_disks(wait=True)
 
     def tearDown(self):
