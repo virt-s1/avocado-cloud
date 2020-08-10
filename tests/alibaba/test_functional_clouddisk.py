@@ -18,12 +18,9 @@ class CloudDiskTest(Test):
                                           pre_stop=pre_stop)
         self.cloud_disk_count = self.params.get('cloud_disk_count', '*/Disk/*')
         self.cloud_disk_size = self.params.get('cloud_disk_size', '*/Disk/*')
-        self.local_disk_count = self.params.get(
-            'disk_count', '*/{0}/*'.format(self.vm.flavor), 0)
-        self.local_disk_size = self.params.get(
-            'disk_size', '*/{0}/*'.format(self.vm.flavor), 0)
-        self.local_disk_type = self.params.get(
-            'disk_type', '*/{0}/*'.format(self.vm.flavor), "")
+        self.local_disk_count = self.vm.disk_count
+        self.local_disk_size = self.vm.disk_size
+        self.local_disk_type = self.vm.disk_type
         if self.name.name.endswith("test_local_disks"):
             if self.local_disk_count == 0:
                 self.cancel("No local disk. Skip this case.")
