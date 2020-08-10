@@ -591,5 +591,80 @@ will not check kernel-devel package.')
         # Cleanup scripts and logs
         self.session.cmd_output("rm -rf " + guest_path)
 
+    def test_check_cpu_count(self):
+        """Test case for avocado framework.
+
+        case_name:
+            Check CPU count
+
+        description:
+            Check the CPU# inside the instance.
+
+        bugzilla_id:
+            n/a
+
+        polarion_id:
+            n/a
+
+        maintainer:
+            cheshi@redhat.com
+
+        case_priority:
+            0
+
+        case_component:
+            checkup
+
+        pass_criteria:
+            n/a
+        """
+        guest_cpu = int(
+            self.session.cmd_output(
+                "lscpu | grep ^CPU.s.: | awk '{print $2}'"))
+        expected_cpu = self.vm.cpu
+
+        self.assertEqual(
+            guest_cpu, expected_cpu,
+            'CPU count is not as expect Real: {0}; Expected: {1}'.format(
+                guest_cpu, expected_cpu))
+
+    def test_check_mem_size(self):
+        """Test case for avocado framework.
+
+        case_name:
+            Check memory size
+
+        description:
+            Check the memory size inside the instance.
+
+        bugzilla_id:
+            n/a
+
+        polarion_id:
+            n/a
+
+        maintainer:
+            cheshi@redhat.com
+
+        case_priority:
+            0
+
+        case_component:
+            checkup
+
+        pass_criteria:
+            n/a
+        """
+        guest_mem = int(
+            self.session.cmd_output("free -m | grep ^Mem: | awk '{print $2}'"))
+        expected_mem = self.vm.memory * 1024
+
+        self.assertAlmostEqual(
+            first=guest_mem,
+            second=expected_mem,
+            delta=expected_mem * 0.25,
+            msg="Memory Size is not as expect Real: {0}; Expected: {1}".format(
+                guest_mem, expected_mem))
+
     def tearDown(self):
         self.session.close()

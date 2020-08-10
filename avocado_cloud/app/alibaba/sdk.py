@@ -14,9 +14,12 @@ class AlibabaVM(VM):
         self.keypair = params.get('keypair', '*/VM/*')
         self.vm_name = params.get('vm_name', '*/VM/*').replace('_', '-')
         self.user_data = None
-        self.flavor = params.get('name', '*/Flavor/*')
         self.nic_name = params.get('nic_name', '*/NIC/*')
-        self.nic_count = params.get('nic_count', '*/Flavor/*')
+
+        self.flavor = params.get('name', '*/Flavor/*')
+        self.cpu = params.get('cpu', '*/Flavor/*')
+        self.memory = params.get('memory', '*/Flavor/*')
+        self.nic_count = params.get('nic_count', '*/Flavor/*', 1)
 
         # VM access parameters
         self.vm_username = params.get('username', '*/VM/*')
