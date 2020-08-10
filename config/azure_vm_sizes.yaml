@@ -1583,3 +1583,11 @@ vm_sizes:
             cpu: 4
             memory: 16.0
             disk_size: 200
+    DC2s_v2:
+            name: Standard_DC2s_v2
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 2
+            memory: 8.0
+            disk_size: 100
