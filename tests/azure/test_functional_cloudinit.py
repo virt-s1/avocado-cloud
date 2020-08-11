@@ -22,18 +22,25 @@ class CloudinitTest(Test):
         self.project = self.params.get("rhel_ver", "*/VM/*")
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         self.pwd = os.path.abspath(os.path.dirname(__file__))
-        if self.case_short_name == "test_cloudinit_provision_gen2_vm":
+        if self.case_short_name in [
+            "test_cloudinit_provision_gen2_vm",
+            "test_cloudinit_verify_storage_rule_gen2"
+        ]:
             if LooseVersion(self.project) < LooseVersion('7.8'):
                 self.cancel(
                     "Skip case because RHEL-{} ondemand image doesn't support gen2".format(self.project))
             cloud = Setup(self.params, self.name, size="DS2_v2")
         else:
             cloud = Setup(self.params, self.name)
-        if self.case_short_name == "test_cloudinit_provision_gen2_vm":
-            self.image = AzureImage(self.params, generation="V2")
-            self.image.create()
-            cloud.vm.image = self.image.name
+        if self.case_short_name in [
+            "test_cloudinit_provision_gen2_vm",
+            "test_cloudinit_verify_storage_rule_gen2",
+        ]:
             cloud.vm.vm_name += "-gen2"
+            self.image = AzureImage(self.params, generation="V2")
+            if not self.image.exists():
+                self.image.create()
+            cloud.vm.image = self.image.name
             cloud.vm.use_unmanaged_disk = False
         self.vm = cloud.vm
         self.package = self.params.get("packages", "*/Other/*")
@@ -829,6 +836,50 @@ EOF""".format(device, size))
         except:
             self.log.warn("There are error/fail logs")
 
+    def _check_in_link(self, device, links):
+        self.assertIn(device, links,
+                      "No {0} link in disk links".format(device))
+        self.log.info("{0} is in disk links. Pass.".format(device))
+
+    def _verify_storage_rule(self):
+        """
+        Check /dev/disk/cloud/, there should be azure_root and azure_resource
+        soft links to sda and sdb.
+        """
+        links = self.session.cmd_output("ls -l /dev/disk/cloud")
+        devices_list = re.findall(r"\w+",
+                                  self.session.cmd_output("cd /dev;ls sd*"))
+        for device in devices_list:
+            self._check_in_link(device, links)
+        # There should be azure_root and azure_resource links
+        self._check_in_link('azure_root', links)
+        self._check_in_link('azure_resource', links)
+        # Verify the azure_root and azure_resource link to the correct disks
+        root_disk = self.session.cmd_output("df|grep boot")[:8]
+        resource_disk = self.session.cmd_output("find /dev/sd*|grep -v '{}'".format(root_disk))[:8]
+        self.log.debug("Root disk: {}".format(root_disk))
+        self.log.debug("Resource disk: {}".format(resource_disk))
+        self.assertEqual(self.session.cmd_output("realpath /dev/disk/cloud/azure_root"),
+            root_disk, "The azure_root link disk is incorrect") 
+        self.assertEqual(self.session.cmd_output("realpath /dev/disk/cloud/azure_resource"), 
+            resource_disk, "The azure_root link disk is incorrect") 
+
+    def test_cloudinit_verify_storage_rule_gen1(self):
+        """
+        :avocado: tags=tier2
+        RHEL-188923	CLOUDINIT-TC: Verify storage rule - Gen1
+        """
+        self.log.info("RHEL-188923 CLOUDINIT-TC: Verify storage rule - Gen1")
+        self._verify_storage_rule()
+
+    def test_cloudinit_verify_storage_rule_gen2(self):
+        """
+        :avocado: tags=tier2
+        RHEL-188924	CLOUDINIT-TC: Verify storage rule - Gen2
+        """
+        self.log.info("RHEL-188924 CLOUDINIT-TC: Verify storage rule - Gen2")
+        self._verify_storage_rule()
+
     def tearDown(self):
         if self.case_short_name == \
                 "test_cloudinit_check_networkmanager_dispatcher":
@@ -838,7 +889,8 @@ EOF""".format(device, size))
                 "test_cloudinit_provision_vm_with_multiple_nics",
                 "test_cloudinit_provision_vm_with_sriov_nic",
                 "test_cloudinit_provision_vm_with_ipv6",
-                "test_cloudinit_provision_gen2_vm",
+                # "test_cloudinit_verify_storage_rule_gen1",
+                # "test_cloudinit_verify_storage_rule_gen2",
                 "test_cloudinit_upgrade_downgrade_package"
         ]:
             self.vm.delete(wait=False)
