@@ -21,3 +21,5 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_ipv6
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_gen2_vm
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_storage_rule_gen1
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_storage_rule_gen2

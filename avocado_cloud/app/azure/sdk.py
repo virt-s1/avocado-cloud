@@ -597,6 +597,20 @@ class AzureVM(VM):
                                                      self.resource_group)
         command(cmd)
 
+    def disk_attach(self, name, size, new=True):
+        cmd = 'az vm disk attach --name {} --vm-name "{}" '\
+              '--resource-group {} --size-gb {}'\
+              .format(name, self.vm_name, self.resource_group, size)
+        if new:
+            cmd += " --new"
+        command(cmd)
+
+    def disk_detach(self, name):
+        cmd = 'az vm disk detach --name {} --vm-name "{}" '\
+              '--resource-group {}'.format(name, self.vm_name,
+                                           self.resource_group)
+        command(cmd)
+
     def user_update(self, username, password=None, ssh_key_value=None):
         cmd = 'az vm user update --name "{}" \
 --resource-group {} --username {}'.format(self.vm_name, self.resource_group,
