@@ -124,6 +124,7 @@ class AlibabaSDK(object):
             return response_detail
         except Exception as e:
             logging.error(e)
+            return e
 
     @staticmethod
     def _add_params(request, key_list=None, params=None):
@@ -154,8 +155,7 @@ class AlibabaSDK(object):
             "InstanceChargeType", "ImageId", "InstanceType",
             "InternetChargeType", "SecurityGroupId", "VSwitchId",
             "SystemDiskCategory", "HostName", "InstanceName",
-            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn",
-            "ZoneId"
+            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn", "ZoneId"
         ]
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
         self.vm_params.setdefault("InternetChargeType", "PayByTraffic")
@@ -167,7 +167,10 @@ class AlibabaSDK(object):
         elif authentication == "password":
             key_list.append("Password")
         request = self._add_params(request, key_list, self.vm_params)
-        return self._send_request(request)
+        response = self._send_request(request)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
     def start_instance(self, instance_id):
         request = StartInstanceRequest.StartInstanceRequest()
