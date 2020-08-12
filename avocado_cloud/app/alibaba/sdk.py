@@ -54,9 +54,19 @@ class AlibabaVM(VM):
         error_message = "Timed out waiting for server to get %s." % status
         for count in utils_misc.iterate_timeout(timeout,
                                                 error_message,
-                                                wait=10):
-            if self._get_status() == status:
+                                                wait=20):
+            current_status = self._get_status()
+            logging.debug('Target: {0}, Current: {1}'.format(
+                status, current_status))
+            if current_status == status:
                 break
+
+            # Exceptions (detect wrong status to save time)
+            if status == 'Running' and current_status not in ('Stopping',
+                                                              'Starting'):
+                raise Exception('While waiting for the server to get Running, \
+its status cannot be {0} rather than Stopping or Starting.'.format(
+                    current_status))
 
     @property
     def id(self):
