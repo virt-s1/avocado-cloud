@@ -133,8 +133,7 @@ class AlibabaSDK(object):
             for key in key_list:
                 if params.get(key) is not None:
                     value = params.get(key)
-                    if "Ids" in key or \
-                            "Names" in key:
+                    if "Ids" in key or "Names" in key:
                         value = str(value.split(',')).replace('\'', '"')
                     eval("request.set_{0}('{1}')".format(key, value))
         request.get_query_params()
@@ -356,6 +355,8 @@ class AlibabaSDK(object):
                 self.vm_params["NetworkInterfaceName"] = nic_name
             key_list.append("NetworkInterfaceName")
         if nic_ids:
+            if not isinstance(nic_ids, str):
+                nic_ids = ','.join(nic_ids)
             key_list.append("NetworkInterfaceIds")
             self.vm_params["NetworkInterfaceIds"] = nic_ids
         key_list.append("PageSize")

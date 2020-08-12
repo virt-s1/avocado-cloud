@@ -142,6 +142,12 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         if wait:
             for count in utils_misc.iterate_timeout(
                     300, "Timed out waiting for nics to be created.", wait=5):
+                # nic_status = self.ecs.describe_nics(
+                #     nic_ids=[nic_id]).get("Status")
+                # logging.debug(
+                #     'Status: {0} / Wanted: "Available"'.format(nic_status))
+                # if nic_status == "Available":
+                #     break
 
                 # Cannot check status with nic_ids because of bug
                 # https://github.com/aliyun/aliyun-openapi-python-sdk/issues/78
