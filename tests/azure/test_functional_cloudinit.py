@@ -992,7 +992,8 @@ EOF""".format(device, size))
                 "test_cloudinit_provision_vm_with_sriov_nic",
                 "test_cloudinit_provision_vm_with_ipv6",
                 "test_cloudinit_verify_storage_rule_gen2",
-                "test_cloudinit_upgrade_downgrade_package"
+                "test_cloudinit_upgrade_downgrade_package",
+                "test_cloudinit_remove_cache_and_reboot_password"
         ]:
             self.vm.delete(wait=False)
 
