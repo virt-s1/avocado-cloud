@@ -21,6 +21,8 @@ class CloudinitTest(Test):
         account.login()
         self.project = self.params.get("rhel_ver", "*/VM/*")
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
+        if self.case_short_name == "test_cloudinit_verify_customized_file_in_authorizedkeysfile":
+            self.cancel("BZ#1862967 has not been fixed yet. Skip.")
         self.pwd = os.path.abspath(os.path.dirname(__file__))
         if self.case_short_name in [
             "test_cloudinit_provision_gen2_vm",
@@ -45,6 +47,11 @@ class CloudinitTest(Test):
         self.vm = cloud.vm
         self.package = self.params.get("packages", "*/Other/*")
         if self.case_short_name in [
+            "test_cloudinit_login_with_password",
+            "test_cloudinit_remove_cache_and_reboot_password",
+        ]:
+            self.vm.vm_name += "-pw"
+        if self.case_short_name in [
                 "test_cloudinit_login_with_password",
                 "test_cloudinit_login_with_publickey",
                 "test_cloudinit_save_and_handle_customdata_script",
@@ -55,6 +62,14 @@ class CloudinitTest(Test):
                 self.vm.delete()
             self.session = cloud.init_session()
             return
+        authentication = "publickey"
+        if self.case_short_name in [
+                "test_cloudinit_remove_cache_and_reboot_password",
+        ]:
+            self.vm.ssh_key_value = None
+            self.vm.generate_ssh_keys = None
+            self.vm.authentication_type = "password"
+            authentication = "password"
         if self.case_short_name == \
                 "test_cloudinit_provision_vm_with_multiple_nics":
             self.vm.vm_name += "2nics"
@@ -125,7 +140,7 @@ class CloudinitTest(Test):
                 ipv6_config.create()
             self.session = cloud.init_session()
             return
-        self.session = cloud.init_vm()
+        self.session = cloud.init_vm(authentication=authentication)
         if self.case_short_name == "test_cloudinit_upgrade_downgrade_package":
             rhel7_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-7/packages/cloud-init/18.2/1.el7/x86_64/cloud-init-18.2-1.el7.x86_64.rpm"
             rhel8_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/cloud-init/18.2/1.el8/noarch/cloud-init-18.2-1.el8.noarch.rpm"
@@ -842,10 +857,6 @@ EOF""".format(device, size))
         self.log.info("{0} is in disk links. Pass.".format(device))
 
     def _verify_storage_rule(self):
-        """
-        Check /dev/disk/cloud/, there should be azure_root and azure_resource
-        soft links to sda and sdb.
-        """
         links = self.session.cmd_output("ls -l /dev/disk/cloud")
         devices_list = re.findall(r"\w+",
                                   self.session.cmd_output("cd /dev;ls sd*"))
@@ -856,18 +867,22 @@ EOF""".format(device, size))
         self._check_in_link('azure_resource', links)
         # Verify the azure_root and azure_resource link to the correct disks
         root_disk = self.session.cmd_output("df|grep boot")[:8]
-        resource_disk = self.session.cmd_output("find /dev/sd*|grep -v '{}'".format(root_disk))[:8]
+        resource_disk = self.session.cmd_output(
+            "find /dev/sd*|grep -v '{}'".format(root_disk))[:8]
         self.log.debug("Root disk: {}".format(root_disk))
         self.log.debug("Resource disk: {}".format(resource_disk))
         self.assertEqual(self.session.cmd_output("realpath /dev/disk/cloud/azure_root"),
-            root_disk, "The azure_root link disk is incorrect") 
-        self.assertEqual(self.session.cmd_output("realpath /dev/disk/cloud/azure_resource"), 
-            resource_disk, "The azure_root link disk is incorrect") 
+                         root_disk, "The azure_root link disk is incorrect")
+        self.assertEqual(self.session.cmd_output("realpath /dev/disk/cloud/azure_resource"),
+                         resource_disk, "The azure_root link disk is incorrect")
 
     def test_cloudinit_verify_storage_rule_gen1(self):
         """
         :avocado: tags=tier2
         RHEL-188923	CLOUDINIT-TC: Verify storage rule - Gen1
+        1. Prepare Gen1 VM. 
+        Check /dev/disk/cloud/, there should be azure_root and azure_resource
+        soft links to sda and sdb.
         """
         self.log.info("RHEL-188923 CLOUDINIT-TC: Verify storage rule - Gen1")
         self._verify_storage_rule()
@@ -876,21 +891,107 @@ EOF""".format(device, size))
         """
         :avocado: tags=tier2
         RHEL-188924	CLOUDINIT-TC: Verify storage rule - Gen2
+        1. Prepare Gen2 VM. 
+        Check /dev/disk/cloud/, there should be azure_root and azure_resource
+        soft links to sda and sdb.
         """
         self.log.info("RHEL-188924 CLOUDINIT-TC: Verify storage rule - Gen2")
         self._verify_storage_rule()
 
+    def _verify_authorizedkeysfile(self, keyfiles):
+        self.session.cmd_output("sudo su")
+        # 1. Modify /etc/ssh/sshd_config
+        self.session.cmd_output(
+            "sed -i 's/^AuthorizedKeysFile.*$/AuthorizedKeysFile {}/g' /etc/ssh/sshd_config".format(keyfiles.replace('/', '\/')))
+        self.assertEqual(self.session.cmd_status_output("grep '{}' /etc/ssh/sshd_config".format(keyfiles))[0], 0,
+                         "Fail to change /etc/ssh/sshd_config AuthorizedKeysFile value.")
+        self.session.cmd_output("systemctl restart sshd")
+        # 2. Remove cc_ssh flag and authorized_keys
+        self.session.cmd_output(
+            "rm -f /var/lib/cloud/instance/sem/config_ssh /home/{}/.ssh/authorized_keys".format(self.vm.vm_username))
+        self.session.cmd_output("rm -rf {}".format(keyfiles))
+        # 3. Run module ssh
+        self.session.cmd_output("cloud-init single -n ssh")
+        self.session.cmd_output("systemctl restart sshd")
+        # 4. Verify can login and no unexpected files in ~/.ssh
+        self.assertTrue(self.session.connect(timeout=10), "Fail to login after run ssh module")
+        files = self.session.cmd_output(
+            "find /home/{}/.ssh/*|grep -vE '(id_rsa|known_hosts)'".format(self.vm.vm_username))
+        self.assertEqual(len(files.split()), 1,
+                         "There are unexpected files under ~/.ssh: {}".format(files))
+
+    def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
+        """
+        :avocado: tags=tier2
+        RHEL-189026	CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile
+        1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
+        AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
+        2. Remove cc_ssh module flag and authorized_keys
+        3. Run module ssh
+        # cloud-init single -n ssh
+        4. Verify can login and no unexpected files in ~/.ssh/
+        5. Set customized keyfile a the front:
+        AuthorizedKeysFile /etc/ssh/userkeys/%u.ssh/authorized_keys
+        Restart sshd service and rerun step2-4
+        """
+        self.log.info(
+            "RHEL-189026 CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile")
+        # Backup sshd_config
+        self.session.cmd_output("/usr/bin/cp /etc/ssh/sshd_config /root/")
+        # AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
+        self._verify_authorizedkeysfile(
+            ".ssh/authorized_keys /etc/ssh/userkeys/%u")
+        # AuthorizedKeysFile /etc/ssh/userkeys/%u .ssh/authorized_keys
+        self._verify_authorizedkeysfile(
+            "/etc/ssh/userkeys/%u .ssh/authorized_keys")
+
+    def test_cloudinit_verify_customized_file_in_authorizedkeysfile(self):
+        """
+        :avocado: tags=tier2
+        RHEL-189027	CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile
+        1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
+        AuthorizedKeysFile .ssh/authorized_keys2
+        2. Remove cc_ssh module flag and authorized_keys
+        3. Run module ssh
+        # cloud-init single -n ssh
+        4. Verify can login successfully
+        """
+        # 
+        self.log.info("RHEL-189027 CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile")
+        self._verify_authorizedkeysfile(".ssh/authorized_keys2")
+
+    def test_cloudinit_remove_cache_and_reboot_password(self):
+        """
+        :avocado: tags=tier2
+        RHEL-189049	CLOUDINIT-TC: Reboot with no instance cache - password authentication
+        1. Create a VM on Azure with password authentication
+        2. Remove the instance cache folder and reboot
+        3. Verify can login successfully
+        """
+        self.log.info("RHEL-189049 CLOUDINIT-TC: Reboot with no instance cache - password authentication")
+        self.session.cmd_output("sudo rm -rf /var/lib/cloud/instances/*")
+        self.vm.reboot()
+        self.assertTrue(self.session.connect(timeout=100, authentication="password"),
+            "Fail to login after restart")
+
     def tearDown(self):
+        # if not self.session.connect(timeout=10):
+        #     self.vm.delete()
+        #     return
         if self.case_short_name == \
                 "test_cloudinit_check_networkmanager_dispatcher":
             self.session.cmd_output("mv /tmp/enabled /run/cloud-init/")
             self.session.cmd_output("systemctl restart NetworkManager")
         elif self.case_short_name in [
+                "test_cloudinit_verify_multiple_files_in_authorizedkeysfile",
+                "test_cloudinit_verify_customized_file_in_authorizedkeysfile"
+        ]:
+            self.session.cmd_output("mv /root/sshd_config /etc/ssh/sshd_config")
+        elif self.case_short_name in [
                 "test_cloudinit_provision_vm_with_multiple_nics",
                 "test_cloudinit_provision_vm_with_sriov_nic",
                 "test_cloudinit_provision_vm_with_ipv6",
-                # "test_cloudinit_verify_storage_rule_gen1",
-                # "test_cloudinit_verify_storage_rule_gen2",
+                "test_cloudinit_verify_storage_rule_gen2",
                 "test_cloudinit_upgrade_downgrade_package"
         ]:
             self.vm.delete(wait=False)
