@@ -28,7 +28,7 @@ class Setup(object):
         else:
             raise TestError()
 
-    def init_vm(self, pre_delete=False, pre_stop=False):
+    def init_vm(self, pre_delete=False, pre_stop=False, authentication="publickey"):
         if pre_delete and self.vm.exists():
             self.vm.delete(wait=True)
         if not self.vm.exists():
@@ -39,7 +39,7 @@ class Setup(object):
             self.vm.stop(wait=True)
         session = self.init_session()
         if self.vm.is_started():
-            session.connect(timeout=600)
+            session.connect(timeout=600, authentication=authentication)
         return session
 
     def init_session(self):
