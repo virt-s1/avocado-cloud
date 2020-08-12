@@ -141,13 +141,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         nic_id = self.ecs.create_nic().get("NetworkInterfaceId")
         if wait:
             for count in utils_misc.iterate_timeout(
-                    60, "Timed out waiting for nics to be created.", wait=5):
-                #nic_status = self.ecs.describe_nics(
-                #    nic_ids=[nic_id]).get("Status")
-                #logging.debug(
-                #    'Status: {0} / Wanted: "Available"'.format(nic_status))
-                #if nic_status == "Available":
-                #    break
+                    300, "Timed out waiting for nics to be created.", wait=5):
 
                 # Cannot check status with nic_ids because of bug
                 # https://github.com/aliyun/aliyun-openapi-python-sdk/issues/78
@@ -178,7 +172,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
                             (nic_count, len(nics_list)))
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180, "Timed out waiting for nics to be attached.",
+                    300, "Timed out waiting for nics to be attached.",
                     wait=20):
                 attached_count = len(self.query_nics()) - origin_count
                 logging.debug("Attached: {0} / Wanted: {1}".format(
@@ -207,7 +201,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
                 self.ecs.detach_nic(self.id, nic_id)
             if wait:
                 for count in utils_misc.iterate_timeout(
-                        600, "Timed out waiting for nics to be detached",
+                        300, "Timed out waiting for nics to be detached",
                         wait=20):
                     detached_count = origin_count - len(self.query_nics())
                     logging.debug("Detached: {0} / Wanted: {1}".format(
@@ -282,7 +276,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
             self.delete_nic(nic['NetworkInterfaceId'])
         if wait:
             for count in utils_misc.iterate_timeout(
-                    60, "Timed out waiting for nics to be created.", wait=1):
+                    300, "Timed out waiting for nics to be deleted.", wait=1):
                 remaining = len(
                     self.ecs.describe_nics(nic_name=nic_name).get(
                         "NetworkInterfaceSets").get("NetworkInterfaceSet"))
@@ -297,7 +291,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         diskid = output.get("DiskId").encode("ascii")
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180, "Timed out waiting for cloud disk to be created.",
+                    300, "Timed out waiting for cloud disk to be created.",
                     wait=5):
                 if self.query_cloud_disks(
                         disk_id=diskid)[0].get("Status") == u'Available':
@@ -311,7 +305,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         self.ecs.delete_disk(disk_id)
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180, "Timed out waiting for cloud disk to be deleted",
+                    300, "Timed out waiting for cloud disk to be deleted",
                     wait=5):
                 res = self.query_cloud_disks(disk_id=disk_id)
                 if res == []:
@@ -339,7 +333,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         output = self.ecs.attach_disk(self.id, disk_id)
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180,
+                    300,
                     "Timed out waiting for cloud disk to be attached.",
                     wait=5):
                 if self.query_cloud_disks(
@@ -353,7 +347,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         output = self.ecs.detach_disk(self.id, disk_id)
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180,
+                    300,
                     "Timed out waiting for cloud disk to be detached.",
                     wait=5):
                 if self.query_cloud_disks(
