@@ -2,6 +2,7 @@ import os
 import re
 import time
 import logging
+import decimal
 
 LOG = logging.getLogger('avocado.test')
 logging.basicConfig(level=logging.DEBUG)
@@ -50,7 +51,9 @@ def run_cmd(test_instance,
             cancel_kw=None,
             cancel_not_kw=None,
             timeout=60,
-            is_get_console=True):
+            is_get_console=True,
+            session=None,
+            vm=None):
     """run cmd with/without check return status/keywords and save log
 
     Arguments:
@@ -70,6 +73,8 @@ def run_cmd(test_instance,
         msg {string} -- addtional info to mark cmd run.
         is_get_console {bool} -- if your vm instance has get_console_log func,
         you may want save console output if ssh session not work
+        session {string} -- you can specify which session to use
+        vm {string} -- you can specify which vm to use
 
     Keyword Arguments:
         check_ret {bool} -- [whether check return] (default: {False})
@@ -78,8 +83,12 @@ def run_cmd(test_instance,
     status = None
     output = None
     exception_hit = False
+    if session == None:
+        session = test_instance.session
+    if vm == None:
+        vm = test_instance.vm
     try:
-        status, output = test_instance.session.cmd_status_output(cmd, timeout=timeout)
+        status, output = session.cmd_status_output(cmd, timeout=timeout)
     except Exception as err:
         test_instance.log.error("Run cmd failed as %s" % err)
         status = None
@@ -87,20 +96,20 @@ def run_cmd(test_instance,
     if exception_hit:
         try:
             test_instance.log.info("Try to close and reconnect")
-            test_instance.session.close()
-            test_instance.session.connect(timeout=test_instance.ssh_wait_timeout)
+            session.close()
+            session.connect(timeout=test_instance.ssh_wait_timeout)
         except Exception as err:
             test_instance.log.error("")
-            handle_ssh_exception(test_instance.vm, err, is_get_console=is_get_console)
+            handle_ssh_exception(vm, err, is_get_console=is_get_console)
         test_instance.log.info("Test connection via uname, if still fail, restart vm")
         try:
-            status, output = test_instance.session.cmd_status_output('uname -r',
+            status, output = session.cmd_status_output('uname -r',
                                                             timeout=120)
-            status, output = test_instance.session.cmd_status_output(cmd,
+            status, output = session.cmd_status_output(cmd,
                                                             timeout=timeout)
         except Exception as err:
             test_instance.log.error("")
-            handle_ssh_exception(test_instance.vm, err, is_get_console=is_get_console)
+            handle_ssh_exception(vm, err, is_get_console=is_get_console)
 
     if msg is not None:
         test_instance.log.info(msg)
@@ -212,3 +221,123 @@ def ltp_run(test_instance, case_name=None, file_name=None):
                 'sudo cat /opt/ltp/results/*',
                 expect_kw='Total Failures: 0')
     run_cmd(test_instance, 'uname -r', msg='Get instance kernel version')
+
+def getboottime(test_instance,
+            session=None,
+            vm=None):
+    '''
+    Get system boot time via "systemd-analyze"
+    Arguments:
+        test_instance {avocado Test instance} -- avocado test instance
+        session {string} -- you can specify which session to use
+        vm {string} -- you can specify which vm to use
+    '''
+    if session == None:
+        session = test_instance.session
+    if vm == None:
+        vm = test_instance.vm
+    run_cmd(test_instance, "sudo which systemd-analyze", expect_ret=0, session=session, vm=vm)
+    time_start = int(time.time())
+    while True:
+        output = run_cmd(test_instance, "sudo systemd-analyze", session=session, vm=vm)
+        if 'Bootup is not yet finished' not in output:
+            break
+        time_end = int(time.time())
+        run_cmd(test_instance, 'sudo systemctl list-jobs', session=session, vm=vm)
+        if time_end - time_start > 60:
+            test_instance.fail("Bootup is not yet finished after 60s")
+        test_instance.log.info("Wait for bootup finish......")
+        time.sleep(1)
+    cmd = "sudo systemd-analyze blame > /tmp/blame.log"
+    run_cmd(test_instance, cmd, expect_ret=0, session=session, vm=vm)
+    run_cmd(test_instance, "cat /tmp/blame.log", expect_ret=0, session=session, vm=vm)
+    output = run_cmd(test_instance, "sudo systemd-analyze", expect_ret=0, session=session, vm=vm)
+    boot_time = re.findall("=.*s", output)[0]
+    boot_time = boot_time.strip("=\n")
+    boot_time_sec = re.findall('[0-9.]+s', boot_time)[0]
+    boot_time_sec = boot_time_sec.strip('= s')
+    if 'min' in boot_time:
+        boot_time_min = re.findall('[0-9]+min', boot_time)[0]
+        boot_time_min = boot_time_min.strip('min')
+        boot_time_sec = int(boot_time_min) * 60 + decimal.Decimal(boot_time_sec).to_integral()
+    test_instance.log.info(
+        "Boot time is {}(s)".format(boot_time_sec))
+    return boot_time_sec
+
+def compare_nums(test_instance, num1=None, num2=None, ratio=0, msg='Compare 2 nums'):
+    '''
+    Compare num1 and num2.
+    Arguments:
+        test_instance {avocado Test instance} -- avocado test instance
+        num1 {int} -- num1
+        num2 {int} -- num2
+        ratio {int} -- allow ratio
+    Return:
+        num1 < num2: return True
+        (num1 - num2)/num2*100 > ratio: return False
+        (num1 - num2)/num2*100 < ratio: return True
+    '''
+    num1 = float(num1)
+    num2 = float(num2)
+    ratio = float(ratio)
+    test_instance.log.info(msg)
+    if num1 < num2:
+        test_instance.log.info("{} less than {}".format(num1, num2))
+        return True
+    if (num1 - num2)/num2*100 > ratio:
+        test_instance.fail("{} vs {} over {}%".format(num1, num2, ratio))
+    else:
+        test_instance.log.info("{} vs {} less {}%, pass".format(num1, num2, ratio))
+
+def is_arm(test_instance,
+            session=None,
+            vm=None, action=None):
+    '''
+    Check whether system is a arm system.
+    Arguments:
+        test_instance {avocado Test instance} -- avocado test instance
+        session {string} -- you can specify which session to use
+        vm {string} -- you can specify which vm to use
+        action {string} -- cancel case if it is arm
+    Return:
+        arm: return True
+        other: return False
+    '''
+    if session == None:
+        session = test_instance.session
+    if vm == None:
+        vm = test_instance.vm
+    output = run_cmd(test_instance, "lscpu", expect_ret=0, session=session, vm=vm)
+    if 'aarch64' in output:
+        test_instance.log.info("Arm detected.")
+        if action == "cancel":
+            test_instance.cancel("Cancel it in arm platform.")
+        return True
+    test_instance.log.info("Not an arm instance.")
+    return False
+
+def is_metal(test_instance,
+            session=None,
+            vm=None, action=None):
+    '''
+    Check whether system is a metal system.
+    Arguments:
+        test_instance {avocado Test instance} -- avocado test instance
+        session {string} -- you can specify which session to use
+        vm {string} -- you can specify which vm to use
+        action {string} -- cancel case if it is metal
+    Return:
+        metal: return True
+        other: return False
+    '''
+    if session == None:
+        session = test_instance.session
+    if vm == None:
+        vm = test_instance.vm
+    if 'metal' in test_instance.vm.instance_type:
+        test_instance.log.info("Metal detected")
+        if action == "cancel":
+            test_instance.cancel("Cancel it in arm platform.")
+        return True
+    test_instance.log.info("Not a metal instance.")
+    return False

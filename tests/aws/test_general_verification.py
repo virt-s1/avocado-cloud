@@ -1,5 +1,6 @@
 from avocado import Test
 from avocado_cloud.app.aws import aws
+from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_lib
 import re
 import time
@@ -11,41 +12,7 @@ class GeneralVerification(Test):
     '''
     :avocado: tags=generalverify,acceptance,fulltest
     '''
-    def _check_boot_time(self, max_boot_time):
-
-        self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.run_cmd(self, "sudo which systemd-analyze", expect_ret=0)
-        time_start = int(time.time())
-        while True:
-            output = utils_lib.run_cmd(self, "sudo systemd-analyze ")
-            if 'Bootup is not yet finished' not in output:
-                break
-            time_end = int(time.time())
-            utils_lib.run_cmd(self, 'sudo systemctl list-jobs')
-            if time_end - time_start > 60:
-                self.fail("Bootup is not yet finished after 60s")
-            self.log.info("Wait for bootup finish......")
-            time.sleep(1)
-
-        cmd = "sudo systemd-analyze blame > /tmp/blame.log"
-        utils_lib.run_cmd(self, cmd, expect_ret=0)
-        utils_lib.run_cmd(self, "cat /tmp/blame.log", expect_ret=0)
-        output = utils_lib.run_cmd(self, "sudo systemd-analyze", expect_ret=0)
-        boot_time = re.findall("=.*s", output)[0]
-        boot_time = boot_time.strip("=\n")
-        boot_time_sec = re.findall('[0-9.]+s', boot_time)[0]
-        boot_time_sec = boot_time_sec.strip('= s')
-        if 'min' in boot_time:
-            boot_time_min = re.findall('[0-9]+min', boot_time)[0]
-            boot_time_min = boot_time_min.strip('min')
-            boot_time_sec = int(boot_time_min) * 60 + decimal.Decimal(boot_time_sec).to_integral()
-        self.log.info(
-            "Boot time is %s(s), less than max_boot_time %s in cfg file! " %
-            (boot_time_sec, max_boot_time))
-        self.assertLessEqual(float(boot_time_sec),
-                             max_boot_time,
-                             msg='Boot time over %s(s)' % max_boot_time)
-
+                            
     def setUp(self):
         self.session = None
         self.vm = None
@@ -530,7 +497,47 @@ in RHEL7|6, bug1625874")
         check the first launch boot time.
         '''
         max_boot_time = self.params.get('max_boot_time')
-        self._check_boot_time(max_boot_time)
+        boot_time_sec = utils_lib.getboottime(self)
+        utils_lib.compare_nums(self, num1=boot_time_sec, num2=max_boot_time, ratio=0, msg="Compare with cfg specified max_boot_time")
+
+    def test_check_firstlaunch_compare(self):
+        '''
+        :avocado: tags=test_check_firstlaunch_compare,fast_check
+        polarion_id:
+        bz#: 1862930
+        compare the first launch boot time with Amazon Linux 2 and Ubuntu.
+        '''
+        self.log.info("3 Nodes (RHEL, AMZ, Ubuntu) needed!")
+        max_boot_time = self.params.get('max_boot_time')
+        rhel_boot_time_sec = utils_lib.getboottime(self)
+        self.rhel_session = self.session
+        self.rhel_vm = self.vm
+        self.amz_session = None
+        self.amz_vm = None
+        self.ubuntu_session = None
+        self.ubuntu_vm = None
+        if utils_lib.is_arm(self):
+            cloud = Setup(self.params, self.name, vendor="amzn2_arm")
+        else:
+            cloud = Setup(self.params, self.name, vendor="amzn2_x86")
+        self.amz_vm = cloud.vm
+        self.amz_session = cloud.init_vm()
+        utils_lib.run_cmd(self, 'uname -a', vm=self.amz_vm, session=self.amz_session, msg="Get Amazon Linux 2 version")
+        amz_boot_time_sec = utils_lib.getboottime(self,vm=self.amz_vm, session=self.amz_session)
+        self.amz_vm.delete()
+
+        if utils_lib.is_arm(self):
+            cloud = Setup(self.params, self.name, vendor="ubuntu_arm")
+        else:
+            cloud = Setup(self.params, self.name, vendor="ubuntu_x86")
+        self.ubuntu_vm = cloud.vm
+        self.ubuntu_session = cloud.init_vm()
+        utils_lib.run_cmd(self, 'uname -a', vm=self.ubuntu_vm, session=self.ubuntu_session, msg="Get Ubuntu version")
+        ubuntu_boot_time_sec = utils_lib.getboottime(self,vm=self.ubuntu_vm, session=self.ubuntu_session)
+        self.ubuntu_vm.delete()
+        ratio = self.params.get('boottime_max_ratio')
+        utils_lib.compare_nums(self, num1=rhel_boot_time_sec, num2=amz_boot_time_sec, ratio=ratio, msg="Compare with Amazon Linux 2 boot time")
+        utils_lib.compare_nums(self, num1=rhel_boot_time_sec, num2=ubuntu_boot_time_sec, ratio=ratio, msg="Compare with Ubuntu boot time")
 
     def test_check_boot_time(self):
         '''
@@ -548,7 +555,9 @@ in RHEL7|6, bug1625874")
         else:
             self.log.info("Wait 30s")
             time.sleep(30)
-        self._check_boot_time(max_boot_time)
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        boot_time_sec = utils_lib.getboottime(self)
+        utils_lib.compare_nums(self, num1=boot_time_sec, num2=max_boot_time, ratio=0, msg="Compare with cfg specified max_boot_time")
 
     def test_check_reboot_time(self):
         '''
@@ -564,7 +573,9 @@ in RHEL7|6, bug1625874")
             self.log.info("Wait 30s")
             time.sleep(30)
         max_boot_time = self.params.get('max_reboot_time')
-        self._check_boot_time(max_boot_time)
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        boot_time_sec = utils_lib.getboottime(self)
+        utils_lib.compare_nums(self, num1=boot_time_sec, num2=max_boot_time, ratio=0, msg="Compare with cfg specified max_reboot_time")
 
     def test_check_available_clocksource(self):
         '''

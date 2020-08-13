@@ -17,11 +17,24 @@ class EC2VM(VM):
     __client = boto3.client('ec2', config=config)
     __ec2_instance = None
 
-    def __init__(self, params):
+    def __init__(self, params, vendor="redhat"):
         super(EC2VM, self).__init__(params)
         self.instance_id = None
         self.ipv4 = None
-        self.ami_id = params.get('ami_id')
+        self.ssh_user = params.get('ssh_user')
+        if vendor == "amzn2_x86":
+            self.ami_id = params.get('amzn2_ami_id_x86')
+        elif vendor == "amzn2_arm":
+            self.ami_id = params.get('amzn2_ami_id_arm')
+        elif vendor == "ubuntu_x86":
+            self.ami_id = params.get('ubuntu_ami_id_x86')
+            self.ssh_user = params.get('ubuntu_ssh_user')
+        elif vendor == "ubuntu_arm":
+            self.ami_id = params.get('ubuntu_ami_id_arm')
+            self.ssh_user = params.get('ubuntu_ssh_user')
+        else:
+            self.ami_id = params.get('ami_id')
+        LOG.info("AMI picked {} {} {}".format(vendor, self.ami_id, self.ssh_user))
         self.instance_type = params.get('instance_type')
         self.vm_base = params.get('base')
         self.vpc_id = params.get('vpc_id')
@@ -36,7 +49,6 @@ class EC2VM(VM):
         self.region = params.get('region')
         self.zone = params.get('availability_zone', '*/Cloud/*')
         self.tagname = params.get('ec2_tagname')
-        self.ssh_user = params.get('ssh_user')
         self.ssh_key_name = params.get('ssh_key_name')
         self.ssh_key_path = params.get('ssh_key_path')
         self.vm_username = self.ssh_user

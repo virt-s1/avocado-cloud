@@ -35,5 +35,13 @@ max_reboot_time : 35
 ltp_url : https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp_20190130/ltp-master-20190129.x86_64.rpm
 # True|False to collect code coverage report, you need a gcov kernel ami first
 code_cover : False
-
-
+# optional, amazon and ubuntu AMIs for preformance comparing
+amzn2_ami_id_x86 : ami-0873b46c45c11058d
+amzn2_ami_id_arm : ami-091a6d6d0ed7b35fd
+ubuntu_ami_id_x86 : ami-0a634ae95e11c6f91
+ubuntu_ami_id_arm : ami-085fd7441d1390d15
+ubuntu_ssh_user : ubuntu
+# specify allowed ration in test eg. amazon 23s, rhel 40s, (40-23/23)*100 > 70, the test will fail
+boottime_max_ratio : 70
+net_max_ratio : 10
+storage_max_ratio : 10

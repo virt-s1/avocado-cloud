@@ -48,6 +48,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_cpupower
     test_general_verification.py:GeneralVerification.test_check_pkgs_list
     test_general_verification.py:GeneralVerification.test_check_firstlaunch_time
+    test_general_verification.py:GeneralVerification.test_check_firstlaunch_compare
     test_general_verification.py:GeneralVerification.test_check_boot_time
     test_general_verification.py:GeneralVerification.test_check_reboot_time
     test_general_verification.py:GeneralVerification.test_check_available_clocksource
