@@ -12,7 +12,7 @@ class Setup(object):
             self.vm = OpenstackVM(params, **kwargs)
         elif self.cloud_provider == 'aws':
             from .aws import EC2VM
-            self.vm = EC2VM(params)
+            self.vm = EC2VM(params, **kwargs)
         elif self.cloud_provider == 'huawei':
             from .huawei import HuaweiVM
             self.vm = HuaweiVM(params)
