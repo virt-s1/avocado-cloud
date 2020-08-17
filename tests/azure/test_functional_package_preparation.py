@@ -19,6 +19,7 @@ class PackagePreparation(Test):
         self.package_list = self.packages.split(',')
         self.log.debug("Package list: {}".format(self.package_list))
         self.with_wala = self.params.get("with_wala", "*/others/*", False)
+        self.project = self.params.get("rhel_ver", "*/VM/*")
 
     def test_package_00_preparation(self):
         """
@@ -53,22 +54,22 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
         BASEREPO = """
 [rhel-base]
 name=rhel-base
-baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{0}/compose/{1}/x86_64/os/
+baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
 
 EOF
-""".format(x_version, label)
+""".format(x_version, self.project, label)
         APPSTREAMREPO = """
 [rhel-appstream]
 name=rhel-appstream
-baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{0}/compose/AppStream/x86_64/os/
+baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
 EOF
-""".format(x_version)
+""".format(x_version, self.project)
         self.session.cmd_output("cat << EOF > /etc/yum.repos.d/rhel.repo%s" %
                                 (BASEREPO))
         if x_version > 7:
