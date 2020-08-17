@@ -124,6 +124,7 @@ class AlibabaSDK(object):
             return response_detail
         except Exception as e:
             logging.error(e)
+            return e
 
     @staticmethod
     def _add_params(request, key_list=None, params=None):
@@ -133,8 +134,7 @@ class AlibabaSDK(object):
             for key in key_list:
                 if params.get(key) is not None:
                     value = params.get(key)
-                    if "Ids" in key or \
-                            "Names" in key:
+                    if "Ids" in key or "Names" in key:
                         value = str(value.split(',')).replace('\'', '"')
                     eval("request.set_{0}('{1}')".format(key, value))
         request.get_query_params()
@@ -155,8 +155,7 @@ class AlibabaSDK(object):
             "InstanceChargeType", "ImageId", "InstanceType",
             "InternetChargeType", "SecurityGroupId", "VSwitchId",
             "SystemDiskCategory", "HostName", "InstanceName",
-            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn",
-            "ZoneId"
+            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn", "ZoneId"
         ]
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
         self.vm_params.setdefault("InternetChargeType", "PayByTraffic")
@@ -168,7 +167,10 @@ class AlibabaSDK(object):
         elif authentication == "password":
             key_list.append("Password")
         request = self._add_params(request, key_list, self.vm_params)
-        return self._send_request(request)
+        response = self._send_request(request)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
     def start_instance(self, instance_id):
         request = StartInstanceRequest.StartInstanceRequest()
@@ -356,6 +358,8 @@ class AlibabaSDK(object):
                 self.vm_params["NetworkInterfaceName"] = nic_name
             key_list.append("NetworkInterfaceName")
         if nic_ids:
+            if not isinstance(nic_ids, str):
+                nic_ids = ','.join(nic_ids)
             key_list.append("NetworkInterfaceIds")
             self.vm_params["NetworkInterfaceIds"] = nic_ids
         key_list.append("PageSize")

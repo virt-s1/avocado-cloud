@@ -14,9 +14,15 @@ class AlibabaVM(VM):
         self.keypair = params.get('keypair', '*/VM/*')
         self.vm_name = params.get('vm_name', '*/VM/*').replace('_', '-')
         self.user_data = None
-        self.flavor = params.get('name', '*/Flavor/*')
         self.nic_name = params.get('nic_name', '*/NIC/*')
-        self.nic_count = params.get('nic_count', '*/Flavor/*')
+
+        self.flavor = params.get('name', '*/Flavor/*')
+        self.cpu = params.get('cpu', '*/Flavor/*')
+        self.memory = params.get('memory', '*/Flavor/*')
+        self.disk_count = params.get('disk_count', '*/Flavor/*', 0)
+        self.disk_size = params.get('disk_size', '*/Flavor/*', 0)
+        self.disk_type = params.get('disk_type', '*/Flavor/*', '')
+        self.nic_count = params.get('nic_count', '*/Flavor/*', 1)
 
         # VM access parameters
         self.vm_username = params.get('username', '*/VM/*')
@@ -48,9 +54,19 @@ class AlibabaVM(VM):
         error_message = "Timed out waiting for server to get %s." % status
         for count in utils_misc.iterate_timeout(timeout,
                                                 error_message,
-                                                wait=10):
-            if self._get_status() == status:
+                                                wait=20):
+            current_status = self._get_status()
+            logging.debug('Target: {0}, Current: {1}'.format(
+                status, current_status))
+            if current_status == status:
                 break
+
+            # Exceptions (detect wrong status to save time)
+            if status == 'Running' and current_status not in ('Stopping',
+                                                              'Starting'):
+                raise Exception('While waiting for the server to get Running, \
+its status cannot be {0} rather than Stopping or Starting.'.format(
+                    current_status))
 
     @property
     def id(self):
@@ -125,13 +141,13 @@ class AlibabaVM(VM):
         nic_id = self.ecs.create_nic().get("NetworkInterfaceId")
         if wait:
             for count in utils_misc.iterate_timeout(
-                    60, "Timed out waiting for nics to be created.", wait=5):
-                #nic_status = self.ecs.describe_nics(
-                #    nic_ids=[nic_id]).get("Status")
-                #logging.debug(
-                #    'Status: {0} / Wanted: "Available"'.format(nic_status))
-                #if nic_status == "Available":
-                #    break
+                    300, "Timed out waiting for nics to be created.", wait=5):
+                # nic_status = self.ecs.describe_nics(
+                #     nic_ids=[nic_id]).get("Status")
+                # logging.debug(
+                #     'Status: {0} / Wanted: "Available"'.format(nic_status))
+                # if nic_status == "Available":
+                #     break
 
                 # Cannot check status with nic_ids because of bug
                 # https://github.com/aliyun/aliyun-openapi-python-sdk/issues/78
@@ -162,7 +178,7 @@ class AlibabaVM(VM):
                             (nic_count, len(nics_list)))
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180, "Timed out waiting for nics to be attached.",
+                    300, "Timed out waiting for nics to be attached.",
                     wait=20):
                 attached_count = len(self.query_nics()) - origin_count
                 logging.debug("Attached: {0} / Wanted: {1}".format(
@@ -191,7 +207,7 @@ class AlibabaVM(VM):
                 self.ecs.detach_nic(self.id, nic_id)
             if wait:
                 for count in utils_misc.iterate_timeout(
-                        600, "Timed out waiting for nics to be detached",
+                        300, "Timed out waiting for nics to be detached",
                         wait=20):
                     detached_count = origin_count - len(self.query_nics())
                     logging.debug("Detached: {0} / Wanted: {1}".format(
@@ -266,7 +282,7 @@ class AlibabaVM(VM):
             self.delete_nic(nic['NetworkInterfaceId'])
         if wait:
             for count in utils_misc.iterate_timeout(
-                    60, "Timed out waiting for nics to be created.", wait=1):
+                    300, "Timed out waiting for nics to be deleted.", wait=1):
                 remaining = len(
                     self.ecs.describe_nics(nic_name=nic_name).get(
                         "NetworkInterfaceSets").get("NetworkInterfaceSet"))
@@ -281,7 +297,7 @@ class AlibabaVM(VM):
         diskid = output.get("DiskId").encode("ascii")
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180, "Timed out waiting for cloud disk to be created.",
+                    300, "Timed out waiting for cloud disk to be created.",
                     wait=5):
                 if self.query_cloud_disks(
                         disk_id=diskid)[0].get("Status") == u'Available':
@@ -295,7 +311,7 @@ class AlibabaVM(VM):
         self.ecs.delete_disk(disk_id)
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180, "Timed out waiting for cloud disk to be deleted",
+                    300, "Timed out waiting for cloud disk to be deleted",
                     wait=5):
                 res = self.query_cloud_disks(disk_id=disk_id)
                 if res == []:
@@ -323,7 +339,7 @@ class AlibabaVM(VM):
         output = self.ecs.attach_disk(self.id, disk_id)
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180,
+                    300,
                     "Timed out waiting for cloud disk to be attached.",
                     wait=5):
                 if self.query_cloud_disks(
@@ -337,7 +353,7 @@ class AlibabaVM(VM):
         output = self.ecs.detach_disk(self.id, disk_id)
         if wait:
             for count in utils_misc.iterate_timeout(
-                    180,
+                    300,
                     "Timed out waiting for cloud disk to be detached.",
                     wait=5):
                 if self.query_cloud_disks(
