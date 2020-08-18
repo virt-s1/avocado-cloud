@@ -68,10 +68,23 @@ baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/lat
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
+
 EOF
 """.format(x_version, self.project)
+        PULPCOREREPO = """
+[pulpcore-3.4]
+name=pulpcore-3.4
+baseurl=http://download.eng.bos.redhat.com/brewroot/repos/pulpcore-3.4-rhel-{0}-build/latest/x86_64/
+enabled=1
+gpgcheck=0
+proxy=http://127.0.0.1:8080/
+
+EOF
+""".format(x_version)
         self.session.cmd_output("cat << EOF > /etc/yum.repos.d/rhel.repo%s" %
                                 (BASEREPO))
+        self.session.cmd_output("cat << EOF >> /etc/yum.repos.d/rhel.repo%s" %
+                                (PULPCOREREPO))
         if x_version > 7:
             self.session.cmd_output(
                 "cat << EOF >> /etc/yum.repos.d/rhel.repo%s" % (APPSTREAMREPO))
@@ -107,7 +120,9 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
             cloudinit_pkgs = [
                 'cloud-init', 'python-jsonpatch', 'cloud-utils-growpart',
                 'python-jsonschema', 'python-httpretty', 'pyserial',
-                'python-prettytable'
+                'python-prettytable',
+                'python3-jsonpatch', 'python3-jsonschema', 'python3-httpretty',
+                'python3-prettytable'
             ]
         for cloudinit_pkg in cloudinit_pkgs:
             if cloudinit_pkg in self.packages:
