@@ -1,6 +1,7 @@
 from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
+from avocado_cloud.utils import utils_alibaba
 from avocado.utils import process
 import re
 import os
@@ -450,14 +451,14 @@ will not check kernel-devel package.')
     def test_check_subscription_manager(self):
         pass
 
-    def test_vm_check(self):
+    def test_collect_information_for_create(self):
         """Test case for avocado framework.
 
         case_name:
-            Get VM Check results. (Just collection)
+            Collect information and logs
 
         description:
-            Gathering basic information from the instance.
+            Collect basic information and logs from the instance.
 
         bugzilla_id:
             n/a
@@ -482,45 +483,13 @@ will not check kernel-devel package.')
         pass_criteria:
             n/a
         """
-        self.log.info("VM Check")
+        utils_alibaba.collect_information(self, 'create')
 
-        guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
-        guest_logpath = guest_path + "/log"
-        host_logpath = os.path.dirname(self.job.logfile) + "/validation_data"
-        self.session.cmd_output("mkdir -p {0}".format(guest_logpath))
+    def test_collect_information_for_reboot(self):
+        utils_alibaba.collect_information(self, 'reboot')
 
-        flavor = self.vm.flavor
-        self.session.copy_files_to(
-            local_path="{0}/../../scripts/vm_check.sh".format(self.pwd),
-            remote_path=guest_path)
-        self.log.info("Flavor: %s" % flavor)
-
-        # Cleanup $HOME/workspace/log
-        self.session.cmd_output("rm -rf {0}/*".format(guest_logpath))
-
-        # Run vm_check.sh
-        self.session.cmd_output("bash {0}/vm_check.sh".format(guest_path),
-                                timeout=300)
-
-        # Tar logs
-        # self.session.cmd_output(
-        #     "cd {0} && tar -zcf vm_check_results_{1}.tar.gz .".format(
-        #         guest_logpath, flavor))
-
-        # Copy logs to host
-        process.run(cmd="mkdir -p " + host_logpath,
-                    timeout=20,
-                    verbose=False,
-                    ignore_status=False,
-                    shell=True)
-        self.log.debug("Copying logs to host...")
-        self.session.copy_files_from(local_path=host_logpath,
-                                     remote_path="{0}/*".format(guest_logpath),
-                                     timeout=600)
-        self.log.info("Copy logs to {0} successfully.".format(host_logpath))
-
-        # Cleanup scripts and logs
-        self.session.cmd_output("rm -rf " + guest_path)
+    def test_collect_information_for_restart(self):
+        utils_alibaba.collect_information(self, 'restart')
 
     def test_collect_metadata(self):
         """Test case for avocado framework.

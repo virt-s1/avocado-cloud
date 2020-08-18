@@ -1,6 +1,7 @@
-cases:
+cases: 
   test_functional_lifecycle.py:LifeCycleTest.test_create_vm_password
   test_functional_lifecycle.py:LifeCycleTest.test_create_vm_sshkey
+  test_functional_checkup.py:GeneralTest.test_collect_information_for_create
   test_functional_checkup.py:GeneralTest.test_check_cpu_count
   test_functional_checkup.py:GeneralTest.test_check_mem_size
   test_functional_checkup.py:GeneralTest.test_check_boot_message
@@ -17,7 +18,6 @@ cases:
   test_functional_checkup.py:GeneralTest.test_check_hostname
   test_functional_checkup.py:GeneralTest.test_check_virt_what
   test_functional_checkup.py:GeneralTest.test_check_pv_drivers
-  test_functional_checkup.py:GeneralTest.test_vm_check
   test_functional_checkup.py:GeneralTest.test_collect_metadata
   test_functional_network.py:NetworkTest.test_hotplug_nics
   test_functional_network.py:NetworkTest.test_coldplug_nics
@@ -26,7 +26,9 @@ cases:
   test_functional_clouddisk.py:CloudDiskTest.test_offline_attach_detach_cloud_disks
   test_functional_lifecycle.py:LifeCycleTest.test_stop_vm
   test_functional_lifecycle.py:LifeCycleTest.test_start_vm
+  test_functional_checkup.py:GeneralTest.test_collect_information_for_restart
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_vm
+  test_functional_checkup.py:GeneralTest.test_collect_information_for_reboot
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_inside_vm
   test_functional_lifecycle.py:LifeCycleTest.test_delete_vm
   test_zcleanup.py:CleanUp.test_release_nics
