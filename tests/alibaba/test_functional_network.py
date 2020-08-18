@@ -85,7 +85,7 @@ for dev in $dev_list; do
     sleep 1s
 done
 """
-        self.session.cmd_output(guest_cmd)
+        self.session.cmd_output(guest_cmd, timeout=180)
 
         nic_ids = [
             self.vm.get_nic_id(nic) for nic in self.vm.query_nics()
