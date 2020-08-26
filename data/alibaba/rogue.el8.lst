@@ -194,6 +194,11 @@
 /etc/systemd/system/systemd-resolved.service.d/override.conf
 /etc/modprobe.d/intel-eth.conf
 /etc/dracut.conf.d/omit-intel.conf
+/etc/systemd/system/multi-user.target.wants/cups.path
+/etc/systemd/system/printer.target.wants/cups.service
+/etc/systemd/system/sockets.target.wants/cups.socket
+/usr/share/fonts/google-droid/.uuid
+/usr/share/fonts/urw-base35/.uuid
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
