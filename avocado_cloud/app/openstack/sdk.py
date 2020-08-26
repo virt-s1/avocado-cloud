@@ -65,7 +65,7 @@ class OpenstackVM(VM):
             for ip in net:
                 if ip['OS-EXT-IPS:type'] == 'floating':
                     f_ip = ip['addr']
-                elif ip['OS-EXT-IPS:type'] == 'fixed':
+                elif ip['OS-EXT-IPS:type'] == 'fixed' and  ip['version']== 4:
                     f_ip = ip['addr']
         return f_ip
 

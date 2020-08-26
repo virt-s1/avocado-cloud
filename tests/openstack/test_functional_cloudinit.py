@@ -219,6 +219,19 @@ class CloudinitTest(Test):
                           msg='check /run/cloud-init/instance-data.json',
                           is_get_console=False)
 
+    def test_cloudinit_check_config_ipv6(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        polarion_id: RHEL-189023 - CLOUDINIT-TC: check ipv6 configuration
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'ifconfig eth0'
+        utils_lib.run_cmd(self, cmd, expect_kw='inet6 2620')
+        cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth0'
+        utils_lib.run_cmd(self, cmd, expect_kw='IPV6INIT=yes')
+        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+
+
     def test_cloudinit_create_vm_login_repeatedly(self):
         """
         :avocado: tags=tier3,cloudinit,test_cloudinit_create_vm_login_repeatedly
@@ -364,4 +377,6 @@ ssh_pwauth: 1
             "No sudo privilege")    
 
     def tearDown(self):
+        if self.name.name.endswith("test_cloudinit_login_with_password"):
+            self.vm.delete(wait=True)
         self.session.close()
