@@ -109,7 +109,7 @@ done
         3. Stop VM. Detach all NICs. Device should be removed inside guest
         """
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120

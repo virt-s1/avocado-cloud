@@ -34,7 +34,7 @@ chpasswd: {{ expire: False }}
 ssh_pwauth: 1
 """.format(self.vm.vm_username, self.vm.vm_password)
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120
@@ -72,7 +72,7 @@ password: output of cmd `who` unexpected -> %s" % output)
 
     def test_start_vm(self):
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120
@@ -95,7 +95,7 @@ password: output of cmd `who` unexpected -> %s" % output)
 
     def test_reboot_vm(self):
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120
@@ -114,7 +114,7 @@ password: output of cmd `who` unexpected -> %s" % output)
 
     def test_reboot_inside_vm(self):
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120

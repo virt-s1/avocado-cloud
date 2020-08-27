@@ -426,7 +426,7 @@ will not check kernel-devel package.')
 
     def test_check_virt_what(self):
         self.log.info("Check the virt-what")
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             self.cancel("Alibaba baremetal, skip this case.")
         virt_type = self.params.get('virt', '*/{0}/*'.format(self.vm.flavor),
                                     'kvm')
