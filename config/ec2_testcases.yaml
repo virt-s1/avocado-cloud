@@ -34,6 +34,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_journalctl_traceback
     test_general_verification.py:GeneralVerification.test_check_journalctl_dumpedcore
     test_general_verification.py:GeneralVerification.test_check_journalctl_invalid
+    test_general_verification.py:GeneralVerification.test_check_journalctl_service_unknown_lvalue
     test_general_verification.py:GeneralVerification.test_check_modload
     test_general_verification.py:GeneralVerification.test_check_console_log
     test_general_verification.py:GeneralVerification.test_check_release_name

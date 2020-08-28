@@ -242,6 +242,18 @@ if __name__ == "__main__":
         cmd = 'cat /tmp/journalctl.log'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='invalid,Invalid')
 
+    def test_check_journalctl_service_unknown_lvalue(self):
+        '''
+        :avocado: tags=test_check_journalctl_service_unknown_lvalue,fast_check
+        polarion_id:
+        BZ#:1871139
+        '''
+        cmd = "sudo python3 -m unittest -v os_tests.tests.test_general_check.TestGeneralCheck.test_check_journalctl_service_unknown_lvalue"
+        utils_lib.run_cmd(self, cmd)
+        cmd_get_log = "sudo cat /tmp/os_tests_result/os_tests.tests.test_general_check.TestGeneralCheck.test_check_journalctl_service_unknown_lvalue.debug"
+        utils_lib.run_cmd(self, cmd_get_log, msg='Get test debug log')
+        utils_lib.run_cmd(self, cmd, expect_ret=0)
+
     def test_check_modload(self):
         '''
         :avocado: tags=test_check_modload,fast_check
@@ -364,6 +376,7 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
         '''
         :avocado: tags=test_check_avclog_nfs,fast_check
         polarion_id: N/A
+        bz#: 1771856
         '''
         self.log.info("Check no permission denied at nfs server - bug1655493")
         cmd = 'sudo yum install -y nfs-utils'
