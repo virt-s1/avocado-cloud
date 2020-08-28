@@ -37,6 +37,8 @@ class OpenstackVM(VM):
         self.size = params.get('size', '*/Flavor/*')
         self.keypair = params.get('keypair', '*/VM/*')
         self.user_data = None
+        self.config_drive = None
+        self.second_nic_id = None
 
         # VM creation timeout
         self.create_timeout = kwargs.get("create_timeout")
@@ -84,6 +86,10 @@ class OpenstackVM(VM):
             args['key_name'] = self.keypair
         if self.user_data:
             args['user_data'] = self.user_data
+        if self.config_drive:
+            args['config_drive']= True
+        if self.second_nic_id:
+            args['networks'].append({"uuid": self.second_nic_id })
 
         server = self.conn.compute.create_server(**args)
 
