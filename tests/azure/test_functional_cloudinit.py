@@ -164,6 +164,20 @@ class CloudinitTest(Test):
             except:
                 self.cancel(
                     "No old or new package in guest VM. Skip this case.")
+        if self.case_short_name in [
+            "test_cloudinit_auto_register_with_subscription_manager",
+            "test_cloudinit_auto_install_package_with_subscription_manager",
+            "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo"
+        ]:
+            self.subscription_username = self.params.get("username", "*/Subscription/*")
+            self.subscription_password = self.params.get("password", "*/Subscription/*")
+            self.session.cmd_output("sudo su -")
+            self.session.cmd_output("rpm -e rhui-azure-rhel{}".format(self.project.split('.')[0]))
+
+    @property
+    def _postfix(self):
+        from datetime import datetime
+        return datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")
 
     def test_cloudinit_login_with_password(self):
         """
@@ -377,7 +391,7 @@ echo 'teststring' >> /var/log/test.log\
             "(cloud-init configuration)")
         # Prepare custom data
         customdata_ori = """\
-#cloud-config
+# cloud-config
 cloud_config_modules:
  - mounts
  - locale
@@ -537,13 +551,7 @@ disk mount point")
         self.assertEqual(
             "", output, "There're CRITICAL logs: {0}".format(output))
 
-    def test_cloudinit_check_cloudinit_log(self):
-        """
-        :avocado: tags=tier2,cloudinit
-        RHEL-151376: WALA-TC: [Cloudinit] Check cloud-init log
-        Check cloud-init log. There shouldn't be unexpected error logs.
-        """
-        self.log.info("RHEL-151376: WALA-TC: [Cloudinit] Check cloud-init log")
+    def _check_cloudinit_log(self):
         with open("{}/data/azure/ignore_cloudinit_messages".format(BASEPATH),
                   'r') as f:
             ignore_message_list = f.read().split('\n')
@@ -551,6 +559,15 @@ disk mount point")
             "sudo grep -iE -w 'err.*|fail.*|warn.*|unexpected.*|traceback.*' /var/log/cloud-init.log|grep -vE '{0}'"
             .format('|'.join(ignore_message_list)))
         self.assertEqual("", output, "There're error logs: {0}".format(output))
+
+    def test_cloudinit_check_cloudinit_log(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-151376: WALA-TC: [Cloudinit] Check cloud-init log
+        Check cloud-init log. There shouldn't be unexpected error logs.
+        """
+        self.log.info("RHEL-151376: WALA-TC: [Cloudinit] Check cloud-init log")
+        self._check_cloudinit_log()
 
     def test_cloudinit_assign_identity(self):
         """
@@ -880,7 +897,7 @@ EOF""".format(device, size))
         """
         :avocado: tags=tier2
         RHEL-188923	CLOUDINIT-TC: Verify storage rule - Gen1
-        1. Prepare Gen1 VM. 
+        1. Prepare Gen1 VM.
         Check /dev/disk/cloud/, there should be azure_root and azure_resource
         soft links to sda and sdb.
         """
@@ -891,7 +908,7 @@ EOF""".format(device, size))
         """
         :avocado: tags=tier2
         RHEL-188924	CLOUDINIT-TC: Verify storage rule - Gen2
-        1. Prepare Gen2 VM. 
+        1. Prepare Gen2 VM.
         Check /dev/disk/cloud/, there should be azure_root and azure_resource
         soft links to sda and sdb.
         """
@@ -914,7 +931,8 @@ EOF""".format(device, size))
         self.session.cmd_output("cloud-init single -n ssh")
         self.session.cmd_output("systemctl restart sshd")
         # 4. Verify can login and no unexpected files in ~/.ssh
-        self.assertTrue(self.session.connect(timeout=10), "Fail to login after run ssh module")
+        self.assertTrue(self.session.connect(timeout=10),
+                        "Fail to login after run ssh module")
         files = self.session.cmd_output(
             "find /home/{}/.ssh/*|grep -vE '(id_rsa|known_hosts)'".format(self.vm.vm_username))
         self.assertEqual(len(files.split()), 1,
@@ -956,8 +974,9 @@ EOF""".format(device, size))
         # cloud-init single -n ssh
         4. Verify can login successfully
         """
-        # 
-        self.log.info("RHEL-189027 CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile")
+        #
+        self.log.info(
+            "RHEL-189027 CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile")
         self._verify_authorizedkeysfile(".ssh/authorized_keys2")
 
     def test_cloudinit_remove_cache_and_reboot_password(self):
@@ -968,11 +987,430 @@ EOF""".format(device, size))
         2. Remove the instance cache folder and reboot
         3. Verify can login successfully
         """
-        self.log.info("RHEL-189049 CLOUDINIT-TC: Reboot with no instance cache - password authentication")
+        self.log.info(
+            "RHEL-189049 CLOUDINIT-TC: Reboot with no instance cache - password authentication")
         self.session.cmd_output("sudo rm -rf /var/lib/cloud/instances/*")
         self.vm.reboot()
         self.assertTrue(self.session.connect(timeout=100, authentication="password"),
-            "Fail to login after restart")
+                        "Fail to login after restart")
+
+    def _verify_rh_subscription(self, config):
+        # self.session.copy_files_to(
+        #     local_path="/tmp/config_rh_subscription",
+        #     remote_path="/tmp/config_rh_subscription"
+        # )
+        self.session.cmd_output("subscription-manager unregister")
+        self.session.cmd_output(
+            "rm -f /var/lib/cloud/instance/sem/config_rh_subscription /var/log/cloud-init*.log")
+        if "packages" in config:
+            self.session.cmd_output(
+                "rm -f /var/lib/cloud/instance/sem/config_package_update_upgrade_install")
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_rh_subscription.cfg".format(config))
+        if "packages" in config:
+            self.session.cmd_output("cloud-init modules --mode config", timeout=600)
+        else:
+            self.session.cmd_output("cloud-init single -n rh_subscription", timeout=600)
+        self.assertEqual(self.session.cmd_status_output(
+            "grep 'Registered successfully' /var/log/cloud-init.log")[0], 0,
+            "No 'Registered successfully log in cloud-init.log")
+        self.assertNotIn("Unknown", 
+            self.session.cmd_output("subscription-manager status|grep Overall"),
+            "Fail to register with subscription-manager")
+        self._check_cloudinit_log()
+
+    def test_cloudinit_auto_register_with_subscription_manager(self):
+        """
+        :avocado: tags=tier2
+        RHEL-181761 CLOUDINIT-TC: auto register by cloud-init
+        1. Add content to /etc/cloud/cloud.cfg.d/test_rh_subscription.cfg
+'       rh_subscription:
+          username: ******
+          password: ******
+        2. Run rh_subscription module
+        3. Verify can register with subscription-manager
+        4. Verify can auto-attach manually
+        """
+        self.log.info("RHEL-181761 CLOUDINIT-TC: auto register by cloud-init")
+        CONFIG='''\
+rh_subscription:
+  username: {}
+  password: {}'''.format(self.subscription_username, self.subscription_password)
+        self._verify_rh_subscription(CONFIG)
+        self.session.cmd_output("subscription-manager auto-attach")
+        self.assertNotEqual("",
+            self.session.cmd_output("subscription-manager list --consumed --pool-only"),
+            "Cannot auto-attach pools manually")
+
+    def test_cloudinit_auto_install_package_with_subscription_manager(self):
+        """
+        :avocado: tags=tier2
+        RHEL-186182	CLOUDINIT-TC:auto install package with subscription manager
+        1. Add content to /etc/cloud/cloud.cfg.d/test_rh_subscription.cfg
+'       rh_subscription:
+          username: ******
+          password: ******
+          auto-attach: True
+        packages:
+          - dos2unix
+        2. Run cloud-init config phase
+        3. Verify can register with subscription-manager and install package by cloud-init
+        """
+        self.log.info("RHEL-186182 CLOUDINIT-TC:auto install package with subscription manager")
+        package = "dos2unix"
+        self.session.cmd_output("rpm -e {}".format(package))
+        CONFIG='''\
+rh_subscription:
+  username: {}
+  password: {}
+  auto-attach: True
+packages:
+  - {}'''.format(self.subscription_username, self.subscription_password, package)
+        self._verify_rh_subscription(CONFIG)
+        self.assertNotEqual("",
+            self.session.cmd_output("subscription-manager list --consumed --pool-only"),
+            "Cannot auto-attach pools")
+        self.assertEqual(0,
+            self.session.cmd_status_output("rpm -q {}".format(package))[0],
+            "Fail to install package {} by cloud-init".format(package))
+
+    def test_cloudinit_verify_rh_subscription_enablerepo_disablerepo(self):
+        """
+        :avocado: tags=tier2
+        RHEL-189134	CLOUDINIT-TC: Verify rh_subscription module if disable-repo is null or empty
+        1. rh_subscription config is:
+        rh_subscription:
+          username: ******
+          password: ******
+          auto-attach: True
+          disable-repo: []
+          Verify no error logs.
+        2. rh_subscription config is:
+        rh_subscription:
+          username: ******
+          password: ******
+          add-pool: [ '8a85f98960dbf6510160df23eb447470' ]
+          enable-repo: ['rhel-8-for-x86_64-baseos-rpms'] 
+          Verify no error logs.
+          Verify pool id matches the consumed pool.
+          Verify enable-repo is enabled.
+        3. Verify no error if rh_subscription config is:
+        rh_subscription:
+          username: ******
+          password: ******
+          add-pool: [ '8a85f98960dbf6510160df23eb447470' ]
+          enable-repo: ['rhel-8-for-x86_64-baseos-rpms', 'rhel-8-for-x86_64-appstream-e4s-rpms']
+          disable-repo: ['rhel-8-for-x86_64-appstream-rpms']
+          Verify no error logs.
+          Verify enable-repos are enabled and disable-repo is disabled
+        """
+        self.log.info("RHEL-189134 CLOUDINIT-TC: Verify rh_subscription enable-repo and disable-repo")
+        pool = '8a85f98960dbf6510160df23eb447470'
+        if int(self.project.split('.')[0]) >= 8:
+            enable_repo_1 = 'rhel-8-for-x86_64-baseos-rpms'
+            enable_repo_2 = 'rhel-8-for-x86_64-appstream-e4s-rpms'
+            disable_repo = 'rhel-8-for-x86_64-appstream-rpms'
+        else:
+            enable_repo_1 = 'rhel-7-server-rpms'
+            enable_repo_2 = 'rhel-rs-for-rhel-7-server-htb-debug-rpms'
+            disable_repo = 'rhel-7-server-htb-rpms'
+        # 1. Disable-repo is empty
+        self.log.info("1. Disable-repo is empty")
+        CONFIG='''\
+rh_subscription:
+  username: {}
+  password: {}
+  auto-attach: True
+  disable-repo: []'''.format(self.subscription_username, self.subscription_password)
+        self._verify_rh_subscription(CONFIG)
+        # 2. Disable-repo is null
+        self.log.info("2. Disable-repo is null")
+        CONFIG='''\
+rh_subscription:
+  username: {}
+  password: {}
+  add-pool: ["{}"]
+  enable-repo: ["{}"]'''.format(self.subscription_username, self.subscription_password, 
+                             pool, enable_repo_1)
+        self._verify_rh_subscription(CONFIG)
+        self.assertEqual(pool, 
+            self.session.cmd_output("subscription-manager list --consumed --pool-only"), 
+            "The consumed pool id does not correct.")
+        self.assertIn(enable_repo_1, 
+            self.session.cmd_output("yum repolist|awk '{print $1}'").split('\n'),
+            "Repo {} is not enabled".format(enable_repo_1))
+        # 3. Verify enable-repo and disable-repo
+        self.log.info("3. Verify enable-repo and disable-repo")
+        CONFIG='''\
+rh_subscription:
+  username: {}
+  password: {}
+  add-pool: ['{}']
+  enable-repo: ['{}', '{}']
+  disable-repo: ['{}']'''.format(self.subscription_username, self.subscription_password, 
+                             pool, enable_repo_1, enable_repo_2, disable_repo)
+        self._verify_rh_subscription(CONFIG)
+        repolist = self.session.cmd_output("yum repolist|awk '{print $1}'").split('\n')
+        self.assertIn(enable_repo_1, repolist,
+            "Repo {} is not enabled".format(enable_repo_1))
+        self.assertIn(enable_repo_2, repolist,
+            "Repo {} is not enabled".format(enable_repo_2))
+        self.assertNotIn(disable_repo, repolist,
+            "Repo {} is not disabled".format(disable_repo))
+
+
+    def test_cloudinit_swapon_with_xfs_filesystem(self):
+        """
+        :avocado: tags=tier2
+        RHEL-182307 CLOUDINIT-TC: Swapon successful when created on a xfs filesystem by cloud-init	
+        1. Add additional data disk and format to xfs, mount to /datatest and add to /etc/fstab
+        2. Configure cloud-config and run mounts module
+        # cat /etc/cloud/cloud.cfg.d/test_swap.cfg 
+        swap:
+          filename: /datatest/swap.img
+          size: "auto" # or size in bytes
+          maxsize: 2G 
+        3. Check the swap, verify /datadisk/swap.img exists, verify no error logs in cloud-init.log
+        """
+        self.log.info("RHEL-182307 CLOUDINIT-TC: Swapon successful when created on a xfs filesystem by cloud-init")
+        self.session.cmd_output("sudo su -")
+        # Clear old swap by cloud-init
+        self.session.cmd_output("swapoff /datatest/swap.img")
+        self.session.cmd_output("umount /datatest")
+        self.session.cmd_output("rm -rf /datatest")
+        self.session.cmd_output("sed -i '/.*\/datatest.*/d' /etc/fstab")
+        # Get previous swap size
+        old_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
+        # Attach data disk
+        self.disk_name = "disk1-{}".format(self._postfix)
+        self.vm.unmanaged_disk_attach(self.disk_name, 5)
+        self.assertEqual(self.session.cmd_status_output("ls /dev/sdc")[0], 0,
+            "No /dev/sdc device after attach data disk")
+        self.session.cmd_output("parted /dev/sdc rm 1 -s")
+        self.session.cmd_output("parted /dev/sdc mklabel msdos -s")
+        self.session.cmd_output("parted /dev/sdc mkpart primary xfs 1048k 4000M -s")
+        self.session.cmd_output("mkfs.xfs /dev/sdc1")
+        self.session.cmd_output("mkdir -p /datatest")
+        self.session.cmd_output("mount /dev/sdc1 /datatest")
+        self.assertEqual(self.session.cmd_status_output("mount|grep /datatest")[0], 0,
+            "Fail to mount datadisk")
+        # Test begin
+        CONFIG='''\
+swap:
+  filename: /datatest/swap.img
+  size: "auto" # or size in bytes
+  maxsize: 2G'''
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_swap.cfg".format(CONFIG))
+        self.session.cmd_output("rm -f /var/lib/cloud/instance/sem/config_mounts /var/log/cloud-init*.log")
+        self.session.cmd_output("cloud-init single --name mounts")
+        new_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
+        self.assertAlmostEqual(first=int(old_swap)+2047, second=int(new_swap), delta=1,
+            msg="The enabled swap size does not correct.")
+        self.assertEqual(self.session.cmd_status_output("ls /datatest/swap.img")[0], 0,
+            "/datatest/swap.img doesn't exist.")
+        self.assertEqual(self.session.cmd_status_output("grep swap.img /etc/fstab")[0], 0,
+            "Fail to add swap to /etc/fstab")
+        self._check_cloudinit_log()
+        self.assertNotEqual(self.session.cmd_status_output(
+            "grep 'Permission denied' /var/log/cloud-init-output.log")[0], 0,
+            "There are Permission denied logs in /var/log/cloud-init-output.log")
+
+    def _generate_password(self, password, hash, salt=''):
+        import crypt
+        if hash == 'md5':
+            crypt_type = '$1$'
+        elif hash == 'sha-256':
+            crypt_type = '$5$'
+        elif hash == 'sha-512':
+            crypt_type = '$6$'
+        else:
+            assert False, 'Unhandled hash option: {}'.format(hash)
+        # Generate a random salt
+        if salt == '':
+            with open('/dev/urandom', 'rb') as urandom:
+                while True:
+                    byte = urandom.read(1)
+                    if byte in ('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+                                './0123456789'):
+                        salt += byte
+                        if len(salt) == 16:
+                            break
+        salt = crypt_type + salt
+        self.log.debug("=================1")
+        self.log.debug(salt)
+
+        hashed = crypt.crypt(password, salt)
+        self.log.debug(hashed)
+        self.log.debug("=================1")
+        return hashed
+
+    def test_cloudinit_chpasswd_with_hashed_passwords(self):
+        """
+        :avocado: tags=tier2
+        RHEL-172679	CLOUDINIT-TC: chpasswd in cloud-init should support hashed passwords
+        1. Add 6 users in the VM
+        2. Add different passwords to /etc/cloud/cloud.conf.d/test_hash_passwords.cfg
+        chpasswd:
+          list:
+            - test1:(md5 hashed)
+            - test2:(sha256 hashed)
+            - test3:(sha-512 hashed)
+            - test4:RedHat@2019
+            - test5:R (random)
+            - test6:RANDOM (random)
+        3. Verify if cloud-init can handle these passwords
+        """
+        self.log.info("RHEL-172679 CLOUDINIT-TC: chpasswd in cloud-init should support hashed passwords")
+        self.session.cmd_output("sudo su -")
+        # Add test1..test6 users in the VM
+        for i in range(1, 7):
+            user = "test{}".format(str(i))
+            self.session.cmd_output("userdel -r {}".format(user))
+            self.session.cmd_output("useradd {}".format(user))
+            self.assertEqual(self.session.cmd_status_output("id {}".format(user))[0], 0,
+                "Fail to create user {}".format(user))
+        # Run set_passwords module
+        base_pw = "RedHat@2019"
+        pw_config_dict = {
+            "test1": self._generate_password(base_pw, "md5"),
+            "test2": self._generate_password(base_pw, "sha-256"),
+            "test3": self._generate_password(base_pw, "sha-512"),
+            "test4": base_pw,
+            "test5": "R",
+            "test6": "RANDOM"
+        }
+        CONFIG='''\
+chpasswd:
+  list:
+    - test1:{test1}
+    - test2:{test2}
+    - test3:{test3}
+    - test4:{test4}
+    - test5:{test5}
+    - test6:{test6}'''.format(**pw_config_dict)
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_hash_passwords.cfg".format(CONFIG))
+        self.session.cmd_output("rm -f /var/lib/cloud/instance/sem/config_set_passwords /var/log/cloud-init*.log")
+        output = self.session.cmd_output("cloud-init single --name set_passwords")
+        for line in output.split('\n'):
+            self.log.debug(line)
+            if "test5" in line:
+                test5_pw = line.split(':')[1]
+            elif "test6" in line:
+                test6_pw = line.split(':')[1]
+        if "test5_pw" not in vars() or "test6_pw" not in vars():
+            self.fail("Not show random passwords in the output")
+        test4_salt = self.session.cmd_output("getent shadow test4").split('$')[2]
+        test5_salt = self.session.cmd_output("getent shadow test5").split('$')[2]
+        test6_salt = self.session.cmd_output("getent shadow test6").split('$')[2]
+        test5_hashed = self._generate_password(test5_pw, "sha-512", test5_salt)
+        self.log.debug("-----------------------")
+        self.log.debug("test5_hashed:  "+test5_hashed)
+        self.log.debug("-----------------------")
+        shadow_dict = {
+            "test1": "test1:{}:18502:0:99999:7:::".format(pw_config_dict['test1']),
+            "test2": "test2:{}:18502:0:99999:7:::".format(pw_config_dict['test2']),
+            "test3": "test3:{}:18502:0:99999:7:::".format(pw_config_dict['test3']),
+            "test4": "test4:{}:0:0:99999:7:::".format(self._generate_password(base_pw, "sha-512", test4_salt)),
+            "test5": "test5:{}:0:0:99999:7:::".format(self._generate_password(test5_pw, "sha-512", test5_salt)),
+            "test6": "test6:{}:0:0:99999:7:::".format(self._generate_password(test6_pw, "sha-512", test6_salt)),
+        }
+        for user in shadow_dict:
+            real = self.session.cmd_output("getent shadow {}".format(user))
+            expect = shadow_dict.get(user)
+            self.assertEqual(real, expect,
+                "The {} password in /etc/shadow doesn't meet the expectation. Real:{} Expect:{}".format(user, real, expect))
+        self._check_cloudinit_log()
+                
+
+    def test_cloudinit_runcmd_module_execute_command(self):
+        """
+        :avocado: tags=tier2
+        RHEL-186183 CLOUDINIT-TC:runcmd module:execute commands
+        1. Set cloud-init config as:
+        runcmd:
+          - [ sh, -xc, "echo $(uname -r) ': hello!'" ]
+          - [ sh, -c, echo "=========hello world=========" ]
+        2. Verify can show command output in output
+        """
+        self.log.info("RHEL-186183 CLOUDINIT-TC:runcmd module:execute commands")
+        self.session.cmd_output("sudo su -")
+        CONFIG='''\
+runcmd:
+  - [ sh, -xc, "echo $(uname -r) ': hello!'" ]
+  - [ sh, -c, echo "=========hello world=========" ]'''
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_runcmd.cfg".format(CONFIG))
+        self.session.cmd_output("rm -f /var/lib/cloud/instance/sem/config_runcmd "
+                                "/var/lib/cloud/instance/sem/config_scripts_user "
+                                "/var/log/cloud-init*.log")
+        self.session.cmd_output("cloud-init single --name runcmd")
+        output = self.session.cmd_output("cloud-init single --name scripts_user")
+        ret1 = "{} : hello!".format(self.session.cmd_output("uname -r"))
+        ret2 = "=========hello world========="
+        self.assertIn(ret1, output, "Fail to show cmd1 result. Real:{} Expect:{}".format(output, ret1))
+        self.assertIn(ret2, output, "Fail to show cmd2 result. Real:{} Expect:{}".format(output, ret2))
+        self._check_cloudinit_log()
+
+    def test_cloudinit_check_ds_identity_path(self):
+        """
+        :avocado: tags=tier2
+        RHEL-188251 CLOUDINIT-TC: check ds-identify path
+        1. Verify /usr/libexec/cloud-init/ds-identify (>=cloud-init-19.4) or 
+        /usr/lib/cloud-init/ds-identify (<cloud-init-19.4) exists
+        2. Verify "ds-identify _RET=found" in /usr/libexec/cloud-init/ds-identify
+        """
+        self.log.info("RHEL-188251 CLOUDINIT-TC: check ds-identify path")
+        self.session.cmd_output("sudo su -")
+        version = self.session.cmd_output("cloud-init -v|awk '{print $2}'")
+        if LooseVersion(version) < LooseVersion("19.4"):
+            ds_identify = "/usr/lib/cloud-init/ds-identify"
+        else:
+            ds_identify = "/usr/libexec/cloud-init/ds-identify"
+        self.assertEqual(self.session.cmd_status_output("[ -f {} ]".format(ds_identify))[0], 0,
+            "{} doesn't exist!")
+        self.assertEqual(self.session.cmd_status_output(
+            "grep 'ds-identify _RET=found' /run/cloud-init/cloud-init-generator.log")[0], 0,
+            "Cannot find 'ds-identify _RET=found' in /run/cloud-init/cloud-init-generator.log")
+
+    def test_cloudinit_enable_swap_in_temporary_disk(self):
+        """
+        :avocado: tags=tier2
+        RHEL-189229	CLOUDINIT-TC: [Azure]Enable swap in temporary disk
+        1. Add additional data disk and format to xfs, mount to /datatest and add to /etc/fstab
+        2. Configure cloud-config and run mounts module
+        # cat /etc/cloud/cloud.cfg.d/test_swap.cfg 
+        swap:
+          filename: /mnt/swapfile
+          size: 2048M
+        3. Check the swap, verify /mnt/swapfile exists, verify no error logs in cloud-init.log
+        """
+        self.log.info("RHEL-189229 CLOUDINIT-TC: [Azure]Enable swap in temporary disk")
+        self.session.cmd_output("sudo su -")
+        # Clear old swap by cloud-init
+        self.assertEqual(self.session.cmd_status_output("mount|grep /mnt")[0], 0,
+            "/mnt is not mounted. Cannot run this case")
+        self.session.cmd_output("swapoff /mnt/swapfile")
+        self.session.cmd_output("rm -f /mnt/swapfile")
+        self.session.cmd_output("sed -i '/.*swapfile.*/d' /etc/fstab")
+        # Get previous swap size
+        old_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
+        # Test begin
+        CONFIG='''\
+swap:
+  filename: /mnt/swapfile
+  size: 2048M'''
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_swap.cfg".format(CONFIG))
+        self.session.cmd_output("rm -f /var/lib/cloud/instance/sem/config_mounts /var/log/cloud-init*.log")
+        self.session.cmd_output("cloud-init single --name mounts")
+        new_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
+        self.assertAlmostEqual(first=int(old_swap)+2047, second=int(new_swap), delta=1,
+            msg="The enabled swap size does not correct.")
+        self.assertEqual(self.session.cmd_status_output("ls /mnt/swapfile")[0], 0,
+            "/mnt/swapfile doesn't exist.")
+        self.assertEqual(self.session.cmd_status_output("grep swapfile /etc/fstab")[0], 0,
+            "Fail to add swap to /etc/fstab")
+        self._check_cloudinit_log()
+        self.assertNotEqual(self.session.cmd_status_output(
+            "grep 'Permission denied' /var/log/cloud-init-output.log")[0], 0,
+            "There are Permission denied logs in /var/log/cloud-init-output.log")
 
     def tearDown(self):
         # if not self.session.connect(timeout=10):
@@ -986,7 +1424,37 @@ EOF""".format(device, size))
                 "test_cloudinit_verify_multiple_files_in_authorizedkeysfile",
                 "test_cloudinit_verify_customized_file_in_authorizedkeysfile"
         ]:
-            self.session.cmd_output("mv /root/sshd_config /etc/ssh/sshd_config")
+            self.session.cmd_output(
+                "mv /root/sshd_config /etc/ssh/sshd_config")
+        elif self.case_short_name in [
+                "test_cloudinit_auto_register_with_subscription_manager",
+                "test_cloudinit_auto_install_package_with_subscription_manager",
+                "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo"
+        ]:
+            self.session.cmd_output("subscription-manager unregister")
+        elif self.case_short_name in [
+                "test_cloudinit_enable_swap_in_temporary_disk",
+        ]:
+            self.session.cmd_output("swapoff -a")
+            self.session.cmd_output("rm -f /mnt/swapfile")
+            self.session.cmd_output("sed -i '/.*swapfile.*/d' /etc/fstab")
+            self.session.cmd_output("rm -f /etc/cloud/cloud.cfg.d/test_*.cfg")
+        elif self.case_short_name in [
+                "test_cloudinit_swapon_with_xfs_filesystem"
+        ]:
+            self.session.cmd_output("swapoff -a")
+            self.session.cmd_output("umount -l /dev/sdc1")
+            self.vm.unmanaged_disk_detach(self.disk_name)
+            self.session.cmd_output("sed -i '/.*datatest.*/d' /etc/fstab")
+            self.session.cmd_output("rm -f /etc/cloud/cloud.cfg.d/test_*.cfg")
+        elif self.case_short_name in [
+                "test_cloudinit_auto_register_with_subscription_manager",
+                "test_cloudinit_auto_install_package_with_subscription_manager",
+                "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo",
+                "test_cloudinit_chpasswd_with_hashed_passwords",
+                "test_cloudinit_runcmd_module_execute_command",
+        ]:
+            self.session.cmd_output("rm -f /etc/cloud/cloud.cfg.d/test_*.cfg")
         elif self.case_short_name in [
                 "test_cloudinit_provision_vm_with_multiple_nics",
                 "test_cloudinit_provision_vm_with_sriov_nic",
