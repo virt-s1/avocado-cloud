@@ -26,3 +26,11 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_customized_file_in_authorizedkeysfile
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_remove_cache_and_reboot_password
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_register_with_subscription_manager
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_install_package_with_subscription_manager
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_rh_subscription_enablerepo_disablerepo
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_enable_swap_in_temporary_disk
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_swapon_with_xfs_filesystem
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_chpasswd_with_hashed_passwords
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_runcmd_module_execute_command
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ds_identity_path
