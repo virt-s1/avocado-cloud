@@ -13,7 +13,7 @@ class GeneralTest(Test):
         self.cloud = Setup(self.params, self.name)
         self.vm = self.cloud.vm
         self.session = self.cloud.init_vm(pre_delete=False, pre_stop=False)
-        self.rhel_ver = self.params.get('rhel_ver', '*/VM/*', '')
+        self.rhel_ver = str(self.params.get('rhel_ver', '*/VM/*', ''))
         self.pwd = os.path.abspath(os.path.dirname(__file__))
         self.dest_dir = "/tmp/"
 
