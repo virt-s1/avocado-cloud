@@ -513,4 +513,10 @@
 /usr/share/man/man1/lprm.1.gz
 /usr/share/man/man1/lpstat.1.gz
 /usr/share/man/man8/lpc.8.gz
+/etc/pki/product/69.pem
+/usr/lib64/ld-lsb-x86-64.so
+/usr/lib/fontconfig/cache/CACHEDIR.TAG
+/usr/share/fonts/dejavu/.uuid
+/usr/share/fonts/urw-base35/.uuid
+/usr/share/fonts/.uuid
 #################### KNOWN ISSUES BELOW ####################
