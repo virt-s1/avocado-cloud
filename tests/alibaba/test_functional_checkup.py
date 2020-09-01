@@ -265,7 +265,7 @@ class GeneralTest(Test):
             "", output,
             "Found extra files not controlled by rpm:\n%s" % output)
 
-    def test_check_file_content_integrity(self):
+    def test_check_file_content_integrity_by_rpm(self):
         self.log.info("Check file content integrity by rpm -Va")
         if self.rhel_ver.split('.')[0] == '8':
             data_file = "rpm_va.el8.lst"
@@ -291,33 +291,44 @@ will not check kernel-devel package.')
                                          timeout=240)
         self.assertEqual("", output,
                          "Found extra files has been modified:\n%s" % output)
-        # Continue to compare every single file under local
-        # "data/vendor/file_cmp"
+
+    def test_check_file_content_integrity_by_diff(self):
+        # Compare every single file under local "data/vendor/file_cmp"
         root_path = os.path.dirname(os.path.dirname(self.pwd))
-        src_dir = os.path.join(os.path.join(root_path, "data"),
+        src_dir = os.path.join(os.path.join(root_path, 'data'),
                                self.cloud.cloud_provider)
-        if os.path.isdir(os.path.join(src_dir, "file_cmp")):
-            for f in os.listdir(os.path.join(src_dir, "file_cmp")):
-                m = re.match(r"^(%.*%)(.*)\.el(\d)$", f)
-                if m:
-                    f_name = m.group(2)
-                    f_ver = m.group(3)
-                    f_name_l = m.group(1).replace('%', '/') + f_name
-                    if self.rhel_ver.split('.')[0] != f_ver:
-                        continue
-                else:
-                    m = re.match(r"^(%.*%)(.*)$", f)
-                    f_name = m.group(2)
-                    f_name_l = f.replace('%', '/')
-                self.session.copy_files_to(
-                    os.path.join(os.path.join(src_dir, "file_cmp"), f),
-                    "/tmp/" + f_name)
-                cmd = "grep -xv '^[[:space:]][[:space:]]*$' %s | diff \
--wB - %s" % (f_name_l, "/tmp/" + f_name)
-                output = self.session.cmd_output(cmd)
-                self.assertEqual(
-                    "", output,
-                    "Found %s has been modified:\n%s" % (f_name, output))
+
+        # Determine the best file_cmp matches
+        # Example: 'file_cmp.el8.3' is better than 'file_cmp.el8'
+        if os.path.isdir(os.path.join(src_dir, 'file_cmp.el' + self.rhel_ver)):
+            file_cmp = os.path.join(src_dir, 'file_cmp.el' + self.rhel_ver)
+        elif os.path.isdir(
+                os.path.join(src_dir,
+                             'file_cmp.el' + self.rhel_ver.split('.')[0])):
+            file_cmp = os.path.join(
+                src_dir, 'file_cmp.el' + self.rhel_ver.split('.')[0])
+        else:
+            self.error('Can not found file_cmp matches.')
+        self.log.info('Selected file_cmp as {0}'.format(file_cmp))
+
+        # Deliver files and check
+        for f in os.listdir(file_cmp):
+            m = re.match(r"^(%.*%)(.*)$", f)
+            if m:
+                f_name = m.group(2)
+                f_name_l = f.replace('%', '/')
+            else:
+                self.error('Failed to parse file {0}.'.format(f))
+
+            self.session.copy_files_to(os.path.join(file_cmp, f),
+                                       '/tmp/' + f_name)
+
+            cmd = "grep -xv '^[[:space:]][[:space:]]*$' %s | diff \
+-wB - %s" % (f_name_l, '/tmp/' + f_name)
+            output = self.session.cmd_output(cmd)
+            self.assertEqual(
+                '', output,
+                'Found %s has been modified:\n%s' % (f_name, output))
 
     # RHBZ#1144155
     def test_check_boot_cmdline_parameters(self):
