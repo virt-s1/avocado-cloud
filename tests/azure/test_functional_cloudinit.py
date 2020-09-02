@@ -895,7 +895,7 @@ EOF""".format(device, size))
 
     def test_cloudinit_verify_storage_rule_gen1(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-188923	CLOUDINIT-TC: Verify storage rule - Gen1
         1. Prepare Gen1 VM.
         Check /dev/disk/cloud/, there should be azure_root and azure_resource
@@ -906,7 +906,7 @@ EOF""".format(device, size))
 
     def test_cloudinit_verify_storage_rule_gen2(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-188924	CLOUDINIT-TC: Verify storage rule - Gen2
         1. Prepare Gen2 VM.
         Check /dev/disk/cloud/, there should be azure_root and azure_resource
@@ -940,7 +940,7 @@ EOF""".format(device, size))
 
     def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-189026	CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile
         1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
         AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
@@ -965,7 +965,7 @@ EOF""".format(device, size))
 
     def test_cloudinit_verify_customized_file_in_authorizedkeysfile(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-189027	CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile
         1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
         AuthorizedKeysFile .ssh/authorized_keys2
@@ -981,7 +981,7 @@ EOF""".format(device, size))
 
     def test_cloudinit_remove_cache_and_reboot_password(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-189049	CLOUDINIT-TC: Reboot with no instance cache - password authentication
         1. Create a VM on Azure with password authentication
         2. Remove the instance cache folder and reboot
@@ -1020,7 +1020,7 @@ EOF""".format(device, size))
 
     def test_cloudinit_auto_register_with_subscription_manager(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-181761 CLOUDINIT-TC: auto register by cloud-init
         1. Add content to /etc/cloud/cloud.cfg.d/test_rh_subscription.cfg
 '       rh_subscription:
@@ -1043,7 +1043,7 @@ rh_subscription:
 
     def test_cloudinit_auto_install_package_with_subscription_manager(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-186182	CLOUDINIT-TC:auto install package with subscription manager
         1. Add content to /etc/cloud/cloud.cfg.d/test_rh_subscription.cfg
 '       rh_subscription:
@@ -1075,7 +1075,7 @@ packages:
 
     def test_cloudinit_verify_rh_subscription_enablerepo_disablerepo(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-189134	CLOUDINIT-TC: Verify rh_subscription module if disable-repo is null or empty
         1. rh_subscription config is:
         rh_subscription:
@@ -1160,7 +1160,7 @@ rh_subscription:
 
     def test_cloudinit_swapon_with_xfs_filesystem(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-182307 CLOUDINIT-TC: Swapon successful when created on a xfs filesystem by cloud-init	
         1. Add additional data disk and format to xfs, mount to /datatest and add to /etc/fstab
         2. Configure cloud-config and run mounts module
@@ -1245,7 +1245,7 @@ swap:
 
     def test_cloudinit_chpasswd_with_hashed_passwords(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-172679	CLOUDINIT-TC: chpasswd in cloud-init should support hashed passwords
         1. Add 6 users in the VM
         2. Add different passwords to /etc/cloud/cloud.conf.d/test_hash_passwords.cfg
@@ -1323,7 +1323,7 @@ chpasswd:
 
     def test_cloudinit_runcmd_module_execute_command(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-186183 CLOUDINIT-TC:runcmd module:execute commands
         1. Set cloud-init config as:
         runcmd:
@@ -1351,7 +1351,7 @@ runcmd:
 
     def test_cloudinit_check_ds_identity_path(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-188251 CLOUDINIT-TC: check ds-identify path
         1. Verify /usr/libexec/cloud-init/ds-identify (>=cloud-init-19.4) or 
         /usr/lib/cloud-init/ds-identify (<cloud-init-19.4) exists
@@ -1372,7 +1372,7 @@ runcmd:
 
     def test_cloudinit_enable_swap_in_temporary_disk(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier2,cloudinit
         RHEL-189229	CLOUDINIT-TC: [Azure]Enable swap in temporary disk
         1. Add additional data disk and format to xfs, mount to /datatest and add to /etc/fstab
         2. Configure cloud-config and run mounts module
