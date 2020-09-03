@@ -48,6 +48,7 @@ class EC2VM(VM):
         self.security_group_ids = params.get('security_group_ids')
         self.region = params.get('region')
         self.zone = params.get('availability_zone', '*/Cloud/*')
+        self.additionalinfo = params.get('additionalinfo', '*/Cloud/*')
         self.tagname = params.get('ec2_tagname')
         self.ssh_key_name = params.get('ssh_key_name')
         self.ssh_key_path = params.get('ssh_key_path')
@@ -101,21 +102,39 @@ class EC2VM(VM):
 
     def create(self, wait=True):
         try:
-            self.__ec2_instance = self.__resource.create_instances(
-                ImageId=self.ami_id,
-                InstanceType=self.instance_type,
-                KeyName=self.ssh_key_name,
-                SecurityGroupIds=[
-                    self.security_group_ids,
-                ],
-                SubnetId=self.subnet_id,
-                MaxCount=1,
-                MinCount=1,
-                Placement={
-                    'AvailabilityZone': self.zone,
-                },
-                UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
-                (self.ssh_user, self.instance_type))[0]
+            if self.additionalinfo == None or self.additionalinfo == '':
+                self.__ec2_instance = self.__resource.create_instances(
+                    ImageId=self.ami_id,
+                    InstanceType=self.instance_type,
+                    KeyName=self.ssh_key_name,
+                    SecurityGroupIds=[
+                        self.security_group_ids,
+                    ],
+                    SubnetId=self.subnet_id,
+                    MaxCount=1,
+                    MinCount=1,
+                    Placement={
+                        'AvailabilityZone': self.zone,
+                    },
+                    UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
+                    (self.ssh_user, self.instance_type))[0]
+            else:
+                self.__ec2_instance = self.__resource.create_instances(
+                    ImageId=self.ami_id,
+                    InstanceType=self.instance_type,
+                    KeyName=self.ssh_key_name,
+                    SecurityGroupIds=[
+                        self.security_group_ids,
+                    ],
+                    SubnetId=self.subnet_id,
+                    MaxCount=1,
+                    MinCount=1,
+                    Placement={
+                        'AvailabilityZone': self.zone,
+                    },
+                    AdditionalInfo=self.additionalinfo,
+                    UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
+                    (self.ssh_user, self.instance_type))[0]
         except ClientError as err:
             LOG.error("Failed to create instance!")
             raise err
