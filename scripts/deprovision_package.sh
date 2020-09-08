@@ -27,7 +27,8 @@ delete_arr=(/var/lib/waagent /var/lib/cloud /var/log/waagent.log* /var/log/cloud
 function deprovision_wala() {
     systemctl stop waagent
     systemctl enable waagent > /dev/null 2>&1
-    systemctl disable cloud-{init-local,init,config,final} > /dev/null 2>&1
+    # systemctl disable cloud-{init-local,init,config,final} > /dev/null 2>&1
+    rpm -e cloud-init > /dev/null 2>&1
     sed -i -e 's/^ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' \
         -e 's/^ResourceDisk.SwapSizeMB=.*/ResourceDisk.SwapSizeMB=2048/g' \
         /etc/waagent.conf
@@ -232,6 +233,18 @@ function verify_cloudinit_disabled() {
     return $ret
 }
 
+function verify_cloudinit_removed() {
+    rpm -q cloud-init 2>&1
+    if [[ $? -eq 0 ]];then
+        format_echo "Verify cloud-init is removed: FAIL"
+        ret=1
+    else
+        format_echo "Verify cloud-init is removed: PASS"
+        ret=0
+    fi
+    return $ret
+}
+
 function verify_waagent_enabled() {
     output=`systemctl is-enabled waagent`
     if [[ $? -ne 0 ]] || [[ $output =~ "disable" ]];then
@@ -351,8 +364,8 @@ function verify_wala() {
     verify_wala_resourcedisk_enableswap||((rflag=rflag+1))
     # Verify ResourceDisk.SwapSizeMB=2048
     verify_wala_resourcedisk_swapsize||((rflag=rflag+1))
-    # Verify cloud-init services are disabled
-    verify_cloudinit_disabled||((rflag=rflag+1))
+    # Verify cloud-init package is removed
+    verify_cloudinit_removed||((rflag=rflag+1))
     # Verify waagent is enabled
     verify_waagent_enabled||((rflag=rflag+1))
     # Verify no azure line in /etc/fstab
