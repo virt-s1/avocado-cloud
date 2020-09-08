@@ -391,7 +391,7 @@ echo 'teststring' >> /var/log/test.log\
             "(cloud-init configuration)")
         # Prepare custom data
         customdata_ori = """\
-# cloud-config
+#cloud-config
 cloud_config_modules:
  - mounts
  - locale
@@ -1235,12 +1235,7 @@ swap:
                         if len(salt) == 16:
                             break
         salt = crypt_type + salt
-        self.log.debug("=================1")
-        self.log.debug(salt)
-
         hashed = crypt.crypt(password, salt)
-        self.log.debug(hashed)
-        self.log.debug("=================1")
         return hashed
 
     def test_cloudinit_chpasswd_with_hashed_passwords(self):
@@ -1291,7 +1286,6 @@ chpasswd:
         self.session.cmd_output("rm -f /var/lib/cloud/instance/sem/config_set_passwords /var/log/cloud-init*.log")
         output = self.session.cmd_output("cloud-init single --name set_passwords")
         for line in output.split('\n'):
-            self.log.debug(line)
             if "test5" in line:
                 test5_pw = line.split(':')[1]
             elif "test6" in line:
@@ -1301,14 +1295,10 @@ chpasswd:
         test4_salt = self.session.cmd_output("getent shadow test4").split('$')[2]
         test5_salt = self.session.cmd_output("getent shadow test5").split('$')[2]
         test6_salt = self.session.cmd_output("getent shadow test6").split('$')[2]
-        test5_hashed = self._generate_password(test5_pw, "sha-512", test5_salt)
-        self.log.debug("-----------------------")
-        self.log.debug("test5_hashed:  "+test5_hashed)
-        self.log.debug("-----------------------")
         shadow_dict = {
-            "test1": "test1:{}:18502:0:99999:7:::".format(pw_config_dict['test1']),
-            "test2": "test2:{}:18502:0:99999:7:::".format(pw_config_dict['test2']),
-            "test3": "test3:{}:18502:0:99999:7:::".format(pw_config_dict['test3']),
+            "test1": pw_config_dict['test1'],
+            "test2": pw_config_dict['test2'],
+            "test3": pw_config_dict['test3'],
             "test4": "test4:{}:0:0:99999:7:::".format(self._generate_password(base_pw, "sha-512", test4_salt)),
             "test5": "test5:{}:0:0:99999:7:::".format(self._generate_password(test5_pw, "sha-512", test5_salt)),
             "test6": "test6:{}:0:0:99999:7:::".format(self._generate_password(test6_pw, "sha-512", test6_salt)),
@@ -1316,7 +1306,7 @@ chpasswd:
         for user in shadow_dict:
             real = self.session.cmd_output("getent shadow {}".format(user))
             expect = shadow_dict.get(user)
-            self.assertEqual(real, expect,
+            self.assertIn(expect, real,
                 "The {} password in /etc/shadow doesn't meet the expectation. Real:{} Expect:{}".format(user, real, expect))
         self._check_cloudinit_log()
                 
