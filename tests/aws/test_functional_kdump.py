@@ -129,8 +129,7 @@ no plan to fix it in the near future!")
 
     def test_kdump_unknown_nmi_panic_disabled(self):
         '''
-        :avocado: tags=test_kdump_unknown_nmi_panic_disabled,acceptance,
-                       fast_check
+        :avocado: tags=test_kdump_unknown_nmi_panic_disabled,acceptance
         polarion_id: 
         trigger kdump via nmi
         https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-\
@@ -172,8 +171,7 @@ no plan to fix it in the near future!")
 
     def test_kdump_unknown_nmi_panic_enabled(self):
         '''
-        :avocado: tags=test_kdump_unknown_nmi_panic_enabled,acceptance,
-                       fast_check
+        :avocado: tags=test_kdump_unknown_nmi_panic_enabled,acceptance
         polarion_id: 
         trigger kdump via nmi
         https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-\
@@ -224,7 +222,7 @@ if crashed successfully!")
     def test_kdump_unknown_nmi_panic_enabled_sysrq_trigger(self):
         '''
         :avocado: tags=test_kdump_unknown_nmi_panic_enabled_sysrq_trigger,
-                       acceptance,fast_check
+                       acceptance
         polarion_id:
         Test kdump works while triggerring panic inside guest via 
         sysrq-trigger when unknown_nmi_panic_enabled=1
@@ -306,8 +304,7 @@ if crashed successfully!")
 
     def test_kdump_fastboot_systemctl_kexec(self):
         '''
-        :avocado: tags=test_kdump_fastboot_systemctl_kexec,acceptance,
-                       fast_check
+        :avocado: tags=test_kdump_fastboot_systemctl_kexec,acceptance
         polarion_id:
         bz#: 1758323, 1841578
         "systemctl kexec": Shut down and reboot the system via kexec.
@@ -333,8 +330,7 @@ if crashed successfully!")
 
     def test_kdump_fastboot_kexec_e(self):
         '''
-        :avocado: tags=test_kdump_fastboot_kexec_e,acceptance,
-                       fast_check
+        :avocado: tags=test_kdump_fastboot_kexec_e,acceptance
         polarion_id:
         bz#: 1758323, 1841578
         "kexec -e": Run the currently loaded kernel. Note that it will reboot into the loaded kernel without calling shutdown(8).

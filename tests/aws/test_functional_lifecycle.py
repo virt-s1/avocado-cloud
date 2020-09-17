@@ -146,7 +146,7 @@ class LifeCycleTest(Test):
 
     def test_stop_vm(self):
         '''
-        :avocado: tags=test_stop_vm,fast_check,kernel_tier1
+        :avocado: tags=test_stop_vm,kernel_tier1
         polarion_id: RHEL7-103634
         '''
         if not self.vm.stop(wait=True, loops=1):
@@ -154,7 +154,7 @@ class LifeCycleTest(Test):
 
     def test_stop_vm_inside_guest(self):
         '''
-        :avocado: tags=test_stop_vm_inside_guest,fast_check
+        :avocado: tags=test_stop_vm_inside_guest
         polarion_id: RHEL7-103846
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)

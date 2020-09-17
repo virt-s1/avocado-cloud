@@ -107,15 +107,25 @@ class EC2VM(VM):
                     ImageId=self.ami_id,
                     InstanceType=self.instance_type,
                     KeyName=self.ssh_key_name,
-                    SecurityGroupIds=[
-                        self.security_group_ids,
-                    ],
-                    SubnetId=self.subnet_id,
+                    #SecurityGroupIds=[
+                    #    self.security_group_ids,
+                    #],
+                    #SubnetId=self.subnet_id,
                     MaxCount=1,
                     MinCount=1,
                     Placement={
                         'AvailabilityZone': self.zone,
                     },
+                    NetworkInterfaces=[
+                        {
+                            'AssociatePublicIpAddress': True,
+                            'DeviceIndex': 0,
+                            'SubnetId': self.subnet_id,
+                            'Groups': [
+                                 self.security_group_ids,
+                             ],
+                        },
+                    ],
                     UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
                     (self.ssh_user, self.instance_type))[0]
             else:
@@ -123,16 +133,26 @@ class EC2VM(VM):
                     ImageId=self.ami_id,
                     InstanceType=self.instance_type,
                     KeyName=self.ssh_key_name,
-                    SecurityGroupIds=[
-                        self.security_group_ids,
-                    ],
-                    SubnetId=self.subnet_id,
+                    #SecurityGroupIds=[
+                    #    self.security_group_ids,
+                    #],
+                    #SubnetId=self.subnet_id,
                     MaxCount=1,
                     MinCount=1,
                     Placement={
-                        'AvailabilityZone': self.zone,
+                            'AssociatePublicIpAddress': True,
+                            'DeviceIndex': 0,
+                            'SubnetId': self.subnet_id,
+                            'Groups': [
+                                 self.security_group_ids,
+                             ],
                     },
                     AdditionalInfo=self.additionalinfo,
+                    NetworkInterfaces=[
+                        {
+                            'AssociatePublicIpAddress': True
+                        },
+                    ],
                     UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
                     (self.ssh_user, self.instance_type))[0]
         except ClientError as err:
@@ -492,6 +512,7 @@ class EC2Volume(Base):
         self.disksize = 100
         self.zone = params.get('availability_zone', '*/Cloud/*')
         self.tagname = params.get('ec2_tagname')
+        self.outpostarn = params.get('outpostarn')
         self.disktype = 'standard'
         self.id = None
         self.iops = 3000
@@ -559,39 +580,76 @@ class EC2Volume(Base):
                 LOG.info("sc1 type disk size minimal 500G, so will create \
 500G disk!")
             self.iops = iops
-            if self.disktype == 'io1':
-                self.__volume = self.__snapshot = self._resource.create_volume(
-                    AvailabilityZone=self.zone,
-                    Size=self.disksize,
-                    VolumeType=self.disktype,
-                    Iops=self.iops,
-                    TagSpecifications=[
-                        {
-                            'ResourceType': 'volume',
-                            'Tags': [
-                                {
-                                    'Key': 'Name',
-                                    'Value': self.tagname
-                                },
-                            ]
-                        },
-                    ])
+            if self.outpostarn is None:
+                if self.disktype == 'io1':
+                    self.__volume = self.__snapshot = self._resource.create_volume(
+                        AvailabilityZone=self.zone,
+                        Size=self.disksize,
+                        VolumeType=self.disktype,
+                        Iops=self.iops,
+                        TagSpecifications=[
+                            {
+                                'ResourceType': 'volume',
+                                'Tags': [
+                                    {
+                                        'Key': 'Name',
+                                        'Value': self.tagname
+                                    },
+                                ]
+                            },
+                        ])
+                else:
+                    self.__volume = self.__snapshot = self._resource.create_volume(
+                        AvailabilityZone=self.zone,
+                        Size=self.disksize,
+                        VolumeType=self.disktype,
+                        TagSpecifications=[
+                            {
+                                'ResourceType': 'volume',
+                                'Tags': [
+                                    {
+                                        'Key': 'Name',
+                                        'Value': self.tagname
+                                    },
+                                ]
+                            },
+                        ])
             else:
-                self.__volume = self.__snapshot = self._resource.create_volume(
-                    AvailabilityZone=self.zone,
-                    Size=self.disksize,
-                    VolumeType=self.disktype,
-                    TagSpecifications=[
-                        {
-                            'ResourceType': 'volume',
-                            'Tags': [
-                                {
-                                    'Key': 'Name',
-                                    'Value': self.tagname
-                                },
-                            ]
-                        },
-                    ])
+                if self.disktype == 'io1':
+                    self.__volume = self.__snapshot = self._resource.create_volume(
+                        AvailabilityZone=self.zone,
+                        Size=self.disksize,
+                        VolumeType=self.disktype,
+                        Iops=self.iops,
+                        OutpostArn=self.outpostarn,
+                        TagSpecifications=[
+                            {
+                                'ResourceType': 'volume',
+                                'Tags': [
+                                    {
+                                        'Key': 'Name',
+                                        'Value': self.tagname
+                                    },
+                                ]
+                            },
+                        ])
+                else:
+                    self.__volume = self.__snapshot = self._resource.create_volume(
+                        AvailabilityZone=self.zone,
+                        Size=self.disksize,
+                        VolumeType=self.disktype,
+                        OutpostArn=self.outpostarn,
+                        TagSpecifications=[
+                            {
+                                'ResourceType': 'volume',
+                                'Tags': [
+                                    {
+                                        'Key': 'Name',
+                                        'Value': self.tagname
+                                    },
+                                ]
+                            },
+                        ])
             self.id = self.__volume.id
             LOG.info("Volume created %s" % self.id)
             return True
