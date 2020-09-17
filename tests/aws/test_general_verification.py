@@ -407,6 +407,7 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
         '''
         :avocado: tags=test_check_nouveau,fast_check
         polarion_id: N/A
+        BZ#: 1349927
         '''
         self.log.info("nouveau is not required in ec2, make sure it is \
 in blacklist and not loaded bug1645772")
@@ -515,7 +516,7 @@ in RHEL7|6, bug1625874")
 
     def test_check_firstlaunch_compare(self):
         '''
-        :avocado: tags=test_check_firstlaunch_compare,fast_check
+        :avocado: tags=test_check_firstlaunch_compare
         polarion_id:
         bz#: 1862930
         compare the first launch boot time with Amazon Linux 2 and Ubuntu.
@@ -574,7 +575,7 @@ in RHEL7|6, bug1625874")
 
     def test_check_reboot_time(self):
         '''
-        :avocado: tags=test_check_reboot_time,fast_check
+        :avocado: tags=test_check_reboot_time
         polarion_id: RHEL7-93100
         check the boot time after reboot.
         '''
@@ -682,6 +683,7 @@ current_clocksource'
         :avocado: tags=test_check_tsc_deadline_timer,fast_check
         polarion_id: RHEL7-111006
         des: check TSC deadline timer enabled in dmesg
+        BZ#: 1503160
         '''
         utils_lib.run_cmd(self,
                     'lscpu',

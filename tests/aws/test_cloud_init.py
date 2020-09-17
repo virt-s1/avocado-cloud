@@ -43,7 +43,7 @@ class CloudInit(Test):
 
     def test_check_config_ipv6(self):
         '''
-        :avocado: tags=test_check_config_ipv6
+        :avocado: tags=test_check_config_ipv6,fast_check
         polarion_id: RHEL-131239
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
@@ -57,7 +57,7 @@ class CloudInit(Test):
 
     def test_check_output_isexist(self):
         '''
-        :avocado: tags=test_check_output_isexist
+        :avocado: tags=test_check_output_isexist,fast_check
         polarion_id:
         bz#: 1626117
         check whether /var/log/cloud-init-output.log exists
@@ -75,7 +75,7 @@ class CloudInit(Test):
 
     def test_check_metadata(self):
         '''
-        :avocado: tags=test_check_metadata,fast_check,kernel_tier1
+        :avocado: tags=test_check_metadata,fast_check,kernel_tier1,fast_check
         polarion_id:
         https://cloudinit.readthedocs.io/en/latest/topics/datasources/ec2.html
         '''

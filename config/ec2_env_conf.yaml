@@ -14,6 +14,8 @@ ssh_key_name : xxxx
 # specify tag name to identify resource created in test run
 ec2_tagname : virtqe
 ipv4_range : 10.119.0.16/16
+# specify outpostsarn if test on outposts system
+#outpostarn : arn:aws:outposts:xxxxxx
 # dmesg_compare_url is using for compare dmesg output purpose.
 # It is optional and it will help you to find whether there is
 # new fail/warning/error/call trace in test_check_dmesg.

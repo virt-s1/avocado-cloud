@@ -109,26 +109,34 @@ later! expected: %s lsblk: %s assigned: %s" %
                 'test_cleanup' in self.name.name or \
                 int(self.params.get('disks', '*/instance_types/*')) == 1:
             self.log.info('Prepare disks for multi disk test.')
-            self.disk1 = EC2Volume(self.params)
-            res_id = aws.get_exists_resource_id(self.teststmpdir, 'standard')
-            if not self.disk1.reuse_init(res_id):
-                self.disk1.create(disksize=10, disktype='standard')
-                aws.save_exists_resource_id(self.teststmpdir, self.disk1)
-            self.disk2 = EC2Volume(self.params)
-            res_id = aws.get_exists_resource_id(self.teststmpdir, 'gp2')
-            if not self.disk2.reuse_init(res_id):
-                self.disk2.create(disksize=10, disktype='gp2')
-                aws.save_exists_resource_id(self.teststmpdir, self.disk2)
-            self.disk3 = EC2Volume(self.params)
-            res_id = aws.get_exists_resource_id(self.teststmpdir, 'io1')
-            if not self.disk3.reuse_init(res_id):
-                self.disk3.create(disksize=100, disktype='io1')
-                aws.save_exists_resource_id(self.teststmpdir, self.disk3)
-            self.disk4 = EC2Volume(self.params)
-            res_id = aws.get_exists_resource_id(self.teststmpdir, 'sc1')
-            if not self.disk4.reuse_init(res_id):
-                self.disk4.create(disksize=500, disktype='sc1')
-                aws.save_exists_resource_id(self.teststmpdir, self.disk4)
+            if self.params.get('outpostarn') is not None:
+                self.log.info("outpostarn specified, only gp2 disk supported for now.")
+                self.disk1 = EC2Volume(self.params)
+                res_id = aws.get_exists_resource_id(self.teststmpdir, 'gp2')
+                if not self.disk1.reuse_init(res_id):
+                    self.disk1.create(disksize=10, disktype='gp2')
+                    aws.save_exists_resource_id(self.teststmpdir, self.disk1)
+            else:
+                self.disk1 = EC2Volume(self.params)
+                res_id = aws.get_exists_resource_id(self.teststmpdir, 'standard')
+                if not self.disk1.reuse_init(res_id):
+                    self.disk1.create(disksize=10, disktype='standard')
+                    aws.save_exists_resource_id(self.teststmpdir, self.disk1)
+                self.disk2 = EC2Volume(self.params)
+                res_id = aws.get_exists_resource_id(self.teststmpdir, 'gp2')
+                if not self.disk2.reuse_init(res_id):
+                    self.disk2.create(disksize=10, disktype='gp2')
+                    aws.save_exists_resource_id(self.teststmpdir, self.disk2)
+                self.disk3 = EC2Volume(self.params)
+                res_id = aws.get_exists_resource_id(self.teststmpdir, 'io1')
+                if not self.disk3.reuse_init(res_id):
+                    self.disk3.create(disksize=100, disktype='io1')
+                    aws.save_exists_resource_id(self.teststmpdir, self.disk3)
+                self.disk4 = EC2Volume(self.params)
+                res_id = aws.get_exists_resource_id(self.teststmpdir, 'sc1')
+                if not self.disk4.reuse_init(res_id):
+                    self.disk4.create(disksize=500, disktype='sc1')
+                    aws.save_exists_resource_id(self.teststmpdir, self.disk4)
 
     def test_ssd_trim(self):
         '''
@@ -257,12 +265,17 @@ later! expected: %s lsblk: %s assigned: %s" %
         check system can boot up with multiple disks assigned.
         polarion_id: RHEL7-103954
         '''
-        disk_dict = {
-            self.disk1: 'sde',
-            self.disk2: 'sdf',
-            self.disk3: 'sdg',
-            self.disk4: 'sdh'
-        }
+        if self.params.get('outpostarn') is not None:
+            disk_dict = {
+                self.disk1: 'sds',
+            }
+        else:
+            disk_dict = {
+                self.disk1: 'sds',
+                self.disk2: 'sdt',
+                self.disk3: 'sdu',
+                self.disk4: 'sdv'
+            }
         # Make sure instance is in stopped state before attaching disk
         count1 = self._get_disk_online()
         for i in range(10):
@@ -290,23 +303,32 @@ later! expected: %s lsblk: %s assigned: %s" %
             if not i.detach_from_instance():
                 aws.get_debug_log(self)
                 self.fail("Dettached failed!")
-        if count2 - count1 != 4:
-            self.fail("count2(%s) - count1(%s) not equal new addded 4!" %
-                      (count2, count1))
+        if self.params.get('outpostarn') is not None:
+            expected_count = 1
+        else:
+            expected_count = 4
+        if count2 - count1 != expected_count:
+            self.fail("count2(%s) - count1(%s) not equal new addded %s!" %
+                      (count2, count1, expected_count))
 
     def test_multi_disk_hotplug(self):
         '''
-        :avocado: tags=test_multi_disk_hotplug,acceptance
+        :avocado: tags=test_multi_disk_hotplug,acceptance,fast_check
         check disk hotplug when instance running
         will add disk read&write test later
         polarion_id: RHEL7-93570
         '''
-        disk_dict = {
-            self.disk1: 'sds',
-            self.disk2: 'sdt',
-            self.disk3: 'sdu',
-            self.disk4: 'sdv'
-        }
+        if self.params.get('outpostarn') is not None:
+            disk_dict = {
+                self.disk1: 'sds',
+            }
+        else:
+            disk_dict = {
+                self.disk1: 'sds',
+                self.disk2: 'sdt',
+                self.disk3: 'sdu',
+                self.disk4: 'sdv'
+            }
         if self.vm.is_stopped():
             self.vm.start()
         self.session.connect(timeout=self.ssh_wait_timeout)
@@ -323,9 +345,13 @@ later! expected: %s lsblk: %s assigned: %s" %
         utils_lib.run_cmd(self, 'dmesg|tail -20', msg='save dmesg after attached!')
         time.sleep(30)
         count2 = self._get_disk_online()
-        if count2 - count1 != 4:
-            self.fail("count2(%s) - count1(%s) not equal new addded 4!" %
-                      (count2, count1))
+        if self.params.get('outpostarn') is not None:
+            expected_count = 1
+        else:
+            expected_count = 4
+        if count2 - count1 != expected_count:
+            self.fail("count2(%s) - count1(%s) not equal new addded %s!" %
+                      (count2, count1, expected_count))
         for i in disk_dict.keys():
             if not i.detach_from_instance():
                 aws.get_debug_log(self)
@@ -485,12 +511,17 @@ grep -i pci|grep n1' % boot_pci
         aws.check_session(self)
         if int(self.params.get('disks', '*/instance_types/*')) == 1:
             self.log.info("Only 1 disk available, attached more for blktest.")
-            disk_dict = {
-                self.disk1: 'sds',
-                self.disk2: 'sdt',
-                self.disk3: 'sdu',
-                self.disk4: 'sdv'
-            }
+            if self.params.get('outpostarn') is not None:
+                disk_dict = {
+                    self.disk1: 'sds',
+                }
+            else:
+                disk_dict = {
+                    self.disk1: 'sds',
+                    self.disk2: 'sdt',
+                    self.disk3: 'sdu',
+                    self.disk4: 'sdv'
+                }
             self.session.connect(timeout=self.ssh_wait_timeout)
             self.session = self.session
             for i in disk_dict.keys():
@@ -526,12 +557,17 @@ grep -i pci|grep n1' % boot_pci
         aws.check_session(self)
         if int(self.params.get('disks', '*/instance_types/*')) == 1:
             self.log.info("Only 1 disk available, attached more for blktest.")
-            disk_dict = {
-                self.disk1: 'sdx',
-                self.disk2: 'sdy',
-                self.disk3: 'sdz',
-                self.disk4: 'sdr'
-            }
+            if self.params.get('outpostarn') is not None:
+                disk_dict = {
+                    self.disk1: 'sds',
+                }
+            else:
+                disk_dict = {
+                    self.disk1: 'sds',
+                    self.disk2: 'sdt',
+                    self.disk3: 'sdu',
+                    self.disk4: 'sdv'
+                }
             self.session.connect(timeout=self.ssh_wait_timeout)
             self.session = self.session
             for i in disk_dict.keys():
