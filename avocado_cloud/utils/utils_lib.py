@@ -341,3 +341,13 @@ def is_metal(test_instance,
         return True
     test_instance.log.info("Not a metal instance.")
     return False
+
+def run_os_tests(test_instance, case_name=None):
+    '''
+    Run os_tests test case
+    '''
+    cmd = "sudo python3 -m unittest -v {}".format(case_name)
+    run_cmd(test_instance, cmd)
+    cmd_get_log = "sudo cat /tmp/os_tests_result/{}.debug".format(case_name)
+    run_cmd(test_instance, cmd_get_log, msg='Get test debug log')
+    run_cmd(test_instance, cmd, expect_ret=0)
