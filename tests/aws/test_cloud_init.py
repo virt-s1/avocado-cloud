@@ -63,15 +63,8 @@ class CloudInit(Test):
         check whether /var/log/cloud-init-output.log exists
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.run_cmd(self,
-                    'uname -r',
-                    cancel_not_kw='el7,el6',
-                    msg='cancel it in RHEL7')
-        cmd = 'sudo cat /var/log/cloud-init-output.log'
-        utils_lib.run_cmd(self,
-                    cmd,
-                    expect_kw='Datasource DataSourceEc2Local',
-                    msg='check /var/log/cloud-init-output.log exists status')
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_output_isexist"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_metadata(self):
         '''
@@ -80,11 +73,8 @@ class CloudInit(Test):
         https://cloudinit.readthedocs.io/en/latest/topics/datasources/ec2.html
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        self.log.info("In fact timeout is %s" % self.ssh_wait_timeout)
-        cmd = r"curl http://169.254.169.254/latest/dynamic/instance-identity/\
-document"
-
-        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw=self.vm.res_id)
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_metadata"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cloudinit_log_traceback(self):
         '''
@@ -114,18 +104,8 @@ document"
         check no unexpected error log in cloudinit logs
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.run_cmd(self,
-                    'sudo cat /var/log/cloud-init.log',
-                    expect_ret=0,
-                    expect_not_kw='unexpected',
-                    msg='check /var/log/cloud-init.log')
-        if 'release 7' not in utils_lib.run_cmd(self,
-                                          'sudo cat /etc/redhat-release'):
-            utils_lib.run_cmd(self,
-                        'sudo cat /var/log/cloud-init-output.log',
-                        expect_ret=0,
-                        expect_not_kw='unexpected',
-                        msg='check /var/log/cloud-init-output.log')
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_log_unexpected"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cloudinit_log_critical(self):
         '''
@@ -135,18 +115,8 @@ document"
         check no critical log in cloudinit logs
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.run_cmd(self,
-                    'sudo cat /var/log/cloud-init.log',
-                    expect_ret=0,
-                    expect_not_kw='CRITICAL',
-                    msg='check /var/log/cloud-init.log')
-        if 'release 7' not in utils_lib.run_cmd(self,
-                                          'sudo cat /etc/redhat-release'):
-            utils_lib.run_cmd(self,
-                        'sudo cat /var/log/cloud-init-output.log',
-                        expect_ret=0,
-                        expect_not_kw='CRITICAL',
-                        msg='check /var/log/cloud-init-output.log')
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_log_critical"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cloudinit_log_warn(self):
         '''
@@ -156,18 +126,8 @@ document"
         check no warning log in cloudinit logs
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.run_cmd(self,
-                    'sudo cat /var/log/cloud-init.log',
-                    expect_ret=0,
-                    expect_not_kw='WARNING',
-                    msg='check /var/log/cloud-init.log')
-        if 'release 7' not in utils_lib.run_cmd(self,
-                                          'sudo cat /etc/redhat-release'):
-            utils_lib.run_cmd(self,
-                        'sudo cat /var/log/cloud-init-output.log',
-                        expect_ret=0,
-                        expect_not_kw='WARNING',
-                        msg='check /var/log/cloud-init-output.log')
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_log_warn"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cloudinit_log_error(self):
         '''
@@ -177,18 +137,8 @@ document"
         check no error log in cloudinit logs
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.run_cmd(self,
-                    'sudo cat /var/log/cloud-init.log',
-                    expect_ret=0,
-                    expect_not_kw='ERROR',
-                    msg='check /var/log/cloud-init.log')
-        if 'release 7' not in utils_lib.run_cmd(self,
-                                          'sudo cat /etc/redhat-release'):
-            utils_lib.run_cmd(self,
-                        'sudo cat /var/log/cloud-init-output.log',
-                        expect_ret=0,
-                        expect_not_kw='ERROR',
-                        msg='check /var/log/cloud-init-output.log')
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_log_error"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cloudinit_service_status(self):
         '''
@@ -198,13 +148,8 @@ document"
         The 4 cloud-init services status should be "active"
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        service_list = ['cloud-init-local',
-                        'cloud-init',
-                        'cloud-config',
-                        'cloud-final']
-        for service in service_list:
-            cmd = "sudo systemctl is-active %s" % service
-            utils_lib.run_cmd(self, cmd, expect_kw='active', msg = "check %s status" % service)
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_service_status"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cloudinit_log_imdsv2(self):
         '''
@@ -214,17 +159,8 @@ document"
         check cloud-init use imdsv2 in aws
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = "sudo rpm -ql cloud-init|grep -w DataSourceEc2.py"
-        output = utils_lib.run_cmd(self, cmd, expect_ret=0, msg='Get DataSourceEc2.py')
-        cmd = "sudo cat " + output + "|grep IMDSv2"
-        utils_lib.run_cmd(self, cmd,
-                    cancel_kw="Fetching Ec2 IMDSv2 API Token",
-                    msg='Check IMDSv2 support')
-        utils_lib.run_cmd(self,
-                    'sudo cat /var/log/cloud-init.log',
-                    expect_ret=0,
-                    expect_kw='Fetching Ec2 IMDSv2 API Token,X-aws-ec2-metadata-token',
-                    msg='check /var/log/cloud-init.log')
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_log_imdsv2"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cloudinit_ds_identify_found(self):
         '''
@@ -234,12 +170,8 @@ document"
         check ds-identify run and ret found
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = 'sudo cat /run/cloud-init/cloud-init-generator.log'
-        utils_lib.run_cmd(self,
-                    cmd,
-                    expect_ret=0,
-                    expect_kw='ds-identify _RET=found',
-                    msg='check /run/cloud-init/cloud-init-generator.log')
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_ds_identify_found"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_lineoverwrite(self):
         '''

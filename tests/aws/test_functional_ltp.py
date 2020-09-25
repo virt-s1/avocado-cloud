@@ -47,22 +47,14 @@ class LTPRun(Test):
         # in bare metal instance
         # but in large metal instances, it is expected. So do not do it in
         # bare metal instances
-        utils_lib.run_cmd(self,
-                    'lscpu',
-                    expect_ret=0,
-                    cancel_not_kw="Xen",
-                    msg="Not run in xen instance as bug \
-            1641510 which is very low priority")
-        if 'metal' in self.vm.instance_type:
-            self.cancel('Cancel test as bare metal needs 1+ cpus working \
-at least which ltp not handle')
-        else:
-            utils_lib.ltp_run(self, case_name="cpuhotplug")
+        case_name = "os_tests.tests.test_ltp.TestLTP.test_ltp_cpuhotplug"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_ltp_add_key02(self):
         '''
         :avocado: tags=test_ltp_add_key02
         polarion_id: RHEL7-98753
+        BZ#: 1464851
         '''
         utils_lib.ltp_run(self, case_name="add_key02")
 
@@ -78,14 +70,8 @@ at least which ltp not handle')
         :avocado: tags=test_ltp_ipsec_icmp
         polarion_id: RHEL7-98754
         '''
-        utils_lib.ltp_run(self, case_name="icmp4-uni-vti11",
-                      file_name='net_stress.ipsec_icmp')
-        self.log.info("Try to remove ccm module after test.")
-        try:
-            utils_lib.run_cmd(self, 'sudo modprobe -r ccm', expect_ret=0)
-        except Exception as err:
-            aws.handle_exception(self.vm, err)
-            self.fail("Got exceptions during test!")
+        case_name = "os_tests.tests.test_ltp.TestLTP.test_ltp_ipsec_icmp"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def tearDown(self):
         if self.session.session.is_responsive(
