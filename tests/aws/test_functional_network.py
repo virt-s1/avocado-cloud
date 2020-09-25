@@ -125,45 +125,8 @@ class NetworkTest(Test):
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         aws.check_session(self)
-        cmd = "sudo ethtool -i eth0"
-        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
-        if 'ena' in output:
-            self.log.info('ena found!')
-            mtu_range = [0, 127, 128, 4500, 9216, 9217]
-            mtu_min = 128
-            mtu_max = 9216
-        elif 'ixgbe' in output:
-            self.log.info('ixgbevf found!')
-            mtu_range = [0, 67, 68, 4500, 9710, 9711]
-            mtu_min = 68
-            mtu_max = 9710
-        elif 'vif' in output:
-            self.log.info('vif found!')
-            mtu_range = [0, 67, 68, 4500, 65535, 65536]
-            mtu_min = 68
-            mtu_max = 65535
-        else:
-            self.fail('Did not detect network type! %s' % output)
-
-        self.log.info("Trying to change mtu to %s" % mtu_range)
-        for mtu_size in mtu_range:
-            mtu_cmd = "sudo ip link set dev eth0 mtu %s" % mtu_size
-            mtu_check = "sudo ip link show dev eth0"
-            self.log.info("CMD: %s" % mtu_cmd)
-            status, output = self.session1.cmd_status_output(mtu_cmd)
-            if mtu_size <= mtu_max and mtu_size >= mtu_min:
-                self.assertEqual(status,
-                                 0,
-                                 msg='Change mtu size failed! %s' % output)
-            elif mtu_size < mtu_min or mtu_size > mtu_max:
-                self.assertGreater(
-                    status,
-                    0,
-                    msg='Change mtu size successfully which should not! %s' %
-                    output)
-
-            status, output = self.session1.cmd_status_output(mtu_check)
-            self.log.info("After set mtu size %s \n %s " % (mtu_size, output))
+        case_name = "os_tests.tests.test_network_test.TestNetworkTest.test_mtu_min_max_set"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_iperf_ipv4(self):
         '''
@@ -394,58 +357,8 @@ bandwidth higher than 40G')
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         aws.check_session(self)
-        utils_lib.run_cmd(self,
-                    'ethtool -i eth0|grep driver',
-                    msg='Check network is ENA',
-                    cancel_kw='ena')
-        utils_lib.run_cmd(self,
-                    'ethtool -i eth0',
-                    msg='Check ENA driver version',
-                    cancel_not_kw='version: 2.0')
-        self.log.info("Test change rx/tx ring setting.")
-        cmd = "ethtool -g eth0"
-        utils_lib.run_cmd(self, cmd, msg='Display setting before changing it.')
-        cmd = "ethtool -g eth0|grep RX|head -1"
-        output = utils_lib.run_cmd(self, cmd, msg='Get max rx set')
-        rx_max = output.split('\t')[-1]
-        lower_list = [1, 0, 25, 255]
-        for i in lower_list:
-            cmd = "sudo ethtool -G eth0 rx %s tx %s" % (i, i)
-            utils_lib.run_cmd(self, cmd, msg='Change rx,tx setting to lower %s' % i)
-            utils_lib.run_cmd(self,
-                        "ethtool -g eth0",
-                        msg='After changed %s' % i,
-                        expect_kw='RX:\t\t256,TX:\t\t256')
-
-        cmd = "sudo ethtool -G eth0 rx -1 tx -1"
-        utils_lib.run_cmd(self, cmd, msg='Change rx,tx setting to lower -1')
-        utils_lib.run_cmd(self,
-                    "ethtool -g eth0",
-                    msg='After changed -1',
-                    expect_kw='RX:\t\t256,TX:\t\t256')
-        cmd = "sudo ethtool -G eth0 rx 512 tx 512"
-        utils_lib.run_cmd(self, cmd, msg='Change rx,tx setting to 512')
-        utils_lib.run_cmd(self,
-                    "ethtool -g eth0",
-                    msg='After changed 512',
-                    expect_kw='RX:\t\t512,TX:\t\t512')
-
-        cmd = "sudo ethtool -G eth0 rx %s tx 1024" % rx_max
-        utils_lib.run_cmd(self,
-                    cmd,
-                    msg='Change rx setting to %s, tx to 1024' % rx_max)
-        utils_lib.run_cmd(self,
-                    "ethtool -g eth0",
-                    msg='After changed rx setting to %s, tx to 1024' % rx_max,
-                    expect_kw='RX:\t\t%s,TX:\t\t1024' % rx_max)
-
-        cmd = "sudo ethtool -G eth0 rx 10240 tx 1025"
-        utils_lib.run_cmd(self, cmd, msg='Change rx setting to 10240,tx to 1025')
-        utils_lib.run_cmd(self,
-                    "ethtool -g eth0",
-                    msg='After changed rx setting to %s,tx to 1025' % rx_max,
-                    expect_kw='RX:\t\t%s,TX:\t\t1024' % rx_max)
-        utils_lib.run_cmd(self, 'dmesg|tail -20')
+        case_name = "os_tests.tests.test_network_test.TestNetworkTest.test_ethtool_G"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_ethtool_K_offload(self):
         '''
@@ -579,21 +492,8 @@ bandwidth higher than 40G')
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         aws.check_session(self)
-        cmd = "ethtool -P eth0"
-        output = utils_lib.run_cmd(self,
-                             cmd,
-                             expect_not_kw='00:00:00:00:00:00',
-                             msg='ethtool can read mac successfully')
-        mac = ''.join(
-            re.findall(
-                '[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:\
-[0-9a-z]{2}:[0-9a-z]{2}', output))
-        self.log.info("Get mac: %s" % mac)
-        cmd = "ip addr show eth0"
-        output = utils_lib.run_cmd(self,
-                             cmd,
-                             expect_kw=mac,
-                             msg='compare with ip showed mac')
+        case_name = "os_tests.tests.test_network_test.TestNetworkTest.test_ethtool_P"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_network_hotplug(self):
         '''

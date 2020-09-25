@@ -158,7 +158,7 @@ if __name__ == "__main__":
         :avocado: tags=test_check_dmesg_error,fast_check
         polarion_id: RHEL7-103851
         '''
-        case_name = "os_tests.test_general_check.TestGeneralCheck.test_check_dmesg_error"
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_dmesg_error"
         utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_dmesg_fail(self):
@@ -210,12 +210,8 @@ if __name__ == "__main__":
         polarion_id:
         bz#: 1801999, 1736818
         '''
-        # redirect journalctl output to a file as it is not get return
-        # normally in RHEL7
-        cmd = 'journalctl > /tmp/journalctl.log'
-        utils_lib.run_cmd(self, cmd, expect_ret=0)
-        cmd = 'cat /tmp/journalctl.log'
-        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='Traceback,Backtrace')
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_journal_calltrace"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_journalctl_dumpedcore(self):
         '''
@@ -223,12 +219,8 @@ if __name__ == "__main__":
         polarion_id:
         bz#: 1797973
         '''
-        # redirect journalctl output to a file as it is not get return
-        # normally in RHEL7
-        cmd = 'journalctl > /tmp/journalctl.log'
-        utils_lib.run_cmd(self, cmd, expect_ret=0)
-        cmd = 'cat /tmp/journalctl.log'
-        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='dumped core')
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_journalctl_dumpedcore"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_journalctl_invalid(self):
         '''
