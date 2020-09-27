@@ -61,6 +61,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_microcode_load
     test_general_verification.py:GeneralVerification.test_check_cpu_count
     test_general_verification.py:GeneralVerification.test_check_lshw_mem
+    test_general_verification.py:GeneralVerification.test_check_lspci_nvme
     test_general_verification.py:GeneralVerification.test_check_mem_size
     test_general_verification.py:GeneralVerification.test_check_memleaks
     test_general_verification.py:GeneralVerification.test_collect_insights_result
