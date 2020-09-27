@@ -676,6 +676,16 @@ in RHEL7|6, bug1625874")
                     expect_output=str(expect_cpus),
                     msg='online cpu check')
 
+    def test_check_lshw_mem(self):
+        '''
+        :avocado: tags=test_check_lshw_mem
+        polarion_id:
+        BZ#: 1882157
+        '''
+
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_lshw_mem"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_check_mem_size(self):
         '''
         :avocado: tags=test_check_mem_size,fast_check
