@@ -56,14 +56,16 @@ class LTPRun(Test):
         polarion_id: RHEL7-98753
         BZ#: 1464851
         '''
-        utils_lib.ltp_run(self, case_name="add_key02")
+        case_name = "os_tests.tests.test_ltp.TestLTP.test_ltp_add_key02"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_ltp_quickhit(self):
         '''
         :avocado: tags=test_ltp_quickhit
         polarion_id:
         '''
-        utils_lib.ltp_run(self,file_name="quickhit")
+        case_name = "os_tests.tests.test_ltp.TestLTP.test_ltp_quickhit"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_ltp_ipsec_icmp(self):
         '''
