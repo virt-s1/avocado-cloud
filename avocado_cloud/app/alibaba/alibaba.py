@@ -103,6 +103,7 @@ class AlibabaSDK(object):
         self.vm_params["Password"] = params.get('password', '*/VM/*')
         self.vm_params["KeyPairName"] = params.get('keypair', '*/VM/*')
         self.vm_params["ZoneId"] = params.get('az', '*/VM/*')
+        self.vm_params["ImageName"] = params.get('name', '*/Image/*')
         self.vm_params["ImageId"] = params.get('id', '*/Image/*')
         self.vm_params["SecurityGroupId"] = params.get('id',
                                                        '*/SecurityGroup/*')

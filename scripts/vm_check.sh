@@ -40,6 +40,7 @@
 # v2.23    2020-06-01  charles.shih  Update commands for cloud-init
 # v2.23.1  2020-07-30  charles.shih  Bugfix on cloud-init command
 # v2.24    2020-07-30  charles.shih  Add commands for memory
+# v2.25    2020-08-19  charles.shih  Add commands for other Linux distros
 
 # Notes:
 # On AWS the default user is ec2-user and it is an sudoer without needing a password;
@@ -133,6 +134,8 @@ run_cmd 'uname -a'
 run_cmd 'lsb_release -a'
 run_cmd 'cat /etc/redhat-release'
 run_cmd 'cat /etc/issue'
+run_cmd 'cat /etc/lsb-release'
+run_cmd 'cat /etc/os-release'
 
 ## bios and hardware
 run_cmd 'dmidecode'
@@ -349,4 +352,3 @@ echo -e "\nLog files have been generated in \"$base\";"
 echo -e "More details can be found in \"$joblog\"."
 
 exit 0
-

@@ -229,7 +229,7 @@ echo test_content > /mnt/{0}/test_file"
 
     def test_offline_attach_detach_cloud_disks(self):
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120
@@ -302,7 +302,7 @@ echo test_content > /mnt/{0}/test_file"
 
     def test_offline_attach_detach_scsi_cloud_disks(self):
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120

@@ -1,6 +1,7 @@
 from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
+from avocado_cloud.utils import utils_alibaba
 from avocado.utils import process
 import re
 import os
@@ -12,7 +13,7 @@ class GeneralTest(Test):
         self.cloud = Setup(self.params, self.name)
         self.vm = self.cloud.vm
         self.session = self.cloud.init_vm(pre_delete=False, pre_stop=False)
-        self.rhel_ver = self.params.get('rhel_ver', '*/VM/*', '')
+        self.rhel_ver = str(self.params.get('rhel_ver', '*/VM/*', ''))
         self.pwd = os.path.abspath(os.path.dirname(__file__))
         self.dest_dir = "/tmp/"
 
@@ -264,7 +265,7 @@ class GeneralTest(Test):
             "", output,
             "Found extra files not controlled by rpm:\n%s" % output)
 
-    def test_check_file_content_integrity(self):
+    def test_check_file_content_integrity_by_rpm(self):
         self.log.info("Check file content integrity by rpm -Va")
         if self.rhel_ver.split('.')[0] == '8':
             data_file = "rpm_va.el8.lst"
@@ -290,33 +291,44 @@ will not check kernel-devel package.')
                                          timeout=240)
         self.assertEqual("", output,
                          "Found extra files has been modified:\n%s" % output)
-        # Continue to compare every single file under local
-        # "data/vendor/file_cmp"
+
+    def test_check_file_content_integrity_by_diff(self):
+        # Compare every single file under local "data/vendor/file_cmp"
         root_path = os.path.dirname(os.path.dirname(self.pwd))
-        src_dir = os.path.join(os.path.join(root_path, "data"),
+        src_dir = os.path.join(os.path.join(root_path, 'data'),
                                self.cloud.cloud_provider)
-        if os.path.isdir(os.path.join(src_dir, "file_cmp")):
-            for f in os.listdir(os.path.join(src_dir, "file_cmp")):
-                m = re.match(r"^(%.*%)(.*)\.el(\d)$", f)
-                if m:
-                    f_name = m.group(2)
-                    f_ver = m.group(3)
-                    f_name_l = m.group(1).replace('%', '/') + f_name
-                    if self.rhel_ver.split('.')[0] != f_ver:
-                        continue
-                else:
-                    m = re.match(r"^(%.*%)(.*)$", f)
-                    f_name = m.group(2)
-                    f_name_l = f.replace('%', '/')
-                self.session.copy_files_to(
-                    os.path.join(os.path.join(src_dir, "file_cmp"), f),
-                    "/tmp/" + f_name)
-                cmd = "grep -xv '^[[:space:]][[:space:]]*$' %s | diff \
--wB - %s" % (f_name_l, "/tmp/" + f_name)
-                output = self.session.cmd_output(cmd)
-                self.assertEqual(
-                    "", output,
-                    "Found %s has been modified:\n%s" % (f_name, output))
+
+        # Determine the best file_cmp matches
+        # Example: 'file_cmp.el8.3' is better than 'file_cmp.el8'
+        if os.path.isdir(os.path.join(src_dir, 'file_cmp.el' + self.rhel_ver)):
+            file_cmp = os.path.join(src_dir, 'file_cmp.el' + self.rhel_ver)
+        elif os.path.isdir(
+                os.path.join(src_dir,
+                             'file_cmp.el' + self.rhel_ver.split('.')[0])):
+            file_cmp = os.path.join(
+                src_dir, 'file_cmp.el' + self.rhel_ver.split('.')[0])
+        else:
+            self.error('Can not found file_cmp matches.')
+        self.log.info('Selected file_cmp as {0}'.format(file_cmp))
+
+        # Deliver files and check
+        for f in os.listdir(file_cmp):
+            m = re.match(r"^(%.*%)(.*)$", f)
+            if m:
+                f_name = m.group(2)
+                f_name_l = f.replace('%', '/')
+            else:
+                self.error('Failed to parse file {0}.'.format(f))
+
+            self.session.copy_files_to(os.path.join(file_cmp, f),
+                                       '/tmp/' + f_name)
+
+            cmd = "grep -xv '^[[:space:]][[:space:]]*$' %s | diff \
+-wB - %s" % (f_name_l, '/tmp/' + f_name)
+            output = self.session.cmd_output(cmd)
+            self.assertEqual(
+                '', output,
+                'Found %s has been modified:\n%s' % (f_name, output))
 
     # RHBZ#1144155
     def test_check_boot_cmdline_parameters(self):
@@ -425,7 +437,7 @@ will not check kernel-devel package.')
 
     def test_check_virt_what(self):
         self.log.info("Check the virt-what")
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             self.cancel("Alibaba baremetal, skip this case.")
         virt_type = self.params.get('virt', '*/{0}/*'.format(self.vm.flavor),
                                     'kvm')
@@ -450,14 +462,14 @@ will not check kernel-devel package.')
     def test_check_subscription_manager(self):
         pass
 
-    def test_vm_check(self):
+    def test_collect_information_for_create(self):
         """Test case for avocado framework.
 
         case_name:
-            Get VM Check results. (Just collection)
+            Collect information and logs
 
         description:
-            Gathering basic information from the instance.
+            Collect basic information and logs from the instance.
 
         bugzilla_id:
             n/a
@@ -482,45 +494,13 @@ will not check kernel-devel package.')
         pass_criteria:
             n/a
         """
-        self.log.info("VM Check")
+        utils_alibaba.collect_information(self, 'create')
 
-        guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
-        guest_logpath = guest_path + "/log"
-        host_logpath = os.path.dirname(self.job.logfile) + "/validation_data"
-        self.session.cmd_output("mkdir -p {0}".format(guest_logpath))
+    def test_collect_information_for_reboot(self):
+        utils_alibaba.collect_information(self, 'reboot')
 
-        flavor = self.vm.flavor
-        self.session.copy_files_to(
-            local_path="{0}/../../scripts/vm_check.sh".format(self.pwd),
-            remote_path=guest_path)
-        self.log.info("Flavor: %s" % flavor)
-
-        # Cleanup $HOME/workspace/log
-        self.session.cmd_output("rm -rf {0}/*".format(guest_logpath))
-
-        # Run vm_check.sh
-        self.session.cmd_output("bash {0}/vm_check.sh".format(guest_path),
-                                timeout=300)
-
-        # Tar logs
-        # self.session.cmd_output(
-        #     "cd {0} && tar -zcf vm_check_results_{1}.tar.gz .".format(
-        #         guest_logpath, flavor))
-
-        # Copy logs to host
-        process.run(cmd="mkdir -p " + host_logpath,
-                    timeout=20,
-                    verbose=False,
-                    ignore_status=False,
-                    shell=True)
-        self.log.debug("Copying logs to host...")
-        self.session.copy_files_from(local_path=host_logpath,
-                                     remote_path="{0}/*".format(guest_logpath),
-                                     timeout=600)
-        self.log.info("Copy logs to {0} successfully.".format(host_logpath))
-
-        # Cleanup scripts and logs
-        self.session.cmd_output("rm -rf " + guest_path)
+    def test_collect_information_for_restart(self):
+        utils_alibaba.collect_information(self, 'restart')
 
     def test_collect_metadata(self):
         """Test case for avocado framework.

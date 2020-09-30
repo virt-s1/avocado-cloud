@@ -36,4 +36,7 @@ systemd: Failed to start Postfix Mail Transport Agent.
 systemd: Unit postfix.service entered failed state.
 systemd: postfix.service failed.
 failed early load check for
+kernel: ERST: Error Record Serialization Table (ERST) support is initialized
+failed to assign [io  size 0x
+failed to assign [mem size 0x
 #################### KNOWN ISSUES BELOW ####################

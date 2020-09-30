@@ -85,7 +85,7 @@ for dev in $dev_list; do
     sleep 1s
 done
 """
-        self.session.cmd_output(guest_cmd)
+        self.session.cmd_output(guest_cmd, timeout=180)
 
         nic_ids = [
             self.vm.get_nic_id(nic) for nic in self.vm.query_nics()
@@ -109,7 +109,7 @@ done
         3. Stop VM. Detach all NICs. Device should be removed inside guest
         """
         # Set timeout for Alibaba baremetal
-        if self.vm.flavor == 'ecs.ebmg5s.24xlarge':
+        if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
             connect_timeout = 120
