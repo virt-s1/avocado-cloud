@@ -551,10 +551,12 @@ disk mount point")
         self.assertEqual(
             "", output, "There're CRITICAL logs: {0}".format(output))
 
-    def _check_cloudinit_log(self):
+    def _check_cloudinit_log(self, additional_ignore_msg=None):
         with open("{}/data/azure/ignore_cloudinit_messages".format(BASEPATH),
                   'r') as f:
             ignore_message_list = f.read().split('\n')
+        if additional_ignore_msg and isinstance(additional_ignore_msg, list):
+            ignore_message_list += additional_ignore_msg
         output = self.session.cmd_output(
             "sudo grep -iE -w 'err.*|fail.*|warn.*|unexpected.*|traceback.*' /var/log/cloud-init.log|grep -vE '{0}'"
             .format('|'.join(ignore_message_list)))
@@ -1016,7 +1018,7 @@ EOF""".format(device, size))
         self.assertNotIn("Unknown", 
             self.session.cmd_output("subscription-manager status|grep Overall"),
             "Fail to register with subscription-manager")
-        self._check_cloudinit_log()
+        self._check_cloudinit_log(additional_ignore_msg=["WARNING"])
 
     def test_cloudinit_auto_register_with_subscription_manager(self):
         """
@@ -1036,7 +1038,7 @@ rh_subscription:
   username: {}
   password: {}'''.format(self.subscription_username, self.subscription_password)
         self._verify_rh_subscription(CONFIG)
-        self.session.cmd_output("subscription-manager auto-attach")
+        self.session.cmd_output("subscription-manager attach --auto")
         self.assertNotEqual("",
             self.session.cmd_output("subscription-manager list --consumed --pool-only"),
             "Cannot auto-attach pools manually")
