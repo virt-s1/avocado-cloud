@@ -8,7 +8,7 @@ azure-cli==2.0.32
 openstacksdk==0.13.0
 aexpect==1.4.0
 requests==2.18.4
-urllib3==1.22
+urllib3==1.24.2
 aliyun-python-sdk-core==2.8.2
 aliyun-python-sdk-ecs==4.8.0
 libvirt-python>=0.10.2
