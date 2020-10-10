@@ -29,7 +29,7 @@ REALPATH = os.path.split(os.path.realpath(__file__))[0]
 # Get all test cases
 with open('{0}/config/{1}_testcases.yaml'.format(REALPATH, ARGS.platform),
           'r') as f:
-    case_list = yaml.load(f).get('cases').split(' ')
+    case_list = yaml.safe_load(f).get('cases').split(' ')
 
 # Expand the real path for test cases
 expanded_case_list = []
