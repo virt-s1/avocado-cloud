@@ -52,20 +52,8 @@ has some pkg not signed")
         :avocado: tags=test_check_virtwhat,fast_check,kernel_tier1
         polarion_id: RHEL7-103857
         '''
-        utils_lib.run_cmd(self, r'sudo yum install -y virt-what')
-        virt_what_output = utils_lib.run_cmd(self, r"sudo virt-what", expect_ret=0)
-        lscpu_output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
-        if 'Xen' in lscpu_output:
-            self.log.info("Found it is a xen system!")
-            if 'full' in lscpu_output:
-                self.assertIn('xen-hvm', virt_what_output)
-            else:
-                self.assertIn('xen-domU', virt_what_output)
-        elif 'KVM' in lscpu_output:
-            self.log.info("Found it is a kvm system!")
-            self.assertIn('kvm', virt_what_output)
-        else:
-            self.log.info("Found it is a bare metal system!")
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_virtwhat"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_xenfs_mount(self):
         '''
@@ -128,30 +116,8 @@ x86_64.rpm'
         polarion_id:
         BZ# 1663266
         '''
-        utils_lib.run_cmd(self,
-                    'lscpu',
-                    expect_ret=0,
-                    cancel_kw="Xen",
-                    msg="Only run in xen instance")
-
-        utils_lib.run_cmd(self, 'sudo umount /proc/xen')
-        cmd = r'sudo mount -t xenfs xenfs /proc/xen/'
-        utils_lib.run_cmd(self, cmd, expect_ret=0)
-        utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
-        script_str = '''
-#!/usr/bin/env python
-
-import os
-import struct
-
-if __name__ == "__main__":
-    fd = os.open("/proc/xen/xenbus", os.O_RDWR)
-    # end a fake transaction
-    os.write(fd, struct.pack("<IIII", 7, 2, 1234, 0))
-        '''
-        utils_lib.run_cmd(self, "echo '%s' > t.py" % script_str, expect_ret=0)
-        utils_lib.run_cmd(self, 'sudo python3 t.py')
-        utils_lib.run_cmd(self, "dmesg", expect_not_kw='Call Trace')
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_xenfs_write_inability"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_dmesg_error(self):
         '''
@@ -732,26 +698,8 @@ in RHEL7|6, bug1625874")
         :avocado: tags=test_check_memleaks
         polarion_id: RHEL-117648
         '''
-        self.log.info("Check memory leaks")
-        utils_lib.run_cmd(self,
-                    'uname -a',
-                    expect_ret=0,
-                    cancel_kw="debug",
-                    msg="Only run in debug kernel")
-        utils_lib.run_cmd(self,
-                    'cat /proc/cmdline',
-                    expect_ret=0,
-                    cancel_kw="kmemleak=on",
-                    msg="Only run with kmemleak=on")
-
-        utils_lib.run_cmd(self, 'sudo su', expect_ret=0)
-        cmd = 'echo scan > /sys/kernel/debug/kmemleak'
-        utils_lib.run_cmd(self, cmd, expect_ret=0, timeout=1800)
-
-        cmd = 'cat /sys/kernel/debug/kmemleak'
-        output = utils_lib.run_cmd(self, cmd, expect_ret=0)
-        if len(output) > 0:
-            self.fail('Memory leak found!')
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_memleaks"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_collect_insights_result(self):
         '''
