@@ -53,7 +53,8 @@ def run_cmd(test_instance,
             timeout=60,
             is_get_console=True,
             session=None,
-            vm=None):
+            vm=None,
+            ret_status=False):
     """run cmd with/without check return status/keywords and save log
 
     Arguments:
@@ -75,6 +76,7 @@ def run_cmd(test_instance,
         you may want save console output if ssh session not work
         session {string} -- you can specify which session to use
         vm {string} -- you can specify which vm to use
+        ret_status {bool} -- return ret code instead of output
 
     Keyword Arguments:
         check_ret {bool} -- [whether check return] (default: {False})
@@ -153,6 +155,8 @@ def run_cmd(test_instance,
             if key_word in output:
                 test_instance.cancel("%s found, cancel case" % key_word)
     test_instance.log.info("CMD out:%s" % output)
+    if ret_status:
+        return status
     return output
 
 def ltp_check(test_instance):
@@ -347,7 +351,7 @@ def run_os_tests(test_instance, case_name=None):
     Run os_tests test case
     '''
     cmd = "sudo python3 -m unittest -v {}".format(case_name)
-    run_cmd(test_instance, cmd)
+    ret = run_cmd(test_instance, cmd, ret_status=True)
     cmd_get_log = "sudo cat /tmp/os_tests_result/{}.debug".format(case_name)
     run_cmd(test_instance, cmd_get_log, msg='Get test debug log')
-    run_cmd(test_instance, cmd, expect_ret=0)
+    test_instance.assertEqual(ret, 0, "Test fail. ret:{}".format(ret))

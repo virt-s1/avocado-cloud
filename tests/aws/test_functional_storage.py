@@ -467,6 +467,7 @@ grep -i pci|grep n1' % boot_pci
         :avocado: tags=test_iostat_x,fast_check,acceptance
         run blktests block test
         polarion_id: N/A
+        BZ#: 1661977
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
