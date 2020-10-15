@@ -1038,7 +1038,7 @@ rh_subscription:
   username: {}
   password: {}'''.format(self.subscription_username, self.subscription_password)
         self._verify_rh_subscription(CONFIG)
-        self.session.cmd_output("subscription-manager attach --auto")
+        self.session.cmd_output("subscription-manager attach --auto", timeout=120)
         self.assertNotEqual("",
             self.session.cmd_output("subscription-manager list --consumed --pool-only"),
             "Cannot auto-attach pools manually")
