@@ -5,3 +5,4 @@ nofail
 Ran .* modules with 0 failures
 DEBUG.: Fetched.*mounts from proc
 finish: azure-ds/load_azure_ds_dir: FAIL: load_azure_ds_dir
+handlers.py.DEBUG.: diagnostic: diagnostic message: dhclient error stream: Internet Systems Consortium DHCP Client
