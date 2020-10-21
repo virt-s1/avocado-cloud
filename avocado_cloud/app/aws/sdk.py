@@ -562,7 +562,7 @@ class EC2Volume(Base):
             return True
         return False
 
-    def create(self, wait=True, disksize=100, disktype='standard', iops=3000):
+    def create(self, wait=True, disksize=100, disktype='standard', iops=3000, loops=5):
         """
         Create volume
         :param wait: Wait for instance created
@@ -651,7 +651,17 @@ class EC2Volume(Base):
                             },
                         ])
             self.id = self.__volume.id
-            LOG.info("Volume created %s" % self.id)
+            if wait:
+                for i in xrange(0, loops):
+                    LOG.info("Wait loop %s, max loop %s" % (i, loops))
+                    try:
+                        self.__volume.reload()
+                        if self.__volume.state == 'available':
+                            break
+                        time.sleep(10)
+                    except ClientError as err:
+                        LOG.error("%s" % err)
+            LOG.info("Volume created %s, state %s" % (self.id, self.__volume.state))
             return True
 
         except Exception as err:
