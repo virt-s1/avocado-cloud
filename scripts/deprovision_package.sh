@@ -32,7 +32,7 @@ function deprovision_wala() {
     sed -i -e 's/^ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' \
         -e 's/^ResourceDisk.SwapSizeMB=.*/ResourceDisk.SwapSizeMB=2048/g' \
         /etc/waagent.conf
-    swapoff /mnt/resource/swapfile
+    swapoff -a
     for i in "${delete_arr[@]}";
     do
         rm -rf $i
