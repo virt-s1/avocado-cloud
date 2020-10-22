@@ -53,8 +53,7 @@ function deprovision_cloudinit_wala() {
         -e 's/Provisioning.UseCloudInit=n/Provisioning.UseCloudInit=y/g' \
         -e 's/ResourceDisk.MountPoint=.*/ResourceDisk.MountPoint=\/mnt/g' \
         /etc/waagent.conf
-    swapoff /mnt/resource/swapfile
-    swapoff /mnt/swapfile
+    swapoff -a
     for i in "${delete_arr[@]}";
     do
         rm -rf $i
@@ -77,7 +76,7 @@ function deprovision_cloudinit() {
     systemctl stop waagent
     rpm -e WALinuxAgent
     systemctl enable cloud-{init-local,init,config,final}
-    swapoff /mnt/resource/swapfile
+    swapoff -a
     for i in "${delete_arr[@]}";
     do
         rm -rf $i
