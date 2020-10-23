@@ -1,4 +1,5 @@
 import os
+import requests
 from avocado import Test
 from avocado import main
 from avocado_cloud.app import Setup
@@ -51,26 +52,32 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
             # future major releases
             x_version = 8
         label = "BaseOS" if x_version > 7 else "Server"
+        base_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/".format(x_version, self.project, label)
+        if not requests.get(base_url).ok:
+            base_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/".format(x_version, self.project, label)
         BASEREPO = """
 [rhel-base]
 name=rhel-base
-baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/
+baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
 
 EOF
-""".format(x_version, self.project, label)
+""".format(base_url)
+        appstream_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/".format(x_version, self.project)
+        if not requests.get(appstream_url).ok:
+            appstream_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/".format(x_version, self.project)
         APPSTREAMREPO = """
 [rhel-appstream]
 name=rhel-appstream
-baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/
+baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
 
 EOF
-""".format(x_version, self.project)
+""".format(appstream_url)
         PULPCOREREPO = """
 [pulpcore-3.4]
 name=pulpcore-3.4
