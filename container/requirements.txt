@@ -118,7 +118,7 @@ certifi==2018.4.16
 cffi==1.10.0
 chardet==3.0.4
 colorama==0.3.3
-cryptography==2.3
+cryptography==3.2
 decorator==4.3.0
 deprecation==2.0.2
 docutils==0.14
