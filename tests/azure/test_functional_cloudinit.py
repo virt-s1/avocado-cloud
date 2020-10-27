@@ -1352,12 +1352,15 @@ runcmd:
         self.log.info("RHEL-188251 CLOUDINIT-TC: check ds-identify path")
         self.session.cmd_output("sudo su -")
         version = self.session.cmd_output("cloud-init -v|awk '{print $2}'")
-        if LooseVersion(version) < LooseVersion("19.4"):
-            ds_identify = "/usr/lib/cloud-init/ds-identify"
+        if int(self.project.split('.')[0]) >= 8:
+            if LooseVersion(version) < LooseVersion("19.4"):
+                ds_identify = "/usr/lib/cloud-init/ds-identify"
+            else:
+                ds_identify = "/usr/libexec/cloud-init/ds-identify"
         else:
-            ds_identify = "/usr/libexec/cloud-init/ds-identify"
+            ds_identify = "/usr/lib/cloud-init/ds-identify"
         self.assertEqual(self.session.cmd_status_output("[ -f {} ]".format(ds_identify))[0], 0,
-            "{} doesn't exist!")
+            "{} doesn't exist!".format(ds_identify))
         self.assertEqual(self.session.cmd_status_output(
             "grep 'ds-identify _RET=found' /run/cloud-init/cloud-init-generator.log")[0], 0,
             "Cannot find 'ds-identify _RET=found' in /run/cloud-init/cloud-init-generator.log")
