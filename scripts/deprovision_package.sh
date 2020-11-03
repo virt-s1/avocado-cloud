@@ -332,11 +332,11 @@ function verify_dhclient_in_networkmanager() {
     ret=0
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
     if [ ${release%%.*} == '8' ];then
-        grep "dhcp=dhclient" /etc/NetworkManager/NetworkManager.conf > /dev/null
+        grep "dhcp = dhclient" /etc/NetworkManager/NetworkManager.conf > /dev/null
         if [ $? -eq 0 ];then
-            format_echo "Verify dhcp=dhclient added: PASS"
+            format_echo "Verify dhcp = dhclient added: PASS"
         else
-            format_echo "Verify dhcp=dhclient added: FAIL"
+            format_echo "Verify dhcp = dhclient added: FAIL"
             ret=1
         fi
     fi
