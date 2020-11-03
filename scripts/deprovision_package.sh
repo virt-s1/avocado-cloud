@@ -405,6 +405,8 @@ function verify_cloudinit_wala() {
     verify_account_removed||((rflag=rflag+1))
     # Verify dhcp=dhclient added (RHEL-8.0 only)
     verify_dhclient_in_networkmanager||((rflag=rflag+1))
+    # Verify dhcp=dhclient added (RHEL-8.0 only)
+    verify_dhclient_in_networkmanager||((rflag=rflag+1))
     exit $rflag
 }
 
@@ -427,6 +429,8 @@ function verify_cloudinit() {
     verify_disksetup_in_cloudcfg||((rflag=rflag+1))
     # Verify account removed
     verify_account_removed||((rflag=rflag+1))
+    # Verify dhcp=dhclient added (RHEL-8.0 only)
+    verify_dhclient_in_networkmanager||((rflag=rflag+1))
     exit $rflag
 }
 
