@@ -68,7 +68,7 @@ function deprovision_cloudinit_wala() {
     # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1661574
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
     if [ ${release%%.*} == '8' ];then
-        sed -i -e '/\[main\]/a\dhcp=dhclient' -e '/dhcp=dhclient/d' /etc/NetworkManager/NetworkManager.conf
+        sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
     fi
 }
 
