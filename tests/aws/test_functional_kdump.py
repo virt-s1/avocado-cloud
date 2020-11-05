@@ -85,7 +85,7 @@ class KdumpTest(Test):
 
     def test_kdump_no_specify_cpu(self):
         '''
-        :avocado: tags=test_kdump_no_specify_cpu,acceptance,fast_check
+        :avocado: tags=test_kdump_no_specify_cpu,acceptance,fast_check,outposts
         polarion_id: RHEL7-58669
         bz#: 1654962
         '''
@@ -129,7 +129,7 @@ no plan to fix it in the near future!")
 
     def test_kdump_unknown_nmi_panic_disabled(self):
         '''
-        :avocado: tags=test_kdump_unknown_nmi_panic_disabled,acceptance
+        :avocado: tags=test_kdump_unknown_nmi_panic_disabled,acceptance,outposts
         polarion_id: 
         trigger kdump via nmi
         https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-\
@@ -171,7 +171,7 @@ no plan to fix it in the near future!")
 
     def test_kdump_unknown_nmi_panic_enabled(self):
         '''
-        :avocado: tags=test_kdump_unknown_nmi_panic_enabled,acceptance
+        :avocado: tags=test_kdump_unknown_nmi_panic_enabled,acceptance,outposts
         polarion_id: 
         trigger kdump via nmi
         https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-\
@@ -222,7 +222,7 @@ if crashed successfully!")
     def test_kdump_unknown_nmi_panic_enabled_sysrq_trigger(self):
         '''
         :avocado: tags=test_kdump_unknown_nmi_panic_enabled_sysrq_trigger,
-                       acceptance
+                       acceptance,outposts
         polarion_id:
         Test kdump works while triggerring panic inside guest via 
         sysrq-trigger when unknown_nmi_panic_enabled=1
@@ -330,7 +330,7 @@ if crashed successfully!")
 
     def test_kdump_fastboot_kexec_e(self):
         '''
-        :avocado: tags=test_kdump_fastboot_kexec_e,acceptance
+        :avocado: tags=test_kdump_fastboot_kexec_e,acceptance,outposts
         polarion_id:
         bz#: 1758323, 1841578
         "kexec -e": Run the currently loaded kernel. Note that it will reboot into the loaded kernel without calling shutdown(8).

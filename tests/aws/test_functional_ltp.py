@@ -6,7 +6,7 @@ from avocado_cloud.utils import utils_lib
 
 class LTPRun(Test):
     '''
-    :avocado: tags=ltp,acceptance,fulltest,fast_check
+    :avocado: tags=ltp,acceptance,fulltest,fast_check,outposts
     '''
 
     def setUp(self):

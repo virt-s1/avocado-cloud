@@ -4,7 +4,7 @@ from avocado_cloud.app.aws import aws
 
 class CleanUp(Test):
     '''
-    :avocado: tags=cleanup,fulltest,acceptance,fast_check
+    :avocado: tags=cleanup,fulltest,acceptance,fast_check,outposts
     '''
     def setUp(self):
         self.ssh_wait_timeout = None
