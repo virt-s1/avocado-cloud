@@ -135,12 +135,12 @@ later! expected: %s lsblk: %s assigned: %s" %
                 self.disk4 = EC2Volume(self.params)
                 res_id = aws.get_exists_resource_id(self.teststmpdir, 'sc1')
                 if not self.disk4.reuse_init(res_id):
-                    self.disk4.create(disksize=500, disktype='sc1')
+                    self.disk4.create(disksize=500, disktype='sc1', loops=60)
                     aws.save_exists_resource_id(self.teststmpdir, self.disk4)
 
     def test_ssd_trim(self):
         '''
-        :avocado: tags=test_ssd_trim,acceptance,fast_check
+        :avocado: tags=test_ssd_trim,acceptance,fast_check,outposts
         polarion_id: RHEL7-87311
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
@@ -182,7 +182,7 @@ later! expected: %s lsblk: %s assigned: %s" %
 
     def test_nvme_basic(self):
         '''
-        :avocado: tags=test_nvme_basic,acceptance,fast_check
+        :avocado: tags=test_nvme_basic,acceptance,fast_check,outposts
         polarion_id: RHEL7-87122
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
@@ -240,7 +240,7 @@ later! expected: %s lsblk: %s assigned: %s" %
 
     def test_disk_info(self):
         '''
-        :avocado: tags=test_disk_info,acceptance,fast_check
+        :avocado: tags=test_disk_info,acceptance,fast_check,outposts
         check disk information via fdisk and lsblk.
         For now, no exactly check result as output format may different
         on RHEL6/7/8.
@@ -255,13 +255,13 @@ later! expected: %s lsblk: %s assigned: %s" %
 
     def test_check_disk_count(self):
         '''
-        :avocado: tags=test_check_disk_count,acceptance,fast_check,tire1
+        :avocado: tags=test_check_disk_count,acceptance,fast_check,tire1,outposts
         '''
         self._check_disk_count()
 
     def test_multi_disk(self):
         '''
-        :avocado: tags=test_multi_disk,acceptance
+        :avocado: tags=test_multi_disk,acceptance,outposts
         check system can boot up with multiple disks assigned.
         polarion_id: RHEL7-103954
         '''
@@ -313,7 +313,7 @@ later! expected: %s lsblk: %s assigned: %s" %
 
     def test_multi_disk_hotplug(self):
         '''
-        :avocado: tags=test_multi_disk_hotplug,acceptance,fast_check
+        :avocado: tags=test_multi_disk_hotplug,acceptance,fast_check,outposts
         check disk hotplug when instance running
         will add disk read&write test later
         polarion_id: RHEL7-93570
@@ -380,7 +380,7 @@ later! expected: %s lsblk: %s assigned: %s" %
 
     def test_virsh_pci_reattach(self):
         '''
-        :avocado: tags=test_virsh_pci_reattach,acceptance
+        :avocado: tags=test_virsh_pci_reattach,acceptance,outposts
         Test no exception when system does nvme pci detach and attach operation
         polarion_id:
         bz#: 1700254
@@ -409,62 +409,20 @@ later! expected: %s lsblk: %s assigned: %s" %
             self.fail("Instance is not in stopped state!")
 
         self.log.info("Start instance %s" % self.vm.instance_id)
-        if self.vm.start(wait=True):
-            self.session.connect(timeout=self.ssh_wait_timeout)
-            aws.check_session(self)
-            utils_lib.run_cmd(self,
-                        'cat /proc/cmdline',
-                        msg='Get instance boot cmdline')
-            utils_lib.run_cmd(self, 'sudo lspci', msg="get pci list")
-            cmd = 'sudo find /sys/devices -name *nvme*n1p1*'
-            tmp_root = utils_lib.run_cmd(self, cmd, msg="get boot nvme pci")
-            boot_pci = tmp_root.split('/')[-2]
-            cmd = 'sudo find /sys/devices -name *nvme*|grep -v %s|\
-grep -i pci|grep n1' % boot_pci
-            tmp_pci = utils_lib.run_cmd(self, cmd, msg="get test pci")
-            tmp_pci = tmp_pci.split('/')[-4]
-            # cmd = 'sudo lspci|grep -i Non-Volatile|tail -1'
-            # tmp_pci = utils_lib.run_cmd(self, cmd,msg="get last nvme pci device")
-            # tmp_pci = tmp_pci.split(' ')[0]
-            tmp_pci = tmp_pci.replace('.', '_')
-            tmp_pci = tmp_pci.replace(':', '_')
-
-            pci_dev_1 = utils_lib.run_cmd(
-                self,
-                'sudo virsh nodedev-list|grep %s |tail -1' % tmp_pci,
-                msg='pick up device to detach')
-            if pci_dev_1.endswith('1'):
-                pci_dev_0 = pci_dev_1.rstrip('1') + '0'
-                utils_lib.run_cmd(self,
-                            'sudo virsh nodedev-detach %s' % pci_dev_0,
-                            msg='detach pci device',
-                            expect_ret=0)
-            utils_lib.run_cmd(self,
-                        'sudo virsh nodedev-detach %s' % pci_dev_1,
-                        msg='detach pci device',
-                        expect_ret=0)
-
-            utils_lib.run_cmd(self,
-                        'sudo virsh nodedev-reattach %s' % pci_dev_1,
-                        msg='reattach pci device',
-                        expect_ret=0)
-            if pci_dev_1.endswith('1'):
-                utils_lib.run_cmd(self,
-                            'sudo virsh nodedev-reattach %s' % pci_dev_0,
-                            msg='reattach pci device',
-                            expect_ret=0)
-            utils_lib.run_cmd(self, 'dmesg|tail -20', expect_ret=0)
-
-            cmd = 'sudo grubby --update-kernel=ALL \
---remove-args="intel_iommu=on"'
-            utils_lib.run_cmd(self, cmd, expect_ret=0)
-
-        else:
+        if not self.vm.start(wait=True):
             self.fail("Failed to start instance!")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        aws.check_session(self)
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_virsh_pci_reattach"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+        cmd = 'sudo grubby --update-kernel=ALL \
+--remove-args="intel_iommu=on"'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, msg='clean up "intel_iommu=on"')
 
     def test_iostat_x(self):
         '''
-        :avocado: tags=test_iostat_x,fast_check,acceptance
+        :avocado: tags=test_iostat_x,fast_check,acceptance,outposts
         run blktests block test
         polarion_id: N/A
         BZ#: 1661977
@@ -591,7 +549,7 @@ grep -i pci|grep n1' % boot_pci
 
     def test_fio_cpuclock(self):
         '''
-        :avocado: tags=test_fio_cpuclock,acceptance,fast_check
+        :avocado: tags=test_fio_cpuclock,acceptance,fast_check,outposts
         polarion_id:
         Perform test and validation of internal CPU clock.
         '''
@@ -608,7 +566,7 @@ grep -i pci|grep n1' % boot_pci
 
     def test_fio_crctest(self):
         '''
-        :avocado: tags=test_fio_crctest,acceptance,fast_check
+        :avocado: tags=test_fio_crctest,acceptance,fast_check,outposts
         polarion_id:
         Test  the  speed  of  the built-in checksumming functions.
         '''

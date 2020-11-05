@@ -6,7 +6,7 @@ import time
 
 class CloudInit(Test):
     '''
-    :avocado: tags=cloudinit,acceptance,fulltest
+    :avocado: tags=cloudinit,acceptance,fulltest,outposts
     '''
     def setUp(self):
         self.session = None

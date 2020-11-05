@@ -9,7 +9,7 @@ from avocado_cloud.utils import utils_lib
 
 class NetworkTest(Test):
     '''
-    :avocado: tags=network,acceptance,fulltest
+    :avocado: tags=network,acceptance,fulltest,outposts
     '''
     def _compare_num(self, num1, num2, expect_ratio, msg=None):
         act_ratio = 100 - decimal.Decimal(num1) / decimal.Decimal(num2) * 100
