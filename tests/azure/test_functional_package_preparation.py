@@ -52,9 +52,14 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
             # future major releases
             x_version = 8
         label = "BaseOS" if x_version > 7 else "Server"
-        base_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/".format(x_version, self.project, label)
-        if not requests.get(base_url).ok:
-            base_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/".format(x_version, self.project, label)
+        # Validate these repos one by one and select the available one
+        base_url_list = [ "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/updates/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/nightly/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                        ]
+        for base_url in base_url_list:
+            if requests.get(base_url.format(label)).ok:
+                break
         BASEREPO = """
 [rhel-base]
 name=rhel-base
@@ -64,10 +69,7 @@ gpgcheck=0
 proxy=http://127.0.0.1:8080/
 
 EOF
-""".format(base_url)
-        appstream_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/".format(x_version, self.project)
-        if not requests.get(appstream_url).ok:
-            appstream_url = "http://download-node-02.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/".format(x_version, self.project)
+""".format(base_url.format(label))
         APPSTREAMREPO = """
 [rhel-appstream]
 name=rhel-appstream
@@ -77,21 +79,23 @@ gpgcheck=0
 proxy=http://127.0.0.1:8080/
 
 EOF
-""".format(appstream_url)
+""".format(base_url.format("AppStream"))
+        pulpcore_url = "http://download.eng.bos.redhat.com/brewroot/repos/pulpcore-3.4-rhel-{}-build/latest/x86_64/".format(x_version)
         PULPCOREREPO = """
 [pulpcore-3.4]
 name=pulpcore-3.4
-baseurl=http://download.eng.bos.redhat.com/brewroot/repos/pulpcore-3.4-rhel-{0}-build/latest/x86_64/
+baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
 
 EOF
-""".format(x_version)
+""".format(pulpcore_url)
         self.session.cmd_output("cat << EOF > /etc/yum.repos.d/rhel.repo%s" %
                                 (BASEREPO))
-        self.session.cmd_output("cat << EOF >> /etc/yum.repos.d/rhel.repo%s" %
-                                (PULPCOREREPO))
+        if requests.get(pulpcore_url).ok:
+            self.session.cmd_output("cat << EOF >> /etc/yum.repos.d/rhel.repo%s" %
+                                    (PULPCOREREPO))
         if x_version > 7:
             self.session.cmd_output(
                 "cat << EOF >> /etc/yum.repos.d/rhel.repo%s" % (APPSTREAMREPO))
