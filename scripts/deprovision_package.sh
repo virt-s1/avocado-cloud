@@ -41,6 +41,11 @@ function deprovision_wala() {
     userdel -rf $username
     sed -i '/DHCP_HOSTNAME/d' /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
+    # Remove duplicated dhcp=dhclient
+    release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
+    if [ ${release%%.*} == '8' ];then
+        sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
+    fi
 }
 
 function deprovision_cloudinit_wala() {
@@ -66,6 +71,7 @@ function deprovision_cloudinit_wala() {
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
     fi
     # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1661574
+    # Remove duplicated dhcp=dhclient
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
     if [ ${release%%.*} == '8' ];then
         sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
@@ -87,6 +93,12 @@ function deprovision_cloudinit() {
     hostnamectl set-hostname localhost.localdomain
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
+    fi
+    # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1661574
+    # Remove duplicated dhcp=dhclient
+    release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
+    if [ ${release%%.*} == '8' ];then
+        sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
     fi
 }
 
@@ -332,11 +344,12 @@ function verify_dhclient_in_networkmanager() {
     ret=0
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
     if [ ${release%%.*} == '8' ];then
-        grep "dhcp = dhclient" /etc/NetworkManager/NetworkManager.conf > /dev/null
-        if [ $? -eq 0 ];then
+        num=$(grep "dhcp *= *dhclient" /etc/NetworkManager/NetworkManager.conf|wc -l)
+        if [ $num -eq 1 ];then
             format_echo "Verify dhcp = dhclient added: PASS"
         else
             format_echo "Verify dhcp = dhclient added: FAIL"
+            format_echo "Number of dhclient lines: $num"
             ret=1
         fi
     fi
