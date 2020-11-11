@@ -427,9 +427,8 @@ in RHEL7|6, bug1625874")
         polarion_id: N/A
         bz#: 1740443
         '''
-        utils_lib.run_cmd(self, "sudo systemctl>/tmp/systemctl.log", expect_ret=0)
-        cmd = "cat /tmp/systemctl.log|grep -v dnf-makecache"
-        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_not_kw='failed')
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_service"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cpupower(self):
         '''
@@ -742,7 +741,7 @@ in RHEL7|6, bug1625874")
         '''
         :avocado: tags=test_collect_insights_result
         polarion_id:
-        bz#:
+        bz#: 1889702
         '''
         utils_lib.run_cmd(self,
                     'sudo insights-client --register',
