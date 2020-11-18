@@ -39,7 +39,7 @@ function deprovision_wala() {
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i '/DHCP_HOSTNAME/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
     # Remove duplicated dhcp=dhclient
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
@@ -65,7 +65,7 @@ function deprovision_cloudinit_wala() {
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i '/DHCP_HOSTNAME/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
@@ -89,7 +89,7 @@ function deprovision_cloudinit() {
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i '/DHCP_HOSTNAME/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
