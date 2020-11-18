@@ -517,12 +517,12 @@ rhel-swap/s/^/#/' /etc/fstab")
         else:
             self.session.cmd_output("sudo hostnamectl set-hostname %s" %
                                     hostname1)
-        time.sleep(25)
+        time.sleep(30)
         self.session.connect()
         if LooseVersion(self.project) < LooseVersion("7.0"):
             cmd = "sudo grep '' /etc/sysconfig/network"
         else:
-            cmd = "sudo cat /etc/hostname"
+            cmd = "sudo grep '' /etc/hostname"
         self.assertIn(hostname1, self.session.cmd_output(cmd),
                       "Fail to set hostname in disable MinitorHostName case")
         self.assertEqual(
@@ -544,12 +544,12 @@ Provisioning.MonitorHostName=n")
             self.session.cmd_output("sudo hostnamectl set-hostname %s" %
                                     hostname2)
         self.session.close()
-        time.sleep(25)
+        time.sleep(30)
         self.session.connect()
         if LooseVersion(self.project) < LooseVersion("7.0"):
             cmd = "sudo grep '' /etc/sysconfig/network"
         else:
-            cmd = "sudo cat /etc/hostname"
+            cmd = "sudo grep '' /etc/hostname"
         self.assertIn(hostname2, self.session.cmd_output(cmd),
                       "Fail to set hostname in enable MinitorHostName case")
         self.assertEqual(
