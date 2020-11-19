@@ -93,7 +93,8 @@ EOF
 """.format(pulpcore_url)
         self.session.cmd_output("cat << EOF > /etc/yum.repos.d/rhel.repo%s" %
                                 (BASEREPO))
-        if requests.get(pulpcore_url).ok:
+        # WALA doesn't use pulpcore repo to avoid the RHEL-8.0 systemd update issue
+        if "WALinuxAgent" not in self.packages and requests.get(pulpcore_url).ok:
             self.session.cmd_output("cat << EOF >> /etc/yum.repos.d/rhel.repo%s" %
                                     (PULPCOREREPO))
         if x_version > 7:
