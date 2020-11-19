@@ -139,7 +139,7 @@ lo eth0\
         else:
             self.session.cmd_output(
                 "hostnamectl set-hostname {0}".format(new_hostname))
-        time.sleep(15)
+        time.sleep(30)
         self.assertNotIn(
             "NXDOMAIN",
             self.session.cmd_output("nslookup {0}".format(new_hostname)),
@@ -159,7 +159,7 @@ lo eth0\
         old_hostname = self.vm.vm_name
         new_hostname = self.vm.vm_name + "new"
         self.session.cmd_output("nmcli gen hostname {0}".format(new_hostname))
-        time.sleep(15)
+        time.sleep(30)
         # Check DNS
         self.assertNotIn(
             "NXDOMAIN",
@@ -210,7 +210,7 @@ lo eth0\
         else:
             self.error("Fail to start waagent -run-exthandlers process")
         # Sleep 15s to wait for waagent publishing hostname
-        time.sleep(15)
+        time.sleep(30)
         # Check DNS
         self.assertNotIn(
             "NXDOMAIN",
@@ -235,7 +235,7 @@ lo eth0\
             else:
                 self.session.cmd_output(
                     "hostnamectl set-hostname {0}".format(new_hostname))
-            time.sleep(10)
+            time.sleep(30)
             # Check DNS
             max_retry = 10
             for retry in range(1, max_retry + 1):
