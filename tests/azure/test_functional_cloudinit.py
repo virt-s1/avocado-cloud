@@ -1052,6 +1052,7 @@ rh_subscription:
           username: ******
           password: ******
           auto-attach: True
+          disable-repo: ['rhel-8-for-x86_64-baseos-htb-rpms', 'rhel-8-for-x86_64-appstream-htb-rpms']
         packages:
           - dos2unix
         2. Run cloud-init config phase
