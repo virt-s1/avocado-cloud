@@ -7,7 +7,9 @@ vpc_id : None
 subnet_id_ipv6 : xxxx
 subnet_id_ipv4 : xxxx
 security_group_ids : xxxx
-additionalinfo : xxxx
+# you can pass multipe info seperated by ';', if one cannot start instance, will use anothers
+# "ignore-no-launches=true,target-droplet=$ip;ignore-no-launches=true,target-droplet=$ip"
+# additionalinfo : xxxx
 ssh_user : ec2-user
 # The key pair name to create resource
 ssh_key_name : xxxx
