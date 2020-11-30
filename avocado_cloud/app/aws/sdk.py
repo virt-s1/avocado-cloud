@@ -12,12 +12,12 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class EC2VM(VM):
-    config = Config(retries=dict(max_attempts=10, ))
-    __resource = boto3.resource('ec2', config=config)
-    __client = boto3.client('ec2', config=config)
     __ec2_instance = None
 
     def __init__(self, params, vendor="redhat"):
+        config = Config(retries=dict(max_attempts=10, ))
+        self.__resource = boto3.resource('ec2', config=config, region_name=params.get('region'))
+        self.__client = boto3.client('ec2', config=config, region_name=params.get('region'))
         super(EC2VM, self).__init__(params)
         self.instance_id = None
         self.ipv4 = None
@@ -101,8 +101,9 @@ class EC2VM(VM):
             return False
 
     def create(self, wait=True):
-        try:
-            if self.additionalinfo == None or self.additionalinfo == '':
+        is_created = False
+        if self.additionalinfo == None or self.additionalinfo == '':
+            try:
                 self.__ec2_instance = self.__resource.create_instances(
                     ImageId=self.ami_id,
                     InstanceType=self.instance_type,
@@ -128,38 +129,48 @@ class EC2VM(VM):
                     ],
                     UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
                     (self.ssh_user, self.instance_type))[0]
-            else:
-                self.__ec2_instance = self.__resource.create_instances(
-                    ImageId=self.ami_id,
-                    InstanceType=self.instance_type,
-                    KeyName=self.ssh_key_name,
-                    #SecurityGroupIds=[
-                    #    self.security_group_ids,
-                    #],
-                    #SubnetId=self.subnet_id,
-                    MaxCount=1,
-                    MinCount=1,
-                    Placement={
+                is_created = True
+            except ClientError as err:
+                LOG.error("Failed to create instance!")
+                raise err
+            except Exception as err:
+                raise err
+        if self.additionalinfo != None and self.additionalinfo != '':
+            for additionalinfo in self.additionalinfo.split(';'):
+                try:
+                    LOG.error("Create instance using addtionalinfo: {}".format(additionalinfo))
+                    self.__ec2_instance = self.__resource.create_instances(
+                        ImageId=self.ami_id,
+                        InstanceType=self.instance_type,
+                        KeyName=self.ssh_key_name,
+                        #SecurityGroupIds=[
+                        #    self.security_group_ids,
+                        #],
+                        #SubnetId=self.subnet_id,
+                        MaxCount=1,
+                        MinCount=1,
+                        AdditionalInfo=additionalinfo,
+                        NetworkInterfaces=[
+                        {
                             'AssociatePublicIpAddress': True,
                             'DeviceIndex': 0,
                             'SubnetId': self.subnet_id,
                             'Groups': [
                                  self.security_group_ids,
                              ],
-                    },
-                    AdditionalInfo=self.additionalinfo,
-                    NetworkInterfaces=[
-                        {
-                            'AssociatePublicIpAddress': True
                         },
                     ],
-                    UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
-                    (self.ssh_user, self.instance_type))[0]
-        except ClientError as err:
-            LOG.error("Failed to create instance!")
-            raise err
-        except Exception as err:
-            raise err
+                        UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
+                        (self.ssh_user, self.instance_type))[0]
+                    is_created = True
+                except ClientError as err:
+                    LOG.error("Failed to create instance, try another addtionalinfo {}".format(err))
+                except Exception as err:
+                    LOG.error("Failed to create instance, try another addtionalinfo {}".format(err))
+                if is_created:
+                    break
+            if not is_created:
+                raise err
 
         self.create_tags()
         LOG.info("Added tag: %s to instance: %s" %
@@ -437,7 +448,7 @@ class EC2Snapshot(Base):
         config = Config(retries=dict(max_attempts=10, ))
 
         super(EC2Snapshot, self).__init__(params)
-        self.__resource = boto3.resource('ec2', config=config)
+        self.__resource = boto3.resource('ec2', config=config, region_name=params.get('region'))
         self.__snapshot = None
         self.__volume_id = volume_id
         self.snap_id = None
@@ -508,7 +519,7 @@ class EC2Volume(Base):
     def __init__(self, params):
         config = Config(retries=dict(max_attempts=10, ))
         super(EC2Volume, self).__init__(params)
-        self._resource = boto3.resource('ec2', config=config)
+        self._resource = boto3.resource('ec2', config=config, region_name=params.get('region'))
         self.disksize = 100
         self.zone = params.get('availability_zone', '*/Cloud/*')
         self.tagname = params.get('ec2_tagname')
@@ -811,11 +822,11 @@ class NetworkInterface(Base):
     NetworkInterface classs
     '''
     __network_interface = None
-    __ec2 = boto3.resource('ec2')
 
     def __init__(self, params):
         super(NetworkInterface, self).__init__(params)
-        self._resource = boto3.resource('ec2')
+        self.__ec2 = boto3.resource('ec2', region_name=params.get('region'))
+        self._resource = boto3.resource('ec2', region_name=params.get('region'))
         if params.get('ipv6'):
             self.subnet_id = params.get('subnet_id_ipv6')
             LOG.info('Instance support ipv6, use subnet %s', self.subnet_id)

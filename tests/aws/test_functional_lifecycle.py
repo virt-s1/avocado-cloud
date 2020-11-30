@@ -429,6 +429,7 @@ class LifeCycleTest(Test):
                 self.fail("Bootup is not yet finished after 120s")
             self.log.info("Wait for bootup finish......")
             time.sleep(1)
+        utils_lib.run_cmd(self, "dmesg", expect_not_kw="Call trace")
         if int(mini_mem) < 17:
             cmd = 'sudo echo scan > /sys/kernel/debug/kmemleak'
             utils_lib.run_cmd(self, cmd, expect_ret=0, timeout=1800)
