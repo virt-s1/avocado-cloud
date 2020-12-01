@@ -10,7 +10,6 @@ from avocado_cloud.app import Base
 LOG = logging.getLogger('avocado.test')
 logging.basicConfig(level=logging.DEBUG)
 
-
 class EC2VM(VM):
     __ec2_instance = None
 
