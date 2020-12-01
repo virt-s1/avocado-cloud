@@ -71,7 +71,11 @@ def init_test(test_ins, instance_index=0):
     test_ins.log.info("Instance id is %s" % test_ins.vm.instance_id)
     save_exists_resource_id(test_ins.teststmpdir, test_ins.vm)
     if test_ins.vm.is_stopped() and not pre_stop:
-        test_ins.vm.start()
+        if not test_ins.vm.start():
+            save_resource_blacklist(test_ins.teststmpdir, test_ins.vm.instance_type)
+            test_ins.vm.delete()
+            cleanup_stored(test_ins.teststmpdir, test_ins.params, resource_id=test_ins.vm.instance_id)
+            test_ins.fail("Cannot start instance")
     if not test_ins.name.name.endswith("test_cleanup") and not pre_stop:
         check_session(test_ins)
 
@@ -199,6 +203,8 @@ def check_session(self):
     Returns:
         [True|False] -- [Active/Not work]
     """
+    if self.vm.floating_ip is None or len(self.vm.floating_ip) < 2:
+       self.fail("No public ip available!")
     self.log.info("func: check_session: timeout %s" % self.ssh_wait_timeout)
     if not self.session.connect(timeout=self.ssh_wait_timeout):
         self.log.error("session connect failed!")

@@ -105,9 +105,7 @@ later! expected: %s lsblk: %s assigned: %s" %
         self.ssh_wait_timeout = None
         aws.init_test(self)
 
-        if 'test_multi' in self.name.name or \
-                'test_cleanup' in self.name.name or \
-                int(self.params.get('disks', '*/instance_types/*')) == 1:
+        if 'test_multi' in self.name.name or 'blktests' in self.name.name:
             self.log.info('Prepare disks for multi disk test.')
             if self.params.get('outpostarn') is not None:
                 self.log.info("outpostarn specified, only gp2 disk supported for now.")
@@ -278,27 +276,17 @@ later! expected: %s lsblk: %s assigned: %s" %
             }
         # Make sure instance is in stopped state before attaching disk
         count1 = self._get_disk_online()
-        for i in range(10):
-            if self.vm.stop():
-                break
-            else:
-                self.log.info("Wait longer, max 10min")
-                time.sleep(60)
+        self.vm.stop(loops=20)
         for i in disk_dict.keys():
             if i.is_attached():
                 i.detach_from_instance(force=True)
             if not i.attach_to_instance(self.vm.instance_id, disk_dict.get(i)):
                 aws.get_debug_log(self)
                 self.fail("Attached failed!")
-        self.vm.start()
+        if not self.vm.start():
+            self.fail("Cannot start instance")
         count2 = self._get_disk_online()
-        self.vm.stop()
-        for i in range(10):
-            if self.vm.stop():
-                break
-            else:
-                self.log.info("Wait longer, max 10min")
-                time.sleep(60)
+        self.vm.stop(loops=20)
         for i in disk_dict.keys():
             if not i.detach_from_instance():
                 aws.get_debug_log(self)
@@ -581,12 +569,25 @@ later! expected: %s lsblk: %s assigned: %s" %
             msg='Test  the  speed  of  the built-in checksumming functions.')
 
     def tearDown(self):
+        if 'test_multi' in self.name.name or 'blktests' in self.name.name:
+            self.log.info('Release disk if it is not available')
+            try:
+                if self.params.get('outpostarn') is not None:
+                    if self.disk1.is_attached():
+                        self.disk1.detach_from_instance()
+                else:
+                    [disk.detach_from_instance(force=True) for disk in [self.disk1, self.disk2, self.disk3, self.disk4] if disk.is_attached()]
+            except AttributeError as err:
+                self.log.info('No disk release required!')
         self.session = self.session
-        if self.session.session.is_responsive(
-        ) is not None and self.vm.is_started():
-            aws.gcov_get(self)
-            aws.get_memleaks(self)
+        try:
+            if self.session is not None and self.session.session.is_responsive() is not None and self.vm.is_started():
+                aws.gcov_get(self)
+                aws.get_memleaks(self)
+                self.session.close()
+            if self.name.name.endswith("test_blktests_nvme"):
+                self.vm.reboot()
+            self.log.info("Try to close session")
             self.session.close()
-        if self.name.name.endswith("test_blktests_nvme"):
-            self.vm.reboot()
-        self.session.close()
+        except Exception as err:
+            self.log.info("Exception hit when try to close session: {}".format(err))
