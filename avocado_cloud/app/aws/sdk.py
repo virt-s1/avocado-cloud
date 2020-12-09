@@ -15,8 +15,13 @@ class EC2VM(VM):
 
     def __init__(self, params, vendor="redhat"):
         config = Config(retries=dict(max_attempts=10, ))
-        self.__resource = boto3.resource('ec2', config=config, region_name=params.get('region'))
-        self.__client = boto3.client('ec2', config=config, region_name=params.get('region'))
+        self.profile_name = params.get('profile_name')
+        if self.profile_name is None:
+            self.profile_name = 'default'
+        LOG.info('Load profile_name: {}'.format(self.profile_name))
+        self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
+        self.__resource = self.session.resource('ec2', config=config)
+        self.__client = self.session.client('ec2', config=config, region_name=params.get('region'))
         super(EC2VM, self).__init__(params)
         self.instance_id = None
         self.ipv4 = None
@@ -447,7 +452,10 @@ class EC2Snapshot(Base):
         config = Config(retries=dict(max_attempts=10, ))
 
         super(EC2Snapshot, self).__init__(params)
-        self.__resource = boto3.resource('ec2', config=config, region_name=params.get('region'))
+        if self.profile_name is None:
+            self.profile_name = 'default'
+        self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
+        self.__resource = self.session.resource('ec2', config=config, region_name=params.get('region'))
         self.__snapshot = None
         self.__volume_id = volume_id
         self.snap_id = None
@@ -518,7 +526,10 @@ class EC2Volume(Base):
     def __init__(self, params):
         config = Config(retries=dict(max_attempts=10, ))
         super(EC2Volume, self).__init__(params)
-        self._resource = boto3.resource('ec2', config=config, region_name=params.get('region'))
+        if self.profile_name is None:
+            self.profile_name = 'default'
+        self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
+        self._resource = self.session.resource('ec2', config=config, region_name=params.get('region'))
         self.disksize = 100
         self.zone = params.get('availability_zone', '*/Cloud/*')
         self.tagname = params.get('ec2_tagname')
@@ -824,8 +835,11 @@ class NetworkInterface(Base):
 
     def __init__(self, params):
         super(NetworkInterface, self).__init__(params)
-        self.__ec2 = boto3.resource('ec2', region_name=params.get('region'))
-        self._resource = boto3.resource('ec2', region_name=params.get('region'))
+        if self.profile_name is None:
+            self.profile_name = 'default'
+        self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
+        self.__ec2 = self.session.resource('ec2', region_name=params.get('region'))
+        self._resource = self.session.resource('ec2', region_name=params.get('region'))
         if params.get('ipv6'):
             self.subnet_id = params.get('subnet_id_ipv6')
             LOG.info('Instance support ipv6, use subnet %s', self.subnet_id)

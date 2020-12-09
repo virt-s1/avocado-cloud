@@ -277,6 +277,26 @@ class LifeCycleTest(Test):
         ret = self.vm.modify_instance_type(old_type)
         self.assertTrue(ret, msg="Failed to restore instance type!")
 
+    def test_boot_mitigations(self):
+        '''
+        :avocado: tags=test_boot_mitigations
+        polarion_id:
+        bz#: 1896786
+        '''
+        cmd = 'sudo grubby --update-kernel=ALL --args="mitigations=auto,nosmt"'
+        utils_lib.run_cmd(self, cmd, msg='Append mitigations=auto,nosmt to command line!', timeout=600)
+        self.log.info('Reboot system!')
+        self.vm.reboot(wait=True)
+        if 'metal' in self.vm.instance_type:
+            self.log.info("Wait {}".format(self.ssh_wait_timeout))
+            time.sleep(self.ssh_wait_timeout)
+        else:
+            self.log.info("Wait 60s")
+            time.sleep(60)
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='mitigations=auto,nosmt')
+        utils_lib.run_cmd(self, "dmesg", expect_not_kw="Call trace,Call Trace")
+
     def test_boot_nr_cpus(self):
         '''
         :avocado: tags=test_boot_nr_cpus
@@ -440,6 +460,18 @@ class LifeCycleTest(Test):
                 self.fail('Memory leak found!')
 
     def tearDown(self):
+        if "test_boot_mitigations" in self.name.name:
+            cmd = 'sudo grubby --update-kernel=ALL  --remove-args="mitigations=auto,nosmt"'
+            utils_lib.run_cmd(self, cmd, msg='Remove "mitigations=auto,nosmt"')
+            self.log.info('Reboot system!')
+            self.vm.reboot(wait=True)
+            if 'metal' in self.vm.instance_type:
+                self.log.info("Wait {}".format(self.ssh_wait_timeout))
+                time.sleep(self.ssh_wait_timeout)
+            else:
+                self.log.info("Wait 60s")
+                time.sleep(60)
+
         if "create_snapshot" in self.name.name:
             if self.snap.delete():
                 self.log.info("Delete snaphot after test!")

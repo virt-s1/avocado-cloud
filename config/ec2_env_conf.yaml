@@ -7,6 +7,7 @@ vpc_id : None
 subnet_id_ipv6 : xxxx
 subnet_id_ipv4 : xxxx
 security_group_ids : xxxx
+profile_name : default
 # you can pass multipe info seperated by ';', if one cannot start instance, will use anothers
 # "ignore-no-launches=true,target-droplet=$ip;ignore-no-launches=true,target-droplet=$ip"
 # additionalinfo : xxxx

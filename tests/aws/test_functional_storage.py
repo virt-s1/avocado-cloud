@@ -263,16 +263,18 @@ later! expected: %s lsblk: %s assigned: %s" %
         check system can boot up with multiple disks assigned.
         polarion_id: RHEL7-103954
         '''
-        if self.params.get('outpostarn') is not None:
+        vm_local_disks = int(self.params.get('disks',
+                                             '*/instance_types/*')) - 1
+        if self.params.get('outpostarn') is not None or vm_local_disks >= 23:
             disk_dict = {
-                self.disk1: 'sds',
+                self.disk1: 'sdz',
             }
         else:
             disk_dict = {
-                self.disk1: 'sds',
-                self.disk2: 'sdt',
-                self.disk3: 'sdu',
-                self.disk4: 'sdv'
+                self.disk1: 'sdw',
+                self.disk2: 'sdx',
+                self.disk3: 'sdy',
+                self.disk4: 'sdz'
             }
         # Make sure instance is in stopped state before attaching disk
         count1 = self._get_disk_online()
@@ -306,16 +308,18 @@ later! expected: %s lsblk: %s assigned: %s" %
         will add disk read&write test later
         polarion_id: RHEL7-93570
         '''
-        if self.params.get('outpostarn') is not None:
+        vm_local_disks = int(self.params.get('disks',
+                                             '*/instance_types/*')) - 1
+        if self.params.get('outpostarn') is not None or vm_local_disks >= 23:
             disk_dict = {
-                self.disk1: 'sds',
+                self.disk1: 'sdz',
             }
         else:
             disk_dict = {
-                self.disk1: 'sds',
-                self.disk2: 'sdt',
-                self.disk3: 'sdu',
-                self.disk4: 'sdv'
+                self.disk1: 'sdw',
+                self.disk2: 'sdx',
+                self.disk3: 'sdy',
+                self.disk4: 'sdz'
             }
         if self.vm.is_stopped():
             self.vm.start()
