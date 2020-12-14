@@ -283,7 +283,6 @@ later! expected: %s lsblk: %s assigned: %s" %
             if i.is_attached():
                 i.detach_from_instance(force=True)
             if not i.attach_to_instance(self.vm.instance_id, disk_dict.get(i)):
-                aws.get_debug_log(self)
                 self.fail("Attached failed!")
         if not self.vm.start():
             self.fail("Cannot start instance")
@@ -291,7 +290,6 @@ later! expected: %s lsblk: %s assigned: %s" %
         self.vm.stop(loops=20)
         for i in disk_dict.keys():
             if not i.detach_from_instance():
-                aws.get_debug_log(self)
                 self.fail("Dettached failed!")
         if self.params.get('outpostarn') is not None:
             expected_count = 1
