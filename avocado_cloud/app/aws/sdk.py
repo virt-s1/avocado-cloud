@@ -452,6 +452,7 @@ class EC2Snapshot(Base):
         config = Config(retries=dict(max_attempts=10, ))
 
         super(EC2Snapshot, self).__init__(params)
+        self.profile_name = params.get('profile_name')
         if self.profile_name is None:
             self.profile_name = 'default'
         self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
@@ -526,6 +527,7 @@ class EC2Volume(Base):
     def __init__(self, params):
         config = Config(retries=dict(max_attempts=10, ))
         super(EC2Volume, self).__init__(params)
+        self.profile_name = params.get('profile_name')
         if self.profile_name is None:
             self.profile_name = 'default'
         self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
@@ -725,7 +727,7 @@ class EC2Volume(Base):
             LOG.info("Volume does not exists %s" % self.id)
             return False
 
-    def attach_to_instance(self, instance_id, device_name, wait=True):
+    def attach_to_instance(self, instance_id, device_name, wait=True, timeout=120):
         """
         Attach disk to instance as $device_name
         :param instance_id: id of instance
@@ -749,12 +751,13 @@ class EC2Volume(Base):
                         return True
                     else:
                         end_time = time.time()
-                        if int(end_time) - int(start_time) > 80:
+                        if int(end_time) - int(start_time) > timeout:
                             LOG.error(
-                                "Failed to attach to instance after 80s! %s" %
-                                self.__volume.state)
+                                "Failed to attach to instance after %ss! Current state:%s" %
+                                (timeout, self.__volume.state))
                             return False
                     time.sleep(10)
+                    LOG.info("Waiting volume attached, current state %s, timeout %s" % (self.__volume.state, timeout))
 
             return True
         except Exception as err:
@@ -835,6 +838,7 @@ class NetworkInterface(Base):
 
     def __init__(self, params):
         super(NetworkInterface, self).__init__(params)
+        self.profile_name = params.get('profile_name')
         if self.profile_name is None:
             self.profile_name = 'default'
         self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
