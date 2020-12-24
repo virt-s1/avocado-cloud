@@ -528,16 +528,17 @@ bandwidth higher than 40G')
         utils_lib.run_cmd(self, cmd, expect_not_kw='Call Trace')
 
     def tearDown(self):
-
-        self.session = self.session1
-        if self.session.session.is_responsive(
-        ) is not None and self.vm1.is_started():
-            if self.name.name.endswith("test_pci_reset"):
-                cmd = 'sudo dmesg --clear'
-                utils_lib.run_cmd(self, cmd, msg='Clear dmesg')
-            aws.gcov_get(self)
-            aws.get_memleaks(self)
-            self.session.close()
-        self.session1.close()
-        if self.name.name.endswith("test_iperf_ipv4"):
-            self.session2.close()
+        aws.done_test(self)
+        if self.vm.is_created:
+            self.session = self.session1
+            if self.session.session.is_responsive(
+            ) is not None and self.vm1.is_started():
+                if self.name.name.endswith("test_pci_reset"):
+                    cmd = 'sudo dmesg --clear'
+                    utils_lib.run_cmd(self, cmd, msg='Clear dmesg')
+                aws.gcov_get(self)
+                aws.get_memleaks(self)
+                self.session.close()
+            self.session1.close()
+            if self.name.name.endswith("test_iperf_ipv4"):
+                self.session2.close()

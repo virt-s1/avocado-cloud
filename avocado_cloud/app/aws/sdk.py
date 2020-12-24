@@ -6,6 +6,7 @@ from botocore.config import Config
 import botocore.exceptions as boto_err
 from avocado_cloud.app import VM
 from avocado_cloud.app import Base
+from avocado_cloud.utils import utils_lib
 
 LOG = logging.getLogger('avocado.test')
 logging.basicConfig(level=logging.DEBUG)
@@ -60,6 +61,7 @@ class EC2VM(VM):
         self.vm_password = None
         self.ssh_conn = None
         self.__volume_id = None
+        self.is_created = False
 
     def reuse_init(self, instance_id, type_check=True):
         '''
@@ -105,7 +107,7 @@ class EC2VM(VM):
             return False
 
     def create(self, wait=True):
-        is_created = False
+        self.is_created = False
         if self.additionalinfo == None or self.additionalinfo == '':
             try:
                 self.__ec2_instance = self.__resource.create_instances(
@@ -133,9 +135,10 @@ class EC2VM(VM):
                     ],
                     UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
                     (self.ssh_user, self.instance_type))[0]
-                is_created = True
+                self.is_created = True
             except ClientError as err:
                 LOG.error("Failed to create instance!")
+                self.is_createable = False
                 raise err
             except Exception as err:
                 raise err
@@ -166,14 +169,14 @@ class EC2VM(VM):
                     ],
                         UserData='#!/bin/bash\nmkdir /home/%s/instance_create_%s' %
                         (self.ssh_user, self.instance_type))[0]
-                    is_created = True
+                    self.is_created = True
                 except ClientError as err:
                     LOG.error("Failed to create instance, try another addtionalinfo {}".format(err))
                 except Exception as err:
                     LOG.error("Failed to create instance, try another addtionalinfo {}".format(err))
-                if is_created:
+                if self.is_created:
                     break
-            if not is_created:
+            if not self.is_created:
                 raise err
 
         self.create_tags()
@@ -188,7 +191,7 @@ class EC2VM(VM):
 
         self.instance_id = self.__ec2_instance.id
         # self.ipv4 = self.__ec2_instance.public_ip_address
-        self.ipv4 = self.__ec2_instance.public_dns_name
+        self.floating_ip
         self.boot_volume_id
 
     def create_tags(self):
@@ -242,8 +245,7 @@ class EC2VM(VM):
                     self.__ec2_instance.state['Name'])
                 return False
             self.__ec2_instance.reload()
-            # self.ipv4 = self.__ec2_instance.public_ip_address
-            self.ipv4 = self.__ec2_instance.public_dns_name
+            self.floating_ip
         return True
 
     def stop(self, wait=True, loops=4):
@@ -381,10 +383,10 @@ class EC2VM(VM):
             return True
 
     @property
+    @utils_lib.wait_for(not_ret=None, ck_not_ret=True, timeout=120)
     def floating_ip(self):
         if self.ipv4 is None:
             LOG.info("No public ip available! Try to reload it!")
-
         self.__ec2_instance.reload()
         self.ipv4 = self.__ec2_instance.public_dns_name
         LOG.info("Public ip is: %s" % self.ipv4)

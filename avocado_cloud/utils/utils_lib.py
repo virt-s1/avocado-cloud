@@ -3,6 +3,7 @@ import re
 import time
 import logging
 import decimal
+from functools import wraps
 
 LOG = logging.getLogger('avocado.test')
 logging.basicConfig(level=logging.DEBUG)
@@ -97,8 +98,7 @@ def run_cmd(test_instance,
         exception_hit = True
     if exception_hit:
         try:
-            test_instance.log.info("Try to close and reconnect")
-            session.close()
+            test_instance.log.info("Try to reconnect")
             session.connect(timeout=test_instance.ssh_wait_timeout)
         except Exception as err:
             test_instance.log.error("")
@@ -355,3 +355,27 @@ def run_os_tests(test_instance, case_name=None):
     cmd_get_log = "sudo cat /tmp/os_tests_result/{}.debug".format(case_name)
     run_cmd(test_instance, cmd_get_log, msg='Get test debug log')
     test_instance.assertEqual(ret, 0, "Test fail. ret:{}".format(ret))
+
+def wait_for(ret=None, not_ret=None, ck_ret=False, ck_not_ret=False, timeout=60, interval=1):
+    '''
+    wait for a func return expected value within specified time
+    '''
+    def decorate(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            while True:
+                LOG.info("{} called, timeout {}".format(func.__name__, timeout))
+                result = func(*args, **kwargs)
+                if ck_ret and result == ret:
+                    break
+                if ck_not_ret and not_ret != result:
+                    break
+                end_time = time.time()
+                time.sleep(interval)
+                if end_time - start_time > timeout:
+                    LOG.info('timeout, exit!')
+                    break
+            return result
+        return wrapper
+    return decorate

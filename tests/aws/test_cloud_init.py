@@ -226,11 +226,13 @@ class CloudInit(Test):
             self.fail("NOZEROCONF=yes is expected")
 
     def tearDown(self):
-        if self.session.session.is_responsive(
-        ) is not None and self.vm.is_started():
-            utils_lib.run_cmd(self,
-                        'rpm -q cloud-init',
-                        msg='Get cloud-init version.')
-            aws.gcov_get(self)
-            aws.get_memleaks(self)
-            self.session.close()
+        aws.done_test(self)
+        if self.vm.is_created:
+            if self.session.session.is_responsive(
+            ) is not None and self.vm.is_started():
+                utils_lib.run_cmd(self,
+                            'rpm -q cloud-init',
+                            msg='Get cloud-init version.')
+                aws.gcov_get(self)
+                aws.get_memleaks(self)
+                self.session.close()

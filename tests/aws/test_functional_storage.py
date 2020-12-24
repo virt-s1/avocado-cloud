@@ -571,25 +571,27 @@ later! expected: %s lsblk: %s assigned: %s" %
             msg='Test  the  speed  of  the built-in checksumming functions.')
 
     def tearDown(self):
-        if 'test_multi' in self.name.name or 'blktests' in self.name.name:
-            self.log.info('Release disk if it is not available')
+        aws.done_test(self)
+        if self.vm.is_created:
+            if 'test_multi' in self.name.name or 'blktests' in self.name.name:
+                self.log.info('Release disk if it is not available')
+                try:
+                    if self.params.get('outpostarn') is not None:
+                        if self.disk1.is_attached():
+                            self.disk1.detach_from_instance()
+                    else:
+                        [disk.detach_from_instance(force=True) for disk in [self.disk1, self.disk2, self.disk3, self.disk4] if disk.is_attached()]
+                except AttributeError as err:
+                    self.log.info('No disk release required!')
+            self.session = self.session
             try:
-                if self.params.get('outpostarn') is not None:
-                    if self.disk1.is_attached():
-                        self.disk1.detach_from_instance()
-                else:
-                    [disk.detach_from_instance(force=True) for disk in [self.disk1, self.disk2, self.disk3, self.disk4] if disk.is_attached()]
-            except AttributeError as err:
-                self.log.info('No disk release required!')
-        self.session = self.session
-        try:
-            if self.session is not None and self.session.session.is_responsive() is not None and self.vm.is_started():
-                aws.gcov_get(self)
-                aws.get_memleaks(self)
+                if self.session is not None and self.session.session.is_responsive() is not None and self.vm.is_started():
+                    aws.gcov_get(self)
+                    aws.get_memleaks(self)
+                    self.session.close()
+                if self.name.name.endswith("test_blktests_nvme"):
+                    self.vm.reboot()
+                self.log.info("Try to close session")
                 self.session.close()
-            if self.name.name.endswith("test_blktests_nvme"):
-                self.vm.reboot()
-            self.log.info("Try to close session")
-            self.session.close()
-        except Exception as err:
-            self.log.info("Exception hit when try to close session: {}".format(err))
+            except Exception as err:
+                self.log.info("Exception hit when try to close session: {}".format(err))

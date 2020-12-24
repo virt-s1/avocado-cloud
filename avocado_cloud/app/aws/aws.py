@@ -79,6 +79,10 @@ def init_test(test_ins, instance_index=0):
     if not test_ins.name.name.endswith("test_cleanup") and not pre_stop:
         check_session(test_ins)
 
+def done_test(test_ins):
+    if not test_ins.vm.is_created:
+        test_ins.log.info("Instance not created, save it to blacklist")
+        save_resource_blacklist(test_ins.teststmpdir, test_ins.vm.instance_type)
 
 def save_resource_blacklist(jobdir, resource_type):
     """For skippling test if it cannot make ssh connection

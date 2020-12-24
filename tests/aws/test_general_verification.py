@@ -800,8 +800,10 @@ master.zip"
 
 
     def tearDown(self):
-        if self.session.session.is_responsive(
-        ) is not None and self.vm.is_started():
-            aws.gcov_get(self)
-            utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
-            self.session.close()
+        aws.done_test(self)
+        if self.vm.is_created:
+            if self.session.session.is_responsive(
+            ) is not None and self.vm.is_started():
+                aws.gcov_get(self)
+                utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+                self.session.close()

@@ -355,8 +355,10 @@ if crashed successfully!")
             utils_lib.run_cmd(self, 'uname -r', msg='check kernel', expect_ret=0, expect_kw=kernel[7:])
 
     def tearDown(self):
-        if self.session.session.is_responsive(
-        ) is not None and self.vm.is_started():
-            aws.gcov_get(self)
-            aws.get_memleaks(self)
-            self.session.close()
+        aws.done_test(self)
+        if self.vm.is_created:
+            if self.session.session.is_responsive(
+            ) is not None and self.vm.is_started():
+                aws.gcov_get(self)
+                aws.get_memleaks(self)
+                self.session.close()
