@@ -6,3 +6,4 @@ WARNING ExtHandler failed to get IMDS info
 Error: .CGroupsException. The daemon.s PID .* was already added to the legacy cgroup. this invalidates resource usage data
 Daemon Error getting cloud-init enabled status from.*
 INFO ExtHandler ExtHandler [HEARTBEAT] Agent WALinuxAgent-.* is running as the goal state agent.*
+UpdateGSErrors: 0;
