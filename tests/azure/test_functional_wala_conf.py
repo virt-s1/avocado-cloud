@@ -779,7 +779,7 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         self.log.info("WALA conf: self-update")
         self.session.cmd_output("sudo su -")
         x, y, z = self.session.cmd_output("rpm -q WALinuxAgent").split(
-            '-')[1].split('.')
+            '-')[1].split('.')[:3]
         low_version = "2.0.0"
         high_version = "{0}.{1}.{2}".format(int(x) + 10, y, z)
         self.log.info("Low version: " + low_version)
