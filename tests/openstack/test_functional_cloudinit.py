@@ -244,7 +244,8 @@ ssh_pwauth: 1
         RHEL-189023 - CLOUDINIT-TC: check ipv6 configuration
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = 'ifconfig eth0'
+        # change command to ip addr because of no net-tool by default in rhel8.4
+        cmd = 'ip addr show eth0'
         utils_lib.run_cmd(self, cmd, expect_kw='inet6 2620')
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth0'
         utils_lib.run_cmd(self, cmd, expect_kw='IPV6INIT=yes')
@@ -473,8 +474,8 @@ ssh_pwauth: 1
             self.vm.vm_username, output,
             "Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
             % output)
-        cmd = 'ifconfig eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw='RUNNING')
+        cmd = 'ip addr show eth1'
+        utils_lib.run_cmd(self, cmd, expect_kw=',UP,')
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
         utils_lib.run_cmd(self, cmd, expect_kw='DEVICE=eth1')
 
@@ -498,8 +499,9 @@ ssh_pwauth: 1
             self.vm.vm_username, output,
             "Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
             % output)
-        cmd = 'ifconfig eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw='RUNNING')
+        # change command to ip addr because of no net-tool by default in rhel8.4
+        cmd = 'ip addr show eth1'
+        utils_lib.run_cmd(self, cmd, expect_kw=',UP,')
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
         utils_lib.run_cmd(self, cmd, expect_kw='DHCPV6C_OPTIONS=-S,IPV6_AUTOCONF=yes')
 
@@ -523,8 +525,8 @@ ssh_pwauth: 1
             self.vm.vm_username, output,
             "Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
             % output)
-        cmd = 'ifconfig eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw='RUNNING')
+        cmd = 'ip addr show eth1'
+        utils_lib.run_cmd(self, cmd, expect_kw=',UP,')
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
         utils_lib.run_cmd(self, cmd, expect_kw='IPV6_FORCE_ACCEPT_RA=yes')
 
