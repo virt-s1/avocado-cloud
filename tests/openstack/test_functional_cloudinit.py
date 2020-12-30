@@ -278,6 +278,18 @@ ssh_pwauth: 1
                 self.vm.vm_username, output,
                 str(x)+" run: Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
                 % output)
+            # checking /etc/sysconfig/network NOZEROCONF=yes
+            output = self.session.cmd_output('sudo cat /etc/sysconfig/network')
+            self.log.info("run: cat /etc/sysconfig/network  " + output)
+            # checking if there is 'Traceback' in log
+            cmd = 'sudo cat /var/log/cloud-init.log'
+            utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='Traceback',
+                          msg=str(x)+' run: check Traceback in /var/log/cloud-init.log',
+                          is_get_console=False)
+
             time.sleep(30)
 
     def test_cloudutils_growpart_resize_partition_first_boot(self):
