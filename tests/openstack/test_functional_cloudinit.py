@@ -269,7 +269,7 @@ ssh_pwauth: 1
         create vm and login with ssh-key, run 50 times, because of race condition bug
         """
         pre_delete = True
-        for x in range(20):
+        for x in range(50):
             self.log.info(str(x)+" run: create VM and login")
             self.session = self.cloud.init_vm(pre_delete=pre_delete,
                                           pre_stop=False)
