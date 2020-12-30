@@ -460,42 +460,44 @@ class LifeCycleTest(Test):
                 self.fail('Memory leak found!')
 
     def tearDown(self):
-        if "test_boot_mitigations" in self.name.name:
-            cmd = 'sudo grubby --update-kernel=ALL  --remove-args="mitigations=auto,nosmt"'
-            utils_lib.run_cmd(self, cmd, msg='Remove "mitigations=auto,nosmt"')
-            self.log.info('Reboot system!')
-            self.vm.reboot(wait=True)
-            if 'metal' in self.vm.instance_type:
-                self.log.info("Wait {}".format(self.ssh_wait_timeout))
-                time.sleep(self.ssh_wait_timeout)
-            else:
-                self.log.info("Wait 60s")
-                time.sleep(60)
-
-        if "create_snapshot" in self.name.name:
-            if self.snap.delete():
-                self.log.info("Delete snaphot after test!")
-            else:
-                self.log.info("Delete snapshot failed after test!")
-        if "test_boot_debugkernel" in self.name.name:
-            aws.cleanup_stored(self.teststmpdir,
-                               self.params,
-                               resource_id=self.vm.res_id)
-        if "test_boot_nr_cpus" in self.name.name:
-            for cpu in range(1,3):
-                cmd = 'sudo grubby --update-kernel=ALL --remove-args="nr_cpus={}"'.format(cpu)
-                utils_lib.run_cmd(self, cmd, msg='remove nr_cpus={}'.format(cpu))
-
-            self.log.info('Reboot system!')
-            self.vm.reboot(wait=True)
-            if 'metal' in self.vm.instance_type:
-                self.log.info("Wait {}".format(self.ssh_wait_timeout))
-                time.sleep(self.ssh_wait_timeout)
-            else:
-                self.log.info("Wait 60s")
-                time.sleep(60)
-        if self.session.session.is_responsive(
-        ) is not None and self.vm.is_started():
-            aws.gcov_get(self)
-            aws.get_memleaks(self)
-            self.session.close()
+        aws.done_test(self)
+        if self.vm.is_created:
+            if "test_boot_mitigations" in self.name.name:
+                cmd = 'sudo grubby --update-kernel=ALL  --remove-args="mitigations=auto,nosmt"'
+                utils_lib.run_cmd(self, cmd, msg='Remove "mitigations=auto,nosmt"')
+                self.log.info('Reboot system!')
+                self.vm.reboot(wait=True)
+                if 'metal' in self.vm.instance_type:
+                    self.log.info("Wait {}".format(self.ssh_wait_timeout))
+                    time.sleep(self.ssh_wait_timeout)
+                else:
+                    self.log.info("Wait 60s")
+                    time.sleep(60)
+    
+            if "create_snapshot" in self.name.name:
+                if self.snap.delete():
+                    self.log.info("Delete snaphot after test!")
+                else:
+                    self.log.info("Delete snapshot failed after test!")
+            if "test_boot_debugkernel" in self.name.name:
+                aws.cleanup_stored(self.teststmpdir,
+                                   self.params,
+                                   resource_id=self.vm.res_id)
+            if "test_boot_nr_cpus" in self.name.name:
+                for cpu in range(1,3):
+                    cmd = 'sudo grubby --update-kernel=ALL --remove-args="nr_cpus={}"'.format(cpu)
+                    utils_lib.run_cmd(self, cmd, msg='remove nr_cpus={}'.format(cpu))
+    
+                self.log.info('Reboot system!')
+                self.vm.reboot(wait=True)
+                if 'metal' in self.vm.instance_type:
+                    self.log.info("Wait {}".format(self.ssh_wait_timeout))
+                    time.sleep(self.ssh_wait_timeout)
+                else:
+                    self.log.info("Wait 60s")
+                    time.sleep(60)
+            if self.session.session.is_responsive(
+            ) is not None and self.vm.is_started():
+                aws.gcov_get(self)
+                aws.get_memleaks(self)
+                self.session.close()

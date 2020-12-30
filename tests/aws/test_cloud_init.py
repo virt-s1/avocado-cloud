@@ -49,7 +49,7 @@ class CloudInit(Test):
         self.session.connect(timeout=self.ssh_wait_timeout)
         if not self.params.get('ipv6'):
             self.cancel("Instance not support ipv6, skip check")
-        cmd = 'ifconfig eth0'
+        cmd = 'ip addr show eth0'
         utils_lib.run_cmd(self, cmd, expect_kw='inet6 2600')
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth0'
         utils_lib.run_cmd(self, cmd, expect_kw='IPV6INIT=yes')
@@ -226,11 +226,13 @@ class CloudInit(Test):
             self.fail("NOZEROCONF=yes is expected")
 
     def tearDown(self):
-        if self.session.session.is_responsive(
-        ) is not None and self.vm.is_started():
-            utils_lib.run_cmd(self,
-                        'rpm -q cloud-init',
-                        msg='Get cloud-init version.')
-            aws.gcov_get(self)
-            aws.get_memleaks(self)
-            self.session.close()
+        aws.done_test(self)
+        if self.vm.is_created:
+            if self.session.session.is_responsive(
+            ) is not None and self.vm.is_started():
+                utils_lib.run_cmd(self,
+                            'rpm -q cloud-init',
+                            msg='Get cloud-init version.')
+                aws.gcov_get(self)
+                aws.get_memleaks(self)
+                self.session.close()

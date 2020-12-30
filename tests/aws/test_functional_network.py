@@ -512,13 +512,13 @@ bandwidth higher than 40G')
             self.log.info('Check network in guest, loop%s' % i)
             cmd = "lspci"
             output1 = utils_lib.run_cmd(self, cmd)
-            cmd = "ifconfig"
+            cmd = "ip addr show"
             output1 = utils_lib.run_cmd(self, cmd)
             if 'eth%s' % netdev_index not in output1:
                 self.log.info("Added nic not found")
         self.network.detach_from_instance(self.vm1.instance_id)
         time.sleep(5)
-        cmd = "ifconfig"
+        cmd = "ip addr show"
         utils_lib.run_cmd(self, cmd)
         self.network.delete()
         self.assertIn('eth%d' % netdev_index,
@@ -528,16 +528,17 @@ bandwidth higher than 40G')
         utils_lib.run_cmd(self, cmd, expect_not_kw='Call Trace')
 
     def tearDown(self):
-
-        self.session = self.session1
-        if self.session.session.is_responsive(
-        ) is not None and self.vm1.is_started():
-            if self.name.name.endswith("test_pci_reset"):
-                cmd = 'sudo dmesg --clear'
-                utils_lib.run_cmd(self, cmd, msg='Clear dmesg')
-            aws.gcov_get(self)
-            aws.get_memleaks(self)
-            self.session.close()
-        self.session1.close()
-        if self.name.name.endswith("test_iperf_ipv4"):
-            self.session2.close()
+        aws.done_test(self)
+        if self.vm.is_created:
+            self.session = self.session1
+            if self.session.session.is_responsive(
+            ) is not None and self.vm1.is_started():
+                if self.name.name.endswith("test_pci_reset"):
+                    cmd = 'sudo dmesg --clear'
+                    utils_lib.run_cmd(self, cmd, msg='Clear dmesg')
+                aws.gcov_get(self)
+                aws.get_memleaks(self)
+                self.session.close()
+            self.session1.close()
+            if self.name.name.endswith("test_iperf_ipv4"):
+                self.session2.close()
