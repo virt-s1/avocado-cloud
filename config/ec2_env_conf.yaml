@@ -44,6 +44,7 @@ code_cover : False
 # optional, amazon and ubuntu AMIs for preformance comparing
 amzn2_ami_id_x86 : ami-0873b46c45c11058d
 amzn2_ami_id_arm : ami-091a6d6d0ed7b35fd
+amzn2_ssh_user : ec2-user
 ubuntu_ami_id_x86 : ami-0a634ae95e11c6f91
 ubuntu_ami_id_arm : ami-085fd7441d1390d15
 ubuntu_ssh_user : ubuntu

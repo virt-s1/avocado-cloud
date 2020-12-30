@@ -512,13 +512,13 @@ bandwidth higher than 40G')
             self.log.info('Check network in guest, loop%s' % i)
             cmd = "lspci"
             output1 = utils_lib.run_cmd(self, cmd)
-            cmd = "ifconfig"
+            cmd = "ip addr show"
             output1 = utils_lib.run_cmd(self, cmd)
             if 'eth%s' % netdev_index not in output1:
                 self.log.info("Added nic not found")
         self.network.detach_from_instance(self.vm1.instance_id)
         time.sleep(5)
-        cmd = "ifconfig"
+        cmd = "ip addr show"
         utils_lib.run_cmd(self, cmd)
         self.network.delete()
         self.assertIn('eth%d' % netdev_index,

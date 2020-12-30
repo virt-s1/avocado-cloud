@@ -34,6 +34,8 @@ class LTPRun(Test):
             self.cancel("Not enough memory in %s!" % black_list)
         elif self.vm.instance_type.startswith('a1'):
             utils_lib.ltp_run(self, case_name="hugemmap01", file_name="hugetlb")
+        elif 'aarch64' in output and int(mini_mem) < 100:
+            utils_lib.ltp_run(self, case_name="hugemmap01", file_name="hugetlb")
         else:
             utils_lib.ltp_run(self, file_name="hugetlb")
 

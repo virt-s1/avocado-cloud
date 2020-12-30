@@ -270,10 +270,16 @@ Server release 6.n\n but it is %s" % output)
                 msg="It should be like: Red Hat Enterprise Linux \
 Server release 7.n\n but it is %s" % output)
         elif 'el8' in kernel_ver:
-            self.assertIn(
-                'Red Hat Enterprise Linux release 8',
-                output,
-                msg="It should be like: Red Hat Enterprise Linux \
+            if 'centos' in self.params.get('ssh_user'):
+                self.assertIn(
+                    'CentOS Stream release 8',
+                    output,
+                    msg="It should be like: CentOS Stream release 8\n but it is %s" % output)
+            else:
+                self.assertIn(
+                    'Red Hat Enterprise Linux release 8',
+                    output,
+                    msg="It should be like: Red Hat Enterprise Linux \
 release 8.n\n but it is %s" % output)
         self.log.info("Check PASS: %s" % output)
 
@@ -340,6 +346,7 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
         polarion_id: N/A
         BZ#: 1349927
         '''
+        utils_lib.run_cmd(self, 'cat /etc/redhat-release', cancel_not_kw='CentOS', msg='skip this check on centos, rhbz1349927')
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_nouveau"
         utils_lib.run_os_tests(self, case_name=case_name)
 

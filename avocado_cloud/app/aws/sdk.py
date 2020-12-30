@@ -29,8 +29,10 @@ class EC2VM(VM):
         self.ssh_user = params.get('ssh_user')
         if vendor == "amzn2_x86":
             self.ami_id = params.get('amzn2_ami_id_x86')
+            self.ssh_user = params.get('amzn2_ssh_user')
         elif vendor == "amzn2_arm":
             self.ami_id = params.get('amzn2_ami_id_arm')
+            self.ssh_user = params.get('amzn2_ssh_user')
         elif vendor == "ubuntu_x86":
             self.ami_id = params.get('ubuntu_ami_id_x86')
             self.ssh_user = params.get('ubuntu_ssh_user')
@@ -93,6 +95,7 @@ class EC2VM(VM):
                     LOG.info("Instance type matched, reuse it.")
                     self.boot_volume_id
                     self.instance_id = self.__ec2_instance.id
+                    self.is_created = True
                     return True
                 else:
                     LOG.error(
@@ -101,6 +104,7 @@ class EC2VM(VM):
                     return False
             else:
                 LOG.info("Reuse %s without instance type check!" % instance_id)
+                self.is_created = False
                 return True
         except Exception as err:
             LOG.error(err)
