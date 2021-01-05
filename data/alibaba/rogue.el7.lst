@@ -519,4 +519,10 @@
 /usr/share/fonts/dejavu/.uuid
 /usr/share/fonts/urw-base35/.uuid
 /usr/share/fonts/.uuid
+/etc/alternatives/libwbclient.so.0.15-64
+/etc/alternatives/ncman
+/etc/alternatives/nmap
+/usr/lib64/gconv/gconv-modules.rpmnew
+/usr/lib64/libwbclient.so.0
+/usr/lib64/libwbclient.so.0.15
 #################### KNOWN ISSUES BELOW ####################

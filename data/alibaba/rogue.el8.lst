@@ -199,6 +199,9 @@
 /etc/systemd/system/sockets.target.wants/cups.socket
 /usr/share/fonts/google-droid/.uuid
 /usr/share/fonts/urw-base35/.uuid
+/etc/alternatives/libwbclient.so.0.15-64
+/usr/lib64/libwbclient.so.0
+/usr/lib64/libwbclient.so.0.15
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
