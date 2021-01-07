@@ -70,7 +70,7 @@ function deprovision_cloudinit_wala() {
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
     fi
-    # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1661574
+    # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1641190
     # Remove duplicated dhcp=dhclient
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
     if [ ${release%%.*} == '8' ];then
