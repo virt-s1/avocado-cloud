@@ -37,6 +37,9 @@ class WALAFuncTest(Test):
         status, output = self.session.cmd_status_output('sudo su -')
         self.assertEqual(status, 0,
                          "User [root] login failed\n{}".format(str(output)))
+        # Must stop NetworkManager or it will regenerate /etc/resolv.conf in RHEL-8.4
+        if "test_waagent_depro" in self.case_short_name:
+            self.session.cmd_output("systemctl stop NetworkManager")
 
     def test_waagent_verbose(self):
         """
