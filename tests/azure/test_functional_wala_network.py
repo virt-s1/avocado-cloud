@@ -139,7 +139,7 @@ lo eth0\
         else:
             self.session.cmd_output(
                 "hostnamectl set-hostname {0}".format(new_hostname))
-        time.sleep(15)
+        time.sleep(30)
         self.assertNotIn(
             "NXDOMAIN",
             self.session.cmd_output("nslookup {0}".format(new_hostname)),
