@@ -36,3 +36,4 @@ S.5....T.  c /etc/systemd/logind.conf
 ..5....T.  c /etc/yum/pluginconf.d/product-id.conf
 SM5....T.    /usr/sbin/lspci
 SM5....T.    /usr/sbin/setpci
+S.5....T.  c /etc/NetworkManager/NetworkManager.conf

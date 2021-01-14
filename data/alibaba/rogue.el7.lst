@@ -525,4 +525,5 @@
 /usr/lib64/gconv/gconv-modules.rpmnew
 /usr/lib64/libwbclient.so.0
 /usr/lib64/libwbclient.so.0.15
+/etc/image-id
 #################### KNOWN ISSUES BELOW ####################
