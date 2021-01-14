@@ -252,6 +252,7 @@ bandwidth higher than 40G')
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         aws.check_session(self)
+        utils_lib.run_cmd(self, 'ethtool -i eth0', cancel_kw='ena')
         cmd_string = 'modprobe -r ena;modprobe ena'
         cmd = 'sudo echo "%s" >/tmp/mod.sh' % cmd_string
         utils_lib.run_cmd(self, cmd, expect_ret=0)
@@ -369,7 +370,7 @@ bandwidth higher than 40G')
         self.session = self.session1
         aws.check_session(self)
         cmd = ' sudo  ethtool -k eth0'
-        utils_lib.run_cmd(self, cmd, msg='Show current settings.')
+        setting_out = utils_lib.run_cmd(self, cmd, msg='Show current settings.')
         cmd = 'sudo ethtool -i eth0'
         output = utils_lib.run_cmd(self, cmd, msg='Check network driver!')
         if 'driver: ena' in output:
@@ -409,6 +410,8 @@ bandwidth higher than 40G')
             }
 
         for option in option_dict.keys():
+            if option_dict[option] not in setting_out:
+                continue
             cmd = 'sudo ethtool -K eth0 %s off' % option
             utils_lib.run_cmd(self, cmd)
             cmd = 'sudo ethtool -k eth0'

@@ -282,7 +282,7 @@ later! expected: %s lsblk: %s assigned: %s" %
         for i in disk_dict.keys():
             if i.is_attached():
                 i.detach_from_instance(force=True)
-            if not i.attach_to_instance(self.vm.instance_id, disk_dict.get(i)):
+            if not i.attach_to_instance(self.vm.instance_id, disk_dict.get(i), timeout=180):
                 self.fail("Attached failed!")
         if not self.vm.start():
             self.fail("Cannot start instance")
