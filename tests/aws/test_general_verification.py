@@ -252,36 +252,10 @@ content manually!\n %s" % output)
         :avocado: tags=test_check_release_name,fast_check
         check /etc/redhat-release have the correct name
         polarion_id: RHEL7-103850
+        BZ#: 1852657
         '''
-        check_cmd = r"sudo cat /etc/redhat-release"
-        self.log.info("Check release name cmd: %s" % check_cmd)
-        output = utils_lib.run_cmd(self,check_cmd, expect_ret=0)
-        kernel_ver = utils_lib.run_cmd(self, 'uname -r', msg="Get kernel version")
-        if '2.6.32' in kernel_ver:
-            self.assertIn(
-                'Red Hat Enterprise Linux Server release 6',
-                output,
-                msg="It should be like: Red Hat Enterprise Linux \
-Server release 6.n\n but it is %s" % output)
-        elif '3.10.0' in kernel_ver:
-            self.assertIn(
-                'Red Hat Enterprise Linux Server release 7',
-                output,
-                msg="It should be like: Red Hat Enterprise Linux \
-Server release 7.n\n but it is %s" % output)
-        elif 'el8' in kernel_ver:
-            if 'centos' in self.params.get('ssh_user'):
-                self.assertIn(
-                    'CentOS Stream release 8',
-                    output,
-                    msg="It should be like: CentOS Stream release 8\n but it is %s" % output)
-            else:
-                self.assertIn(
-                    'Red Hat Enterprise Linux release 8',
-                    output,
-                    msg="It should be like: Red Hat Enterprise Linux \
-release 8.n\n but it is %s" % output)
-        self.log.info("Check PASS: %s" % output)
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_release_name"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_vulnerabilities(self):
         '''

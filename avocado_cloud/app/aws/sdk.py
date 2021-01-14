@@ -763,7 +763,7 @@ class EC2Volume(Base):
                                 (timeout, self.__volume.state))
                             return False
                     time.sleep(10)
-                    LOG.info("Waiting volume attached, current state %s, timeout %s" % (self.__volume.state, timeout))
+                    LOG.info("Waiting volume %s attached, current state %s, timeout %s" % (self.__volume.id, self.__volume.state, timeout))
 
             return True
         except Exception as err:

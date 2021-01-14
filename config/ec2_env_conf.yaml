@@ -35,10 +35,6 @@ stress_url : "https://rpmfind.net/linux/epel/7/x86_64/Packages/s/stress-1.0.4-16
 # measure system boot/reboot time via systemd-analyze
 max_boot_time : 40
 max_reboot_time : 35
-# Install ltp rpms instead of compiling it each time
-# x86_64: https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp-master-20200514/ltp-master-20200514.x86_64.rpm
-# aarch64: https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp-master-20200514/ltp-master-20200514.aarch64.rpm
-ltp_url : https://github.com/liangxiao1/rpmbuild_specs/releases/download/ltp_20190130/ltp-master-20190129.x86_64.rpm
 # True|False to collect code coverage report, you need a gcov kernel ami first
 code_cover : False
 # optional, amazon and ubuntu AMIs for preformance comparing

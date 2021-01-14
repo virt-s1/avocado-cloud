@@ -22,22 +22,8 @@ class LTPRun(Test):
         polarion_id: RHEL7-88729
         BZ#: 1312331
         '''
-        # some a1 instance has not enough memory to run this case, skip them
-        black_list = ['a1.large', 'a1.xlarge', 'a1.medium']
-        mini_mem = self.params.get('memory', '*/instance_types/*')
-        if int(mini_mem) < 2:
-            self.cancel('Cancel case as low memory')
-        output = utils_lib.run_cmd(self, 'sudo lscpu', expect_ret=0)
-        if 'aarch64' in output and int(mini_mem) < 16:
-            self.cancel('Cancel case as low memory')
-        if self.vm.instance_type in black_list:
-            self.cancel("Not enough memory in %s!" % black_list)
-        elif self.vm.instance_type.startswith('a1'):
-            utils_lib.ltp_run(self, case_name="hugemmap01", file_name="hugetlb")
-        elif 'aarch64' in output and int(mini_mem) < 100:
-            utils_lib.ltp_run(self, case_name="hugemmap01", file_name="hugetlb")
-        else:
-            utils_lib.ltp_run(self, file_name="hugetlb")
+        case_name = "os_tests.tests.test_ltp.TestLTP.test_ltp_hugemmap"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_ltp_cpuhotplug(self):
         '''
