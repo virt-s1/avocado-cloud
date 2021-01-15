@@ -56,6 +56,15 @@ has some pkg not signed")
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_virtwhat"
         utils_lib.run_os_tests(self, case_name=case_name)
 
+    def test_fork_pte(self):
+        '''
+        :avocado: tags=test_fork_pte,fast_check,kernel_tier1
+        polarion_id: RHEL7-103857
+        RHBZ: 1908439
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_fork_pte"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_xenfs_mount(self):
         '''
         :avocado: tags=test_xenfs_mount,fast_check

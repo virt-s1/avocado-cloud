@@ -23,6 +23,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_gpgkey
     test_general_verification.py:GeneralVerification.test_check_timezone
     test_general_verification.py:GeneralVerification.test_check_virtwhat
+    test_general_verification.py:GeneralVerification.test_fork_pte
     test_general_verification.py:GeneralVerification.test_xenfs_mount
     test_general_verification.py:GeneralVerification.test_xe_guest_utilities
     test_general_verification.py:GeneralVerification.test_xenfs_write_inability
