@@ -50,7 +50,7 @@ def collect_information(test_instance, label='general'):
     test_instance.session.copy_files_from(
         local_path=host_logpath,
         remote_path='{0}/*'.format(guest_logpath),
-        timeout=600)
+        timeout=1200)
     test_instance.log.info(
         'Copy logs to {0} successfully.'.format(host_logpath))
 
