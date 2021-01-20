@@ -48,9 +48,12 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
         if x_match:
             x_version = int(x_match[0])
         else:
-            # Currently the latest major release is 8. Need to be updated for
-            # future major releases
-            x_version = 8
+            if self.project:
+                x_version = self.project.split('.')[0]
+            else:
+                # Currently the latest major release is 8. Need to be updated for
+                # future major releases
+                x_version = 9
         label = "BaseOS" if x_version > 7 else "Server"
         # Validate these repos one by one and select the available one
         base_url_list = [ "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
