@@ -646,5 +646,60 @@ will not check kernel-devel package.')
             msg="Memory Size is not as expect Real: {0}; Expected: {1}".format(
                 guest_mem, expected_mem))
 
+    def test_kudmp_status(self):
+        """Test kdump status
+
+        case_name:
+            Test kdump status
+
+        description:
+            Check kdump is running.
+
+        bugzilla_id:
+            n/a
+
+        polarion_id:
+            n/a
+
+        maintainer:
+            cheshi@redhat.com
+
+        case_priority:
+            0
+
+        case_component:
+            checkup
+
+        pass_criteria:
+            kdump service is running.
+        """
+        self.log.info("Checking kdump status")
+
+        if self.rhel_ver.split('.')[0] == '6':
+            check_cmd = 'sudo service kdump status'
+        else:
+            check_cmd = 'systemctl status kdump.service'
+
+        kdump_running = False
+        for i in range(10):
+            output = self.session.cmd_output(check_cmd)
+            self.log.debug("%s" % output)
+            if 'Active: active' in output:
+                self.log.info('kdump service is running.')
+                kdump_running = True
+                break
+            else:
+                if 'Active: inactive' in output:
+                    self.log.error('kdump service is inactive!')
+                    break
+                if 'Kdump is unsupported' in output:
+                    self.log.error('kdump service is unsupported!')
+                    break
+                self.log.info('Wait for another 20s (max = 200s)')
+                time.sleep(20)
+
+        if not kdump_running:
+            self.fail('kdump service is not running at last.')
+
     def tearDown(self):
         self.session.close()
