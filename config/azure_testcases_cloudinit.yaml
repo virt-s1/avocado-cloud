@@ -34,3 +34,8 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_chpasswd_with_hashed_passwords
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_runcmd_module_execute_command
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ds_identity_path
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_random_password_len
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_man_page
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_show_full_version
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_default_config
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_startup_time
