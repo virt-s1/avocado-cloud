@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import yaml
 from avocado import Test
 from avocado import main
 from avocado_cloud.app import Setup
@@ -13,6 +14,13 @@ from distutils.version import LooseVersion
 from avocado_cloud.utils.utils_azure import command
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
+
+
+class D(dict):
+    # Don't raise exception if cannot get key value
+    def __missing__(self, key):
+        self[key] = D()
+        return self[key]
 
 
 class CloudinitTest(Test):
@@ -1408,6 +1416,87 @@ swap:
             "grep 'Permission denied' /var/log/cloud-init-output.log")[0], 0,
             "There are Permission denied logs in /var/log/cloud-init-output.log")
 
+    def test_cloudinit_check_random_password_len(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-189226 - CLOUDINIT-TC: checking random password and its length
+        Verify the random password length is 20
+        '''
+        self.log.info("RHEL-189226 - CLOUDINIT-TC: checking random password and its length")
+        self.session.cmd_output("sudo su -")
+        self.session.cmd_output("rm -f /var/log/cloud-init-output.log /var/lib/cloud/instance/sem/config_set_passwords")
+        # Add user for test
+        testuser = "test1"
+        self.session.cmd_output("useradd {}".format(testuser))
+        CONFIG = """\
+user: {}
+password: R
+chpasswd: 
+    expire: false
+ssh_pwauth: 1
+""".format(testuser)
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_random_pw_len.cfg".format(CONFIG))
+        self.session.cmd_output("cloud-init single -n set_passwords", timeout=30)
+        cmd = 'cat /var/log/cloud-init-output.log'
+        utils_lib.run_cmd(self, cmd, expect_kw='{}:'.format(testuser))
+        self.assertIn(testuser, self.session.cmd_output("cat /var/log/cloud-init-output.log"))
+        output = self.session.cmd_output('cat /var/log/cloud-init-output.log|grep "{}:"'.format(testuser)).split(":",1)[1]
+        self.assertEqual(len(output), 20,
+            "Random password length is not 20")
+
+    def test_cloudinit_man_page(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-189322 - CLOUDINIT-TC: Man page for cloud-init
+        1. man cloud-init, should have man page
+        2. download man-page-day.sh and check with this script
+        '''
+        self.log.info("RHEL-189322 - CLOUDINIT-TC: Man page for cloud-init")
+        self.assertEqual(self.session.cmd_status_output("man cloud-init > /dev/null")[0], 0,
+            "Fail to man cloud-init")
+        self.session.copy_scripts_to_guest("man-page-day.sh")
+        self.assertIn("13x OK", self.session.cmd_output("sudo bash /tmp/man-page-day.sh cloud-init"),
+            "man-page-day.sh check failed")
+
+    def test_cloudinit_show_full_version(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-196547	- CLOUDINIT-TC: cloud-init version should show full specific version
+        cloud-init --version should show version and release
+        '''
+        self.log.info("RHEL-196547 - CLOUDINIT-TC: cloud-init version should show full specific version")
+        output = self.session.cmd_output("cloud-init --version")
+        package = self.session.cmd_output("rpm -q cloud-init")
+        cloudinit_path = self.session.cmd_output("which cloud-init")
+        expect = package.rsplit(".", 1)[0].replace("cloud-init-", cloudinit_path+' ')
+        self.assertEqual(output, expect, 
+            "cloud-init --version doesn't show full version. Real: {}, Expect: {}".format(output, expect))
+
+    def test_cloudinit_check_default_config(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg
+        Verify default values in cloud.cfg
+        '''
+        self.log.info("RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg")
+        self.session.copy_data_to_guest('azure', 'default_cloud.cfg')
+        diff = self.session.cmd_output("diff /tmp/default_cloud.cfg /etc/cloud/cloud.cfg")
+        self.assertEqual(diff, '', 
+            "Default cloud.cfg is changed:\n"+diff)
+
+    def test_cloudinit_check_startup_time(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-189580 - CLOUDINIT-TC: Check VM first launch time and cloud-init startup time
+        Verify cloud-init related services startup time < 10s
+        '''
+        self.log.info("RHEL-189580	CLOUDINIT-TC: Check VM first launch time and cloud-init startup time")
+        limit = 10
+        for line in self.session.cmd_output("systemd-analyze blame|grep -E '(cloud-init-local|cloud-init|cloud-final|cloud-config)'|sed 's/^ *//g'").split('\n'):
+            time, service = line.split(' ')
+            time = float(time.rstrip('s'))
+            self.assertTrue(time < limit, "{} service startup time is {}s, >= {}s".format(service, time, limit))
+
     def tearDown(self):
         # if not self.session.connect(timeout=10):
         #     self.vm.delete()
@@ -1449,8 +1538,11 @@ swap:
                 "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo",
                 "test_cloudinit_chpasswd_with_hashed_passwords",
                 "test_cloudinit_runcmd_module_execute_command",
+                "test_cloudinit_check_random_password_len",
         ]:
             self.session.cmd_output("rm -f /etc/cloud/cloud.cfg.d/test_*.cfg")
+            if self.case_short_name == "test_cloudinit_check_random_password_len":
+                self.session.cmd_output("userdel -r test1")
         elif self.case_short_name in [
                 "test_cloudinit_provision_vm_with_multiple_nics",
                 "test_cloudinit_provision_vm_with_sriov_nic",
