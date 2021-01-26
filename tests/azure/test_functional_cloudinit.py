@@ -1498,9 +1498,9 @@ ssh_pwauth: 1
             self.assertTrue(time < limit, "{} service startup time is {}s, >= {}s".format(service, time, limit))
 
     def tearDown(self):
-        # if not self.session.connect(timeout=10):
-        #     self.vm.delete()
-        #     return
+        if not self.session.connect(timeout=10):
+            self.vm.delete()
+            return
         if self.case_short_name == \
                 "test_cloudinit_check_networkmanager_dispatcher":
             self.session.cmd_output("mv /tmp/enabled /run/cloud-init/")
