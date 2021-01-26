@@ -29,8 +29,8 @@ class CloudinitTest(Test):
         account.login()
         self.project = self.params.get("rhel_ver", "*/VM/*")
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
-        if self.case_short_name == "test_cloudinit_verify_customized_file_in_authorizedkeysfile":
-            self.cancel("BZ#1862967 has not been fixed yet. Skip.")
+#        if self.case_short_name == "test_cloudinit_verify_customized_file_in_authorizedkeysfile":
+#            self.cancel("BZ#1862967 has not been fixed yet. Skip.")
         self.pwd = os.path.abspath(os.path.dirname(__file__))
         if self.case_short_name in [
             "test_cloudinit_provision_gen2_vm",
@@ -1437,9 +1437,8 @@ ssh_pwauth: 1
 """.format(testuser)
         self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_random_pw_len.cfg".format(CONFIG))
         self.session.cmd_output("cloud-init single -n set_passwords", timeout=30)
-        cmd = 'cat /var/log/cloud-init-output.log'
-        utils_lib.run_cmd(self, cmd, expect_kw='{}:'.format(testuser))
-        self.assertIn(testuser, self.session.cmd_output("cat /var/log/cloud-init-output.log"))
+        self.assertIn(testuser, self.session.cmd_output("cat /var/log/cloud-init-output.log"),
+            "Cannot find {} in cloud-init-output.log".format(testuser))
         output = self.session.cmd_output('cat /var/log/cloud-init-output.log|grep "{}:"'.format(testuser)).split(":",1)[1]
         self.assertEqual(len(output), 20,
             "Random password length is not 20")
