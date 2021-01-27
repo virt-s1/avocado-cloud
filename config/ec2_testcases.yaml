@@ -92,6 +92,7 @@ cases:
     test_functional_network.py:NetworkTest.test_ethtool_X
     test_functional_network.py:NetworkTest.test_ethtool_P
     test_functional_network.py:NetworkTest.test_network_hotplug
+    test_functional_network.py:NetworkTest.test_second_ip_hotplug
     test_functional_storage.py:StorageTest.test_ssd_trim
     test_functional_storage.py:StorageTest.test_nvme_basic
     test_functional_storage.py:StorageTest.test_disk_info
