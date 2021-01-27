@@ -360,7 +360,10 @@ later! expected: %s lsblk: %s assigned: %s" %
 
         self.vm.reboot()
         self.session.connect(timeout=self.ssh_wait_timeout)
-        self._check_disk_count()
+        count2 = self._get_disk_online()
+        if count2 - count1 != expected_count:
+            self.fail("count2(%s) - count1(%s) not equal new addded %s!" %
+                      (count2, count1, expected_count))
         for i in disk_dict.keys():
             if i.detach_from_instance():
                 self.log.info('Dettached successfully!')

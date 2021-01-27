@@ -530,6 +530,41 @@ bandwidth higher than 40G')
         cmd = 'dmesg'
         utils_lib.run_cmd(self, cmd, expect_not_kw='Call Trace')
 
+    def test_second_ip_hotplug(self):
+        '''
+        :avocado: tags=test_second_ip_hotplug,fast_check
+        polarion_id:
+        BZ: 1623084, 1642461
+        '''
+        self.session1.connect(timeout=self.ssh_wait_timeout)
+        self.session = self.session1
+        cmd = 'rpm -q NetworkManager-cloud-setup'
+        utils_lib.run_cmd(self, cmd, cancel_not_kw='could not be found')
+        cmd = 'sudo systemctl status nm-cloud-setup.timer'
+        utils_lib.run_cmd(self, cmd)
+        self.vm1.assign_new_ip()
+        cmd = 'sudo ip addr show eth0'
+        start_time = time.time()
+        while True:
+            out = utils_lib.run_cmd(self, cmd)
+            if self.vm.another_ip in out:
+                break
+            end_time = time.time()
+            if end_time - start_time > 330:
+                self.fail("expected 2nd ip {} not found in guest".format(self.vm.another_ip))
+            time.sleep(25)
+        cmd = 'sudo ip addr show eth0'
+        start_time = time.time()
+        self.vm1.remove_added_ip()
+        while True:
+            out = utils_lib.run_cmd(self, cmd)
+            if self.vm.another_ip not in out:
+                break
+            end_time = time.time()
+            if end_time - start_time > 330:
+                self.fail("expected 2nd ip {} not removed from guest".format(self.vm.another_ip))
+            time.sleep(25)
+
     def tearDown(self):
         aws.done_test(self)
         if self.vm.is_created:
