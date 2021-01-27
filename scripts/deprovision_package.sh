@@ -452,15 +452,11 @@ cloudinit)
     function deprovision() { deprovision_cloudinit; }
     function verify() { verify_cloudinit; }
 ;;
-cloudinit_wala)
+cloudinit_wala|kernel)
     function deprovision() { deprovision_cloudinit_wala; }
     function verify() { verify_cloudinit_wala; }
 ;;
 wala)
-    function deprovision() { deprovision_wala; }
-    function verify() { verify_wala; }
-;;
-kernel)
     function deprovision() { deprovision_wala; }
     function verify() { verify_wala; }
 ;;

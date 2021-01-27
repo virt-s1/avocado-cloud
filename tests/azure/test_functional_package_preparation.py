@@ -184,8 +184,10 @@ tcpdump"
                 depro_type = "cloudinit"
         elif "WALinuxAgent" in pkgname_list:
             depro_type = "wala"
-        else:
+        elif "kernel" in pkgname_list:
             depro_type = "kernel"
+        else:
+            self.fail("Not supported package(s): {}".format(pkgname_list))
         script = "deprovision_package.sh"
         self.session.copy_files_to(local_path="{0}/../../scripts/{1}".format(
             self.pwd, script),
