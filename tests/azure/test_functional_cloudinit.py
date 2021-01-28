@@ -59,6 +59,10 @@ class CloudinitTest(Test):
             "test_cloudinit_remove_cache_and_reboot_password",
         ]:
             self.vm.vm_name += "-pw"
+        if self.case_short_name == "test_cloudinit_mount_with_noexec_option":
+            self.vm.vm_name += "-noexec"
+        if self.case_short_name == "test_cloudinit_no_networkmanager":
+            self.vm.vm_name += "-nonm"
         if self.case_short_name in [
                 "test_cloudinit_login_with_password",
                 "test_cloudinit_login_with_publickey",
@@ -1487,14 +1491,84 @@ ssh_pwauth: 1
         '''
         :avocado: tags=tier2,cloudinit
         RHEL-189580 - CLOUDINIT-TC: Check VM first launch time and cloud-init startup time
-        Verify cloud-init related services startup time < 10s
+        Verify cloud-init related services startup time <15s per service, and <40s in total
         '''
         self.log.info("RHEL-189580	CLOUDINIT-TC: Check VM first launch time and cloud-init startup time")
-        limit = 10
+        limit = 15
+        total_limit = 40
+        total = 0
         for line in self.session.cmd_output("systemd-analyze blame|grep -E '(cloud-init-local|cloud-init|cloud-final|cloud-config)'|sed 's/^ *//g'").split('\n'):
             time, service = line.split(' ')
             time = float(time.rstrip('s'))
-            self.assertTrue(time < limit, "{} service startup time is {}s, >= {}s".format(service, time, limit))
+            total += time
+            self.assertTrue(time < limit, "{} service startup time is {}s >= {}s".format(service, time, limit))
+        self.assertTrue(total < total_limit, "All the services startup time is {}s >= {}s".format(total, total_limit))
+
+    def test_cloudinit_lang_is_not_en_us_utf8(self):
+        '''
+        :avocado: tags=tier2,cloud-utils-growpart
+        RHEL-189273 CLOUDINIT-TC: [cloud-utils-growpart] growpart works when LANG is not en_US.UTF-8
+        Verify cloud-utils-growpart works well when LANG is not en_US.UTF-8
+        '''
+        self.log.info("RHEL-189273 CLOUDINIT-TC: [cloud-utils-growpart] growpart works when LANG is not en_US.UTF-8")
+        self.assertNotIn("unexpected output", self.session.cmd_output("LANG=cs_CZ.UTF-8 growpart /dev/sdb 1 -v -N"),
+            "BZ#1885992 growpart doesn't work when LANG=cs_CZ.UTF-8")
+
+    def test_cloudinit_mount_with_noexec_option(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-196483	CLOUDINIT-TC: cloud-init runs well when VM mounts /var/tmp with noexec option
+        Bug 1857309 - [Azure][RHEL 8] cloud-init Permission denied with the use of mount option noexec
+        '''
+        self.log.info("Bug 1857309 - [Azure][RHEL 8] cloud-init Permission denied with the use of mount option noexec")
+        self.session.cmd_output("sudo su -")
+        # Mount /tmp /var/tmp with noexec option
+        self.session.cmd_output("dd if=/dev/zero of=/var/tmp.partition bs=1024 count=1024000")
+        self.session.cmd_output("/sbin/mke2fs /var/tmp.partition ")
+        self.session.cmd_output("mount -o loop,noexec,nosuid,rw /var/tmp.partition /tmp")
+        self.session.cmd_output("chmod 1777 /tmp")
+        self.session.cmd_output("mount -o rw,noexec,nosuid,nodev,bind /tmp /var/tmp")
+        self.session.cmd_output("echo '/var/tmp.partition /tmp ext2 loop,noexec,nosuid,rw 0 0' >> /etc/fstab")
+        self.session.cmd_output("echo '/tmp /var/tmp none rw,noexec,nosuid,nodev,bind 0 0' >> /etc/fstab")
+        self.session.cmd_output("rm -rf /var/lib/cloud/instance /var/lib/cloud/instances/* /var/log/cloud-init.log")
+        # Restart VM
+        self.session.close()
+        self.vm.reboot()
+        time.sleep(10)
+        self.session.connect()
+        # Verify cloud-init.log
+        ret, output = self.session.cmd_status_output("sudo grep 'Permission denied' /var/log/cloud-init.log")
+        self.assertNotEqual(ret, 0,
+            "BZ#1857309. Should not have 'Permission denied' error message:\n"+output)
+
+    def test_cloudinit_no_networkmanager(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-196477	CLOUDINIT-TC: cloud-init works well if NetworkManager not installed
+        Bug 1898943 - [rhel-8]cloud-final.service fails if NetworkManager not installed.
+        '''
+        self.log.info("RHEL-196477 - CLOUDINIT-TC: cloud-init works well if NetworkManager not installed")
+        self.session.cmd_output("sudo su -")
+        if "could not be found" in self.session.cmd_output("systemctl status network.service"):
+            self.session.cmd_output("yum install -y network-scripts", timeout=300)
+            self.session.cmd_output("/usr/lib/systemd/systemd-sysv-install enable network")
+            # Remove ifcfg files other than eth0 and lo
+            self.session.cmd_output("rm -f $(find /etc/sysconfig/network-scripts/ifcfg-*|grep -vE '(eth0|lo)')")
+            self.assertEqual(self.session.cmd_status_output("systemctl start network")[0], 0,
+                "Fail to start network.service")
+        self.session.cmd_output("systemctl status network")
+        self.session.cmd_output("yum remove -y NetworkManager", timeout=300)
+        self.assertNotEqual(self.session.cmd_status_output("rpm -q NetworkManager"), 0,
+            "Fail to remove NetworkManager")
+        self.session.cmd_output("rm -rf /var/lib/cloud/instance /var/lib/cloud/instances/* /var/log/cloud-init.log")
+        # Restart VM and verify connection
+        self.session.close()
+        self.vm.reboot()
+        time.sleep(10)
+        self.assertTrue(self.session.connect(timeout=120), "Fail to connect to VM after remove NetworkManager and restart VM")
+        self.assertIn("active (exited)", self.session.cmd_output("sudo systemctl status cloud-final"),
+            "cloud-final.service status is not active (exited)")
+
 
     def tearDown(self):
         if not self.session.connect(timeout=10):
@@ -1548,7 +1622,9 @@ ssh_pwauth: 1
                 "test_cloudinit_provision_vm_with_ipv6",
                 "test_cloudinit_verify_storage_rule_gen2",
                 "test_cloudinit_upgrade_downgrade_package",
-                "test_cloudinit_remove_cache_and_reboot_password"
+                "test_cloudinit_remove_cache_and_reboot_password",
+                "test_cloudinit_mount_with_noexec_option",
+                "test_cloudinit_no_networkmanager"
         ]:
             self.vm.delete(wait=False)
 
