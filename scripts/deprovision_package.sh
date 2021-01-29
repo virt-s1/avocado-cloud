@@ -51,7 +51,7 @@ function deprovision_wala() {
 function deprovision_cloudinit_wala() {
     systemctl stop waagent
     systemctl enable waagent > /dev/null 2>&1
-    systemctl enable cloud-{init-local,init,config,final}
+    systemctl enable cloud-{init-local,init,config,final} > /dev/null 2>&1
     sed -i -e 's/^ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' \
         -e 's/^ResourceDisk.SwapSizeMB=.*/ResourceDisk.SwapSizeMB=2048/g' \
         -e 's/^Provisioning.Enabled=y/Provisioning.Enabled=n/g' \
@@ -81,7 +81,7 @@ function deprovision_cloudinit_wala() {
 function deprovision_cloudinit() {
     systemctl stop waagent
     rpm -e WALinuxAgent
-    systemctl enable cloud-{init-local,init,config,final}
+    systemctl enable cloud-{init-local,init,config,final} > /dev/null 2>&1
     swapoff -a
     for i in "${delete_arr[@]}";
     do
