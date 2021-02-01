@@ -1,5 +1,6 @@
 cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_publickey
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_startup_time
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_critical_log
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_cloudinit_log
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_service_status
@@ -38,7 +39,6 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_man_page
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_show_full_version
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_default_config
-    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_startup_time
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_lang_is_not_en_us_utf8
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_mount_with_noexec_option
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_no_networkmanager
