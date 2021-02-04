@@ -117,9 +117,12 @@ lo eth0\
         Check DNS
         """
         self.log.info("Check DNS")
-        self.assertIn(".internal.cloudapp.net",
-                      self.session.cmd_output("hostname -f"),
-                      "Cannot get whole FQDN")
+        if self.project.split('.')[0] < 9:
+            self.assertIn(".internal.cloudapp.net",
+                        self.session.cmd_output("hostname -f"),
+                        "Cannot get whole FQDN")
+        else:
+            self.log.info("For RHEL-{}, skip checking hostname -f".format(self.project))
         self.assertNotIn(
             "NXDOMAIN",
             self.session.cmd_output("nslookup {0}".format(self.vm.vm_name)),
