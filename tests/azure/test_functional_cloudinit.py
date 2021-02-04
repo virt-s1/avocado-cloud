@@ -283,14 +283,17 @@ class CloudinitTest(Test):
         """
         :avocado: tags=tier1,cloudinit
         RHEL7-87459: WALA-TC: [Cloudinit] Publish VM hostname to DNS server
-        1. Get FQDN hostname
+        1. Get FQDN hostname(RHEL-9+ not support)
         2. Check FQDN name can be resolved by DNS server
         """
         self.log.info("RHEL7-87459: WALA-TC: [Cloudinit] Publish VM \
 hostname to DNS server")
-        self.assertIn(".internal.cloudapp.net",
-                      self.session.cmd_output("hostname -f"),
-                      "Cannot get whole FQDN")
+        if self.project.split('.')[0] < 9:
+            self.assertIn(".internal.cloudapp.net",
+                        self.session.cmd_output("hostname -f"),
+                        "Cannot get whole FQDN")
+        else:
+            self.log.info("For RHEL-{}, skip checking hostname -f".format(self.project))
         self.assertNotIn(
             "NXDOMAIN",
             self.session.cmd_output("nslookup %s" % self.vm.vm_name),
