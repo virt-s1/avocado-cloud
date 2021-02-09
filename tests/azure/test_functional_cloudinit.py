@@ -1500,11 +1500,18 @@ ssh_pwauth: 1
         limit = 15
         total_limit = 40
         total = 0
+        for retry in range(1, 11):
+            if "Bootup is not yet finished" not in self.session.cmd_output("systemd-analyze"):
+                break
+            self.log.info("Bootup is not yet finished. Wating for 10s and retry...({}/10)".format(retry))
+            time.sleep(10)
+        else:
+            self.error("Bootup is not finished in 100s. Exit.")
         for line in self.session.cmd_output("systemd-analyze blame|grep -E '(cloud-init-local|cloud-init|cloud-final|cloud-config)'|sed 's/^ *//g'").split('\n'):
-            time, service = line.split(' ')
-            time = float(time.rstrip('s'))
-            total += time
-            self.assertTrue(time < limit, "{} service startup time is {}s >= {}s".format(service, time, limit))
+            real_time, service = line.split(' ')
+            real_time = float(real_time.rstrip('s'))
+            total += real_time
+            self.assertTrue(real_time < limit, "{} service startup time is {}s >= {}s".format(service, real_time, limit))
         self.assertTrue(total < total_limit, "All the services startup time is {}s >= {}s".format(total, total_limit))
 
     def test_cloudinit_lang_is_not_en_us_utf8(self):
