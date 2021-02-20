@@ -1249,144 +1249,144 @@ vm_sizes:
             disk_size: 1344
     G1:
             name: Standard_G1
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 2
             memory: 28.0
             disk_size: 384
     G2:
             name: Standard_G2
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 4
             memory: 56.0
             disk_size: 768
     G3:
             name: Standard_G3
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 8
             memory: 112.0
             disk_size: 1536
     G4:
             name: Standard_G4
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 16
             memory: 224.0
             disk_size: 3072
     G5:
             name: Standard_G5
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 32
             memory: 448.0
             disk_size: 6144
     GS1:
             name: Standard_GS1
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 2
             memory: 28.0
             disk_size: 56
     GS2:
             name: Standard_GS2
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 4
             memory: 56.0
             disk_size: 112
     GS3:
             name: Standard_GS3
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 8
             memory: 112.0
             disk_size: 224
     GS4:
             name: Standard_GS4
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 16
             memory: 224.0
             disk_size: 448
     GS4-4:
             name: Standard_GS4-4
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 16
             memory: 224.0
             disk_size: 448
     GS4-8:
             name: Standard_GS4-8
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 16
             memory: 224.0
             disk_size: 448
     GS5:
             name: Standard_GS5
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 32
             memory: 448.0
             disk_size: 896
     GS5-8:
             name: Standard_GS5-8
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 32
             memory: 448.0
             disk_size: 896
     GS5-16:
             name: Standard_GS5-16
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 32
             memory: 448.0
             disk_size: 896
     L4s:
             name: Standard_L4s
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 4
             memory: 32.0
             disk_size: 678
     L8s:
             name: Standard_L8s
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 8
             memory: 64.0
             disk_size: 1388
     L16s:
             name: Standard_L16s
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 16
             memory: 128.0
             disk_size: 2807
     L32s:
             name: Standard_L32s
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 32
             memory: 256.0
@@ -1521,8 +1521,8 @@ vm_sizes:
             disk_size: 4096
     Experimental_E64-40s_v3:
             name: Experimental_E64-40s_v3
-            resource_group: walaautoeastus2
-            storage_account: walaautoeastus2
+            resource_group: walaautolisa
+            storage_account: walaautolisa
             region: eastus2
             cpu: 64
             memory: 432.0
