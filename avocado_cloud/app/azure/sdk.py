@@ -463,6 +463,7 @@ class AzureVM(VM):
         self.subnet = self.resource_group
         self.rhel_version = params.get("rhel_ver", "*/VM/*")
         self.nics = kwargs.get("nics")
+        self.os_disk_size = kwargs.get("os_disk_size")
         self.properties = {}
 
     def show(self):
@@ -505,6 +506,8 @@ class AzureVM(VM):
         else:
             cmd += ' --vnet-name "{}" --subnet "{}"'.format(
                 self.vnet_name, self.subnet)
+        if self.os_disk_size:
+            cmd += ' --os-disk-size-gb {}'.format(self.os_disk_size)
         if not wait:
             cmd += " --no-wait"
         ret = command(cmd)
