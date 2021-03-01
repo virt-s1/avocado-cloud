@@ -19,7 +19,7 @@ cases:
   test_functional_checkup.py:GeneralTest.test_check_hostname
   test_functional_checkup.py:GeneralTest.test_check_virt_what
   test_functional_checkup.py:GeneralTest.test_check_pv_drivers
-  test_functional_checkup.py:GeneralTest.test_kudmp_status
+  test_functional_checkup.py:GeneralTest.test_kdump_status
   test_functional_checkup.py:GeneralTest.test_collect_metadata
   test_functional_network.py:NetworkTest.test_hotplug_nics
   test_functional_network.py:NetworkTest.test_coldplug_nics

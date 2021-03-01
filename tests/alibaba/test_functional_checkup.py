@@ -646,7 +646,7 @@ will not check kernel-devel package.')
             msg="Memory Size is not as expect Real: {0}; Expected: {1}".format(
                 guest_mem, expected_mem))
 
-    def test_kudmp_status(self):
+    def test_kdump_status(self):
         """Test kdump status
 
         case_name:
