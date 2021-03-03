@@ -54,7 +54,10 @@ class EC2VM(VM):
                      self.subnet_id)
         self.security_group_ids = params.get('security_group_ids')
         self.region = params.get('region')
-        self.zone = params.get('availability_zone', '*/Cloud/*')
+        self.subnet = self.__resource.Subnet(self.subnet_id)
+        #self.zone = params.get('availability_zone', '*/Cloud/*')
+        self.zone = self.subnet.availability_zone
+        LOG.info('Get zone from subnet {}'.format(self.zone))
         self.additionalinfo = params.get('additionalinfo', '*/Cloud/*')
         self.tagname = params.get('ec2_tagname')
         self.ssh_key_name = params.get('ssh_key_name')
@@ -125,9 +128,9 @@ class EC2VM(VM):
                     #SubnetId=self.subnet_id,
                     MaxCount=1,
                     MinCount=1,
-                    Placement={
-                        'AvailabilityZone': self.zone,
-                    },
+                    #Placement={
+                    #    'AvailabilityZone': self.zone,
+                    #},
                     NetworkInterfaces=[
                         {
                             'AssociatePublicIpAddress': True,
@@ -279,6 +282,10 @@ class EC2VM(VM):
         LOG.info("Rebooting instance: %s" % self.instance_id)
         try:
             self.__ec2_instance.reboot()
+            if 'metal' in self.instance_type:
+                time.sleep(120)
+            else:
+                time.sleep(5)
             return True
         except Exception as err:
             LOG.error(err)
@@ -575,7 +582,19 @@ class EC2Volume(Base):
         self.session = boto3.session.Session(profile_name=self.profile_name, region_name=params.get('region'))
         self._resource = self.session.resource('ec2', config=config, region_name=params.get('region'))
         self.disksize = 100
-        self.zone = params.get('availability_zone', '*/Cloud/*')
+        if params.get('ipv6'):
+            self.subnet_id = params.get('subnet_id_ipv6')
+            LOG.info('Instance support ipv6, use subnet %s', self.subnet_id)
+        else:
+            self.subnet_id = params.get('subnet_id_ipv4')
+            LOG.info('Instance only support ipv4, use subnet %s',
+                     self.subnet_id)
+        self.subnet = self._resource.Subnet(self.subnet_id)
+
+        #self.zone = params.get('availability_zone', '*/Cloud/*')
+        self.zone = self.subnet.availability_zone
+        LOG.info('Get zone from subnet {}'.format(self.zone))
+        #self.zone = params.get('availability_zone', '*/Cloud/*')
         self.tagname = params.get('ec2_tagname')
         self.outpostarn = params.get('outpostarn')
         self.disktype = 'standard'
@@ -860,9 +879,10 @@ class EC2Volume(Base):
                         return True
                     else:
                         end_time = time.time()
-                        if int(end_time) - int(start_time) > 120:
+                        LOG.info("Wait volume available, current state:{}".format(self.__volume.state))
+                        if int(end_time) - int(start_time) > 180:
                             LOG.error(
-                                "Failed to dettach to instance after 120s! %s"
+                                "Failed to dettach to instance after 180s! %s"
                                 % self.__volume.state)
                             return False
                     time.sleep(10)
@@ -895,7 +915,9 @@ class NetworkInterface(Base):
                      self.subnet_id)
         self.subnet = self.__ec2.Subnet(self.subnet_id)
 
-        self.zone = params.get('availability_zone', '*/Cloud/*')
+        #self.zone = params.get('availability_zone', '*/Cloud/*')
+        self.zone = self.subnet.availability_zone
+        LOG.info('Get zone from subnet {}'.format(self.zone))
         self.tagname = params.get('ec2_tagname')
         self.id = None
         self.security_group_ids = params.get('security_group_ids')

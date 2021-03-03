@@ -247,8 +247,8 @@ class LifeCycleTest(Test):
         if 'aarch64' in output:
             self.log.info("arm instance")
             instance_list = [
-                "a1.medium", "a1.large", "a1.xlarge", "a1.2xlarge",
-                "a1.4xlarge"
+                "t4g.small", "c6g.medium", "a1.xlarge", "c6gd.medium",
+                "m6gd.medium", "r6g.medium","r6g.medium","c6gn.medium"
             ]
         else:
             self.log.info("x86 instance")
