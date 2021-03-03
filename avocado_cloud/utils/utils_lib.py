@@ -153,7 +153,7 @@ def run_cmd(test_instance,
     if cancel_not_kw is not None:
         for key_word in cancel_not_kw.split(','):
             if key_word in output:
-                test_instance.cancel("%s found, cancel case" % key_word)
+                test_instance.cancel("%s found, cancel case %s" % (key_word, output))
     test_instance.log.info("CMD out:%s" % output)
     if ret_status:
         return status
@@ -284,7 +284,7 @@ def run_os_tests(test_instance, case_name=None):
     Run os_tests test case
     '''
     cmd = "sudo python3 -m unittest -v {}".format(case_name)
-    ret = run_cmd(test_instance, cmd, ret_status=True)
+    ret = run_cmd(test_instance, cmd, ret_status=True, cancel_not_kw='skipped=1')
     cmd_get_log = "sudo cat /tmp/os_tests_result/{}.debug".format(case_name)
     run_cmd(test_instance, cmd_get_log, msg='Get test debug log', cancel_not_kw='skipped=1')
     test_instance.assertEqual(ret, 0, "Test fail. ret:{}".format(ret))

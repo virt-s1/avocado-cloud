@@ -2,7 +2,7 @@ Cloud:
     provider : aws
 ami_id :  ami-0d8ae726968615e70
 region : us-west-2
-availability_zone : us-west-2b
+#availability_zone : us-west-2b this can be removed now, we get it from subnet automatically
 vpc_id : None
 subnet_id_ipv6 : xxxx
 subnet_id_ipv4 : xxxx

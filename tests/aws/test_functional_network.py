@@ -288,7 +288,7 @@ bandwidth higher than 40G')
         cmd = '/tmp/mod.sh'
         utils_lib.run_cmd(self, cmd, expect_ret=0)
 
-        aws.check_dmesg(self, 'ena', match_word_exact=True)
+        aws.check_dmesg(self, 'xen_netfront', match_word_exact=True)
 
     def test_pci_reset(self):
         '''
@@ -539,7 +539,7 @@ bandwidth higher than 40G')
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
         cmd = 'rpm -q NetworkManager-cloud-setup'
-        utils_lib.run_cmd(self, cmd, cancel_not_kw='could not be found')
+        utils_lib.run_cmd(self, cmd, cancel_not_kw='could not be found,not installed')
         cmd = 'sudo systemctl status nm-cloud-setup.timer'
         utils_lib.run_cmd(self, cmd)
         self.vm1.assign_new_ip()
@@ -551,6 +551,8 @@ bandwidth higher than 40G')
                 break
             end_time = time.time()
             if end_time - start_time > 330:
+                cmd = 'sudo systemctl status nm-cloud-setup.timer'
+                utils_lib.run_cmd(self, cmd)
                 self.fail("expected 2nd ip {} not found in guest".format(self.vm.another_ip))
             time.sleep(25)
         cmd = 'sudo ip addr show eth0'
@@ -562,6 +564,8 @@ bandwidth higher than 40G')
                 break
             end_time = time.time()
             if end_time - start_time > 330:
+                cmd = 'sudo systemctl status nm-cloud-setup.timer'
+                utils_lib.run_cmd(self, cmd)
                 self.fail("expected 2nd ip {} not removed from guest".format(self.vm.another_ip))
             time.sleep(25)
 
