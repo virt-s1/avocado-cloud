@@ -279,12 +279,12 @@ def is_metal(test_instance,
     test_instance.log.info("Not a metal instance.")
     return False
 
-def run_os_tests(test_instance, case_name=None):
+def run_os_tests(test_instance, case_name=None, timeout=60):
     '''
     Run os_tests test case
     '''
     cmd = "sudo python3 -m unittest -v {}".format(case_name)
-    ret = run_cmd(test_instance, cmd, ret_status=True, cancel_not_kw='skipped=1')
+    ret = run_cmd(test_instance, cmd, ret_status=True, cancel_not_kw='skipped=1', timeout=timeout)
     cmd_get_log = "sudo cat /tmp/os_tests_result/{}.debug".format(case_name)
     run_cmd(test_instance, cmd_get_log, msg='Get test debug log', cancel_not_kw='skipped=1')
     test_instance.assertEqual(ret, 0, "Test fail. ret:{}".format(ret))

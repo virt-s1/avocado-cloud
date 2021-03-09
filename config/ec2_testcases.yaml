@@ -68,6 +68,8 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_cpu_count
     test_general_verification.py:GeneralVerification.test_check_lshw_mem
     test_general_verification.py:GeneralVerification.test_check_lspci_nvme
+    test_general_verification.py:GeneralVerification.test_check_meminfo_memfree
+    test_general_verification.py:GeneralVerification.test_check_rpm_V_efi
     test_general_verification.py:GeneralVerification.test_check_mem_size
     test_general_verification.py:GeneralVerification.test_check_memleaks
     test_general_verification.py:GeneralVerification.test_collect_insights_result

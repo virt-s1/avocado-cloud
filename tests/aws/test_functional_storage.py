@@ -555,7 +555,7 @@ later! expected: %s lsblk: %s assigned: %s" %
                     cmd,
                     expect_ret=0,
                     expect_kw="Pass",
-                    msg='Perform test and validation of internal CPU clock.')
+                    msg='Perform test and validation of internal CPU clock.', timeout=1200)
 
     def test_fio_crctest(self):
         '''
@@ -571,7 +571,7 @@ later! expected: %s lsblk: %s assigned: %s" %
             self,
             cmd,
             expect_ret=0,
-            msg='Test  the  speed  of  the built-in checksumming functions.')
+            msg='Test  the  speed  of  the built-in checksumming functions.', timeout=1200)
 
     def tearDown(self):
         aws.done_test(self)
