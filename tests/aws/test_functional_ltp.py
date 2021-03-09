@@ -36,7 +36,7 @@ class LTPRun(Test):
         # but in large metal instances, it is expected. So do not do it in
         # bare metal instances
         case_name = "os_tests.tests.test_ltp.TestLTP.test_ltp_cpuhotplug"
-        utils_lib.run_os_tests(self, case_name=case_name)
+        utils_lib.run_os_tests(self, case_name=case_name, timeout=600)
 
     def test_ltp_add_key02(self):
         '''

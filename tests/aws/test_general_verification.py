@@ -687,6 +687,20 @@ in RHEL7|6, bug1625874")
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_lspci_nvme"
         utils_lib.run_os_tests(self, case_name=case_name)
 
+    def test_check_meminfo_memfree(self):
+        '''
+        :avocado: tags=test_check_meminfo_memfree
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_meminfo_memfree"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_rpm_V_efi(self):
+        '''
+        :avocado: tags=test_check_rpm_V_efi
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_rpm_V_efi"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_check_mem_size(self):
         '''
         :avocado: tags=test_check_mem_size,fast_check
@@ -733,34 +747,8 @@ in RHEL7|6, bug1625874")
         polarion_id:
         bz#: 1889702
         '''
-        utils_lib.run_cmd(self,
-                    'sudo insights-client --register',
-                    msg="try to register system")
-        utils_lib.run_cmd(self,
-                    'sudo insights-client --status',
-                    cancel_kw="System is registered",
-                    msg="Check system register status")
-        utils_lib.run_cmd(self,
-                    'sudo insights-client --check-result',
-                    expect_ret=0,
-                    msg="checking system")
-        out = utils_lib.run_cmd(self,
-                    'sudo insights-client --show-result',
-                    expect_ret=0,
-                    msg="show insights result")
-        #hit_list = json.loads(out)
-        if len(out) > 10:
-            out = utils_lib.run_cmd(self,
-                    'sudo insights-client --no-upload --keep-archive',
-                    expect_ret=0,
-                    msg="generate archive")
-            gz_file = re.findall('/var/.*tar.gz', out)[0]
-            file_name = gz_file.split('/')[-1]
-            utils_lib.run_cmd(self, 'sudo cp {} /tmp/'.format(gz_file))
-            local_path = "%s/%s_%s" % (self.job.logdir,
-                                             self.vm.instance_type, file_name)
-            self.session.copy_files_from('/tmp/{}'.format(file_name), local_path, timeout=600)
-            self.fail("insights rule hit")
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_collect_insights_result"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_collect_log(self):
         '''
