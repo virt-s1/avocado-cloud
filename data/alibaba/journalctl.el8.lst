@@ -23,4 +23,4 @@ failed to assign [mem size 0x
 : Failed to check link status
 #################### KNOWN ISSUES BELOW ####################
 kernel: GPT: Use GNU Parted to correct GPT errors.
-unchecked MSR access error: WRMSR
+org.freedesktop.DBus.Error.AccessDenied: Failed to restore old fd limit: Operation not permitted
