@@ -160,7 +160,7 @@ class AlibabaSDK(object):
         ]
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
         self.vm_params.setdefault("InternetChargeType", "PayByTraffic")
-        self.vm_params.setdefault("SystemDiskCategory", "cloud_efficiency")
+        self.vm_params.setdefault("SystemDiskCategory", "cloud_essd")
         self.vm_params.setdefault("InternetMaxBandwidthIn", "5")
         self.vm_params.setdefault("InternetMaxBandwidthOut", "5")
         if authentication == "publickey":
@@ -288,7 +288,7 @@ class AlibabaSDK(object):
         """
         request = DescribeDisksRequest.DescribeDisksRequest()
         key_list = ["ZoneId", "DiskName", "Category", "PageSize"]
-        self.vm_params.setdefault("Category", "cloud_ssd")
+        self.vm_params.setdefault("Category", "cloud_essd")
         self.vm_params.setdefault("PageSize", "100")
         if diskids:
             key_list.append("DiskIds")
@@ -299,7 +299,7 @@ class AlibabaSDK(object):
     def create_disk(self):
         request = CreateDiskRequest.CreateDiskRequest()
         key_list = ["ZoneId", "DiskName", "DiskCategory", "Size"]
-        self.vm_params.setdefault("DiskCategory", "cloud_ssd")
+        self.vm_params.setdefault("DiskCategory", "cloud_essd")
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
 
