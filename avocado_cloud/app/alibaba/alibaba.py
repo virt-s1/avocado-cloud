@@ -113,10 +113,12 @@ class AlibabaSDK(object):
         self.vm_params["NetworkInterfaceName"] = params.get(
             'nic_name', '*/NIC/*')
 
-        # Auto assigned params
-        instance_type = str(self.vm_params['InstanceType'])
-        if instance_type.startswith('ecs.ebm'):
-            # The ebm[cgr]6e families only support ESSD
+        # Assign DiskCategory
+        family = str(
+            self.vm_params['InstanceType']).split('.')[1].split('-')[0]
+        essd_only_families = ('ebmc6e', 'ebmg6e', 'ebmr6e', 'c6e', 'g6e',
+                              'r6e')
+        if family in essd_only_families:
             self.vm_params['DiskCategory'] = 'cloud_essd'
         else:
             # AFAIK, gen4 families only support SSD
