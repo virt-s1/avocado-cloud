@@ -14,6 +14,7 @@ class GeneralTest(Test):
         self.vm = self.cloud.vm
         self.session = self.cloud.init_vm(pre_delete=False, pre_stop=False)
         self.rhel_ver = str(self.params.get('rhel_ver', '*/VM/*', ''))
+        self.image_name = str(self.params.get('name', '*/Image/*'))
         self.pwd = os.path.abspath(os.path.dirname(__file__))
         self.dest_dir = "/tmp/"
 
@@ -95,6 +96,16 @@ class GeneralTest(Test):
         self.assertEqual(
             "", output,
             "There're error logs in /var/log/messages:\n%s" % output)
+
+    def test_check_calltrace(self):
+        self.log.info("Check the boot messages without call trace.")
+        if float(self.rhel_ver) >= 8.0:
+            cmd = "sudo journalctl -b | grep -B 3 -A 10 'Call Trace:'"
+        else:
+            cmd = "sudo cat /var/log/messages | grep -B 3 -A 10 'Call Trace:'"
+        output = self.session.cmd_output(cmd)
+        self.assertEqual("", output,
+                         "There're call trace in system logs:\n%s" % output)
 
     # RHBZ#1006883
     def test_check_fstab(self):
@@ -645,6 +656,93 @@ will not check kernel-devel package.')
             delta=expected_mem * 0.25,
             msg="Memory Size is not as expect Real: {0}; Expected: {1}".format(
                 guest_mem, expected_mem))
+
+    def test_kdump_status(self):
+        """Test kdump status
+
+        case_name:
+            Test kdump status
+
+        description:
+            Check kdump is running.
+
+        bugzilla_id:
+            n/a
+
+        polarion_id:
+            n/a
+
+        maintainer:
+            cheshi@redhat.com
+
+        case_priority:
+            0
+
+        case_component:
+            checkup
+
+        pass_criteria:
+            kdump service is running.
+        """
+        self.log.info("Checking kdump status")
+
+        if self.rhel_ver.split('.')[0] == '6':
+            check_cmd = 'sudo service kdump status'
+        else:
+            check_cmd = 'systemctl status kdump.service'
+
+        kdump_running = False
+        for i in range(10):
+            output = self.session.cmd_output(check_cmd)
+            self.log.debug("%s" % output)
+            if 'Active: active' in output:
+                self.log.info('kdump service is running.')
+                kdump_running = True
+                break
+            else:
+                if 'Active: inactive' in output:
+                    self.log.error('kdump service is inactive!')
+                    break
+                if 'Kdump is unsupported' in output:
+                    self.log.error('kdump service is unsupported!')
+                    break
+                self.log.info('Wait for another 20s (max = 200s)')
+                time.sleep(20)
+
+        if not kdump_running:
+            self.fail('kdump service is not running at last.')
+
+    def test_check_image_id(self):
+        self.log.info("Check the /etc/image-id is correct.")
+
+        # cat /etc/image-id
+        # image_id="redhat_8_3_x64_20G_alibase_20201211.qcow2"
+
+        cmd = 'sudo cat /etc/image-id | cut -d\'"\' -f2'
+        inside_name = self.session.cmd_output(cmd)
+
+        # Cancel this case if not provided
+        if 'No such file or directory' in inside_name:
+            self.cancel('/etc/image-id is not provided, skip checking.')
+
+        # Cancel this case if using official image
+        if self.image_name.startswith('RHEL'):
+            self.cancel(
+                'Won\'t compare for official images.\nInside:%s\nOutside:%s' %
+                (inside_name, self.image_name))
+
+        # copied name: "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
+        idx = inside_name.rfind('.')
+        if idx < 0:
+            copied_name = inside_name + '_copied'
+        else:
+            copied_name = inside_name[:idx] + '_copied' + inside_name[idx:]
+
+        # Compare image names
+        if self.image_name != inside_name and self.image_name != copied_name:
+            self.fail(
+                'The image names are mismatched.\nInside:%s\nOutside:%s' %
+                (inside_name, self.image_name))
 
     def tearDown(self):
         self.session.close()

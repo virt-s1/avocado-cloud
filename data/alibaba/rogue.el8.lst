@@ -199,6 +199,21 @@
 /etc/systemd/system/sockets.target.wants/cups.socket
 /usr/share/fonts/google-droid/.uuid
 /usr/share/fonts/urw-base35/.uuid
+/etc/alternatives/libwbclient.so.0.15-64
+/usr/lib64/libwbclient.so.0
+/usr/lib64/libwbclient.so.0.15
+/etc/crypto-policies/back-ends/.config
+/etc/dnf/modules.d/perl-IO-Socket-SSL.module
+/etc/dnf/modules.d/perl-libwww-perl.module
+/etc/dnf/modules.d/perl.module
+/etc/image-id
+/etc/sysconfig/sshd-permitrootlogin
+/etc/systemd/system/dbus-org.freedesktop.Avahi.service
+/etc/systemd/system/dbus-org.freedesktop.resolve1.service
+/etc/systemd/system/multi-user.target.wants/avahi-daemon.service
+/etc/systemd/system/multi-user.target.wants/cups.service
+/etc/systemd/system/sockets.target.wants/avahi-daemon.socket
+/etc/systemd/system/timers.target.wants/dnf-makecache.timer
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id

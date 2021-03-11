@@ -113,6 +113,17 @@ class AlibabaSDK(object):
         self.vm_params["NetworkInterfaceName"] = params.get(
             'nic_name', '*/NIC/*')
 
+        # Assign DiskCategory
+        family = str(
+            self.vm_params['InstanceType']).split('.')[1].split('-')[0]
+        essd_only_families = ('ebmc6e', 'ebmg6e', 'ebmr6e', 'c6e', 'g6e',
+                              'r6e')
+        if family in essd_only_families:
+            self.vm_params['DiskCategory'] = 'cloud_essd'
+        else:
+            # AFAIK, gen4 families only support SSD
+            self.vm_params['DiskCategory'] = 'cloud_ssd'
+
     def _send_request(self, request):
         request.set_accept_format('json')
         try:
@@ -160,7 +171,8 @@ class AlibabaSDK(object):
         ]
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
         self.vm_params.setdefault("InternetChargeType", "PayByTraffic")
-        self.vm_params.setdefault("SystemDiskCategory", "cloud_efficiency")
+        self.vm_params.setdefault("SystemDiskCategory",
+                                  self.vm_params['DiskCategory'])
         self.vm_params.setdefault("InternetMaxBandwidthIn", "5")
         self.vm_params.setdefault("InternetMaxBandwidthOut", "5")
         if authentication == "publickey":
@@ -288,7 +300,7 @@ class AlibabaSDK(object):
         """
         request = DescribeDisksRequest.DescribeDisksRequest()
         key_list = ["ZoneId", "DiskName", "Category", "PageSize"]
-        self.vm_params.setdefault("Category", "cloud_ssd")
+        self.vm_params.setdefault("Category", self.vm_params['DiskCategory'])
         self.vm_params.setdefault("PageSize", "100")
         if diskids:
             key_list.append("DiskIds")
@@ -299,7 +311,8 @@ class AlibabaSDK(object):
     def create_disk(self):
         request = CreateDiskRequest.CreateDiskRequest()
         key_list = ["ZoneId", "DiskName", "DiskCategory", "Size"]
-        self.vm_params.setdefault("DiskCategory", "cloud_ssd")
+        self.vm_params.setdefault("DiskCategory",
+                                  self.vm_params['DiskCategory'])
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
 
