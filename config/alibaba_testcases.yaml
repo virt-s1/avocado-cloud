@@ -5,6 +5,7 @@ cases:
   test_functional_checkup.py:GeneralTest.test_check_cpu_count
   test_functional_checkup.py:GeneralTest.test_check_mem_size
   test_functional_checkup.py:GeneralTest.test_check_boot_message
+  test_functional_checkup.py:GeneralTest.test_check_calltrace
   test_functional_checkup.py:GeneralTest.test_check_fstab
   test_functional_checkup.py:GeneralTest.test_check_bash_prompt
   test_functional_checkup.py:GeneralTest.test_check_redhat_release
@@ -20,6 +21,7 @@ cases:
   test_functional_checkup.py:GeneralTest.test_check_virt_what
   test_functional_checkup.py:GeneralTest.test_check_pv_drivers
   test_functional_checkup.py:GeneralTest.test_kdump_status
+  test_functional_checkup.py:GeneralTest.test_check_image_id
   test_functional_checkup.py:GeneralTest.test_collect_metadata
   test_functional_network.py:NetworkTest.test_hotplug_nics
   test_functional_network.py:NetworkTest.test_coldplug_nics
