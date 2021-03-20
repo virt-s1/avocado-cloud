@@ -73,7 +73,7 @@ backports.ssl-match-hostname==3.5.0.1
 configparser==3.5.0
 entrypoints==0.2.3
 Fabric==1.14.0
-Jinja2==2.11.1
+Jinja2==2.11.3
 keyring==15.0.0
 MarkupSafe==1.1.1
 pathlib==1.0.1
