@@ -266,6 +266,16 @@ content manually!\n %s" % output)
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_release_name"
         utils_lib.run_os_tests(self, case_name=case_name)
 
+    def test_check_product_id(self):
+        '''
+        :avocado: tags=test_check_product_id,fast_check
+        bz: 1938930
+        issue: RHELPLAN-60817
+        check if product id matches /etc/redhat-release
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_product_id"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_check_vulnerabilities(self):
         '''
         :avocado: tags=test_check_vulnerabilities,fast_check

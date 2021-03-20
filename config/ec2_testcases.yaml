@@ -40,6 +40,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_modload
     test_general_verification.py:GeneralVerification.test_check_console_log
     test_general_verification.py:GeneralVerification.test_check_release_name
+    test_general_verification.py:GeneralVerification.test_check_product_id
     test_general_verification.py:GeneralVerification.test_check_vulnerabilities
     test_general_verification.py:GeneralVerification.test_check_avclog
     test_general_verification.py:GeneralVerification.test_check_avclog_nfs

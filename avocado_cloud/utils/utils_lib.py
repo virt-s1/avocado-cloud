@@ -283,11 +283,11 @@ def run_os_tests(test_instance, case_name=None, timeout=60):
     '''
     Run os_tests test case
     '''
-    cmd = "sudo python3 -m unittest -v {}".format(case_name)
-    ret = run_cmd(test_instance, cmd, ret_status=True, cancel_not_kw='skipped=1', timeout=timeout)
+    cmd = "sudo /usr/local/bin/os-tests -p {}".format(case_name)
+    out = run_cmd(test_instance, cmd, cancel_not_kw='skipped=1', timeout=timeout)
     cmd_get_log = "sudo cat /tmp/os_tests_result/{}.debug".format(case_name)
     run_cmd(test_instance, cmd_get_log, msg='Get test debug log', cancel_not_kw='skipped=1')
-    test_instance.assertEqual(ret, 0, "Test fail. ret:{}".format(ret))
+    test_instance.assertNotIn('failures=', out, msg="Test fail. out:{}".format(out))
 
 def wait_for(ret=None, not_ret=None, ck_ret=False, ck_not_ret=False, timeout=60, interval=1):
     '''

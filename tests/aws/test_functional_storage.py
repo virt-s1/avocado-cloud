@@ -422,35 +422,8 @@ later! expected: %s lsblk: %s assigned: %s" %
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
-        expect_utils = 30
-        self.log.info("Check no disk utils lager than %s" % expect_utils)
-        aws.check_session(self)
-        aws.check_cmd(self, cmd='iostat')
-        cmd = 'sudo  iostat -x -o JSON'
-        output = utils_lib.run_cmd(self, cmd)
-        try:
-            res_dict = json.loads(output)
-            for x in res_dict["sysstat"]["hosts"][0]["statistics"][0]["disk"]:
-                self.assertLessEqual(
-                    x["util"],
-                    expect_utils,
-                    msg="Utils more than %s without any large io! act: %s" %
-                    (expect_utils, x["util"]))
-        except ValueError as err:
-            self.log.info("cmd has no json support")
-            cmd = "sudo iostat -x"
-            utils_lib.run_cmd(self, cmd, expect_ret=0)
-            cmd = "sudo iostat -x|awk -F' ' '{print $NF}'"
-            output = utils_lib.run_cmd(self, cmd, expect_ret=0)
-            compare = False
-            for util in output.split('\n'):
-                if 'util' in util:
-                    compare = True
-                    continue
-                if compare and not util == '':
-                    if float(util) > expect_utils:
-                        self.fail("Some disk's utils %s is larger than %s" %
-                                  (util, expect_utils))
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_iostat_x"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_blktests_block(self):
         '''
