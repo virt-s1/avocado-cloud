@@ -10,6 +10,8 @@ cases:
     test_functional_lifecycle.py:LifeCycleTest.test_create_snapshot_vmstopped
     test_functional_lifecycle.py:LifeCycleTest.test_change_instance_type
     test_functional_lifecycle.py:LifeCycleTest.test_boot_mitigations
+    test_functional_lifecycle.py:LifeCycleTest.test_boot_usbcore_quirks
+    test_functional_lifecycle.py:LifeCycleTest.test_boot_hpet_mmap_enabled
     test_functional_lifecycle.py:LifeCycleTest.test_boot_nr_cpus
     test_functional_lifecycle.py:LifeCycleTest.test_boot_fipsenabled
     test_functional_lifecycle.py:LifeCycleTest.test_boot_debugkernel
@@ -75,6 +77,10 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_memleaks
     test_general_verification.py:GeneralVerification.test_collect_insights_result
     test_general_verification.py:GeneralVerification.test_collect_log
+    test_general_verification.py:GeneralVerification.test_subscription_manager_auto
+    test_general_verification.py:GeneralVerification.test_subscription_manager_config
+    test_general_verification.py:GeneralVerification.test_check_dmidecode_outofspec
+    test_general_verification.py:GeneralVerification.test_podman_rm_stopped
     test_functional_ltp.py:LTPRun.test_ltp_hugemmap
     test_functional_ltp.py:LTPRun.test_ltp_cpuhotplug
     test_functional_ltp.py:LTPRun.test_ltp_add_key02
@@ -106,6 +112,7 @@ cases:
     test_functional_storage.py:StorageTest.test_virsh_pci_reattach
     test_functional_storage.py:StorageTest.test_blktests_block
     test_functional_storage.py:StorageTest.test_blktests_nvme
+    test_functional_storage.py:StorageTest.test_fsadm_resize
     test_functional_storage.py:StorageTest.test_fio_cpuclock
     test_functional_storage.py:StorageTest.test_fio_crctest
     test_cloud_init.py:CloudInit.test_check_username

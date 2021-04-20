@@ -285,7 +285,6 @@ class LifeCycleTest(Test):
         '''
         cmd = 'sudo grubby --update-kernel=ALL --args="mitigations=auto,nosmt"'
         utils_lib.run_cmd(self, cmd, msg='Append mitigations=auto,nosmt to command line!', timeout=600)
-        self.log.info('Reboot system!')
         self.vm.reboot(wait=True)
         if 'metal' in self.vm.instance_type:
             self.log.info("Wait {}".format(self.ssh_wait_timeout))
@@ -296,6 +295,60 @@ class LifeCycleTest(Test):
         self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='mitigations=auto,nosmt')
         utils_lib.run_cmd(self, "dmesg", expect_not_kw="Call trace,Call Trace")
+
+    def test_boot_usbcore_quirks(self):
+        '''
+        :avocado: tags=test_boot_usbcore_quirks
+        bz: 1809429
+        polarion_id:
+        '''
+        utils_lib.run_cmd(self, r'sudo rm -rf /var/crash/*',
+                    expect_ret=0, msg='clean /var/crash firstly')
+        option = 'usbcore.quirks=quirks=0781:5580:bk,0a5c:5834:gij'
+        cmd = 'sudo grubby --update-kernel=ALL --args="{}"'.format(option)
+        utils_lib.run_cmd(self, cmd, msg='Append {} to command line!'.format(option), timeout=600)
+        self.vm.reboot(wait=True)
+        if 'metal' in self.vm.instance_type:
+            self.log.info("Wait {}".format(self.ssh_wait_timeout))
+            time.sleep(self.ssh_wait_timeout)
+        else:
+            self.log.info("Wait 60s")
+            time.sleep(60)
+        self.session.connect(timeout=self.ssh_wait_timeout)
+
+        utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw=option)
+        cmd = r'sudo cat /var/crash/*/vmcore-dmesg.txt|tail -50'
+        utils_lib.run_cmd(self, cmd, expect_kw='No such file or directory', msg='make sure there is no core generated')
+        utils_lib.run_cmd(self, "dmesg", expect_not_kw="Call trace,Call Trace")
+
+    def test_boot_hpet_mmap_enabled(self):
+        '''
+        :avocado: tags=test_boot_hpet_mmap_enabled
+        bz: 1660796, 1764790
+        polarion_id:
+        '''
+        utils_lib.run_cmd(self,
+                    r'sudo rm -rf /var/crash/*',
+                    expect_ret=0,
+                    msg='clean /var/crash firstly')
+        cmd = 'sudo grubby --update-kernel=ALL --args="hpet_mmap=1"'
+        utils_lib.run_cmd(self, cmd, msg='Append hpet_mmap=1 to command line!', timeout=600)
+        self.vm.reboot(wait=True)
+        if 'metal' in self.vm.instance_type:
+            self.log.info("Wait {}".format(self.ssh_wait_timeout))
+            time.sleep(self.ssh_wait_timeout)
+        else:
+            self.log.info("Wait 60s")
+            time.sleep(60)
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        utils_lib.init_connection(self, timeout=800)
+        utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='hpet_mmap=1')
+        utils_lib.run_cmd(self, 'dmesg | grep -i hpet', expect_kw='enabled', expect_not_kw='6HPET')
+        cmd = 'sudo cat /sys/devices/system/clocksource/clocksource0/available_clocksource'
+        out = utils_lib.run_cmd(self, cmd)
+        if 'hpet' in out:
+            utils_lib.run_cmd(self, 'sudo cat /proc/iomem|grep -i hpet', expect_kw='HPET 0')
+        utils_lib.check_log(self, "error,warn,fail,trace,Trace", rmt_redirect_stdout=True)
 
     def test_boot_nr_cpus(self):
         '''
@@ -445,8 +498,8 @@ class LifeCycleTest(Test):
                 break
             time_end = int(time.time())
             utils_lib.run_cmd(self, 'sudo systemctl list-jobs')
-            if time_end - time_start > 120:
-                self.fail("Bootup is not yet finished after 120s")
+            if time_end - time_start > 180:
+                self.fail("Bootup is not yet finished after 180s")
             self.log.info("Wait for bootup finish......")
             time.sleep(1)
         utils_lib.run_cmd(self, "dmesg", expect_not_kw="Call trace")
@@ -496,6 +549,30 @@ class LifeCycleTest(Test):
                 else:
                     self.log.info("Wait 60s")
                     time.sleep(60)
+            if "test_boot_usbcore_quirks" in self.name.name:
+                option = 'usbcore.quirks=quirks=0781:5580:bk,0a5c:5834:gij'
+                cmd = 'sudo grubby --update-kernel=ALL --args="{}"'.format(option)
+                utils_lib.run_cmd(self, cmd, msg='Remove "{}"'.format(option))
+                self.log.info('Reboot system!')
+                self.vm.reboot(wait=True)
+                if 'metal' in self.vm.instance_type:
+                    self.log.info("Wait {}".format(self.ssh_wait_timeout))
+                    time.sleep(self.ssh_wait_timeout)
+                else:
+                    self.log.info("Wait 60s")
+                    time.sleep(60)
+            if "test_boot_hpet_mmap_enabled" in self.name.name:
+                cmd = 'sudo grubby --update-kernel=ALL  --remove-args="hpet_mmap=1"'
+                utils_lib.run_cmd(self, cmd, msg='Remove "hpet_mmap=1"')
+                self.log.info('Reboot system!')
+                self.vm.reboot(wait=True)
+                if 'metal' in self.vm.instance_type:
+                    self.log.info("Wait {}".format(self.ssh_wait_timeout))
+                    time.sleep(self.ssh_wait_timeout)
+                else:
+                    self.log.info("Wait 60s")
+                    time.sleep(60)
+            
             if self.session.session.is_responsive(
             ) is not None and self.vm.is_started():
                 aws.gcov_get(self)

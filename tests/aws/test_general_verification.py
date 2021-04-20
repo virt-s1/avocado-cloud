@@ -786,6 +786,33 @@ master.zip"
                       (remote_path, local_path))
         self.session.copy_files_from(remote_path, local_path, timeout=600)
 
+    def test_subscription_manager_auto(self):
+        '''
+        :avocado: tags=test_subscription_manager_auto
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_subscription_manager_auto"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_subscription_manager_config(self):
+        '''
+        :avocado: tags=test_subscription_manager_config
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_subscription_manager_config"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_dmidecode_outofspec(self):
+        '''
+        :avocado: tags=test_check_dmidecode_outofspec
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_dmidecode_outofspec"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_podman_rm_stopped(self):
+        '''
+        :avocado: tags=test_podman_rm_stopped
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_podman_rm_stopped"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def tearDown(self):
         aws.done_test(self)

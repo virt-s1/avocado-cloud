@@ -513,6 +513,13 @@ later! expected: %s lsblk: %s assigned: %s" %
         cmd = 'dmesg'
         utils_lib.run_cmd(self, cmd, msg="dmesg after test")
 
+    def test_fsadm_resize(self):
+        '''
+        :avocado: tags=test_fsadm_resize
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_fsadm_resize"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_fio_cpuclock(self):
         '''
         :avocado: tags=test_fio_cpuclock,acceptance,fast_check,outposts
@@ -520,15 +527,8 @@ later! expected: %s lsblk: %s assigned: %s" %
         Perform test and validation of internal CPU clock.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        self.session = self.session
-        aws.check_session(self)
-        utils_lib.run_cmd(self, 'sudo lscpu', cancel_not_kw="aarch64")
-        cmd = 'sudo fio --cpuclock-test'
-        utils_lib.run_cmd(self,
-                    cmd,
-                    expect_ret=0,
-                    expect_kw="Pass",
-                    msg='Perform test and validation of internal CPU clock.', timeout=1200)
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_fio_cpuclock"
+        utils_lib.run_os_tests(self, case_name=case_name,timeout=1200)
 
     def test_fio_crctest(self):
         '''
