@@ -116,9 +116,8 @@ class AlibabaSDK(object):
         # Assign DiskCategory
         family = str(
             self.vm_params['InstanceType']).split('.')[1].split('-')[0]
-        essd_only_families = ('ebmc6e', 'ebmg6e', 'ebmr6e', 'c6e', 'g6e',
-                              'r6e')
-        if family in essd_only_families:
+        essd_only_families = ('6', '6e', '7')
+        if family.endswith(essd_only_families):
             self.vm_params['DiskCategory'] = 'cloud_essd'
         else:
             # AFAIK, gen4 families only support SSD
