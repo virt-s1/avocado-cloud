@@ -18,4 +18,5 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_config_drive
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_two_nics
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_stateless_ipv6
-    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_stateful_ipv6   
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_stateful_ipv6
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ifcfg_no_startmode   

@@ -530,6 +530,30 @@ ssh_pwauth: 1
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
         utils_lib.run_cmd(self, cmd, expect_kw='IPV6_FORCE_ACCEPT_RA=yes')
 
+    
+    def test_cloudinit_check_ifcfg_no_startmode(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-199308 - CLOUDINIT-TC: Check the network config file ifcfg-xxx	
+        bz#: 1931835,1930507
+        check no STARTMODE in ifcfg-eth0, the case is for rhel > 8.2
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        rhel_ver = self.session.cmd_output("sudo cat /etc/redhat-release")
+        rhel_ver = float(re.search('release\s+(\d+.\d+)\s+', rhel_ver).group(1))
+        if rhel_ver > 8.2:            
+            nic_interface = self.session.cmd_output("ip link show up | grep 'BROADCAST,MULTICAST' | head -1")
+            nic_interface = re.search('\d+:\s+([a-zA-Z0-9]+):', nic_interface).group(1)
+            cmd = 'sudo cat /etc/sysconfig/network-scripts/ifcfg-{}'.format(nic_interface)
+            utils_lib.run_cmd(self,
+                              cmd,
+                              expect_ret=0,
+                              expect_not_kw='STARTMODE',
+                              msg='check /etc/sysconfig/network-scripts/ifcfg-{}'.format(nic_interface),
+                              is_get_console=False)
+        else:
+            self.cancel("RHEL is < 8.3. Skip this case.")
+        
 
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
