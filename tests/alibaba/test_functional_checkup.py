@@ -713,36 +713,63 @@ will not check kernel-devel package.')
             self.fail('kdump service is not running at last.')
 
     def test_check_image_id(self):
+        """Check the image label in Alibaba private image.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_image_id
+        description:
+            Check the image label in Alibaba private image
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_image_id"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Get the image label from /etc/image-id
+            2. Get the image name from configure
+            3. Remove the extension name and '_copied'
+            4. Compare the processed name and label
+        pass_criteria:
+            The processed name and label are exactly the same.
+        """
         self.log.info("Check the /etc/image-id is correct.")
+
+        image_name = self.image_name
 
         # cat /etc/image-id
         # image_id="redhat_8_3_x64_20G_alibase_20201211.qcow2"
-
         cmd = 'sudo cat /etc/image-id | cut -d\'"\' -f2'
-        inside_name = self.session.cmd_output(cmd)
+        image_label = self.session.cmd_output(cmd)
+
+        # Cancel this case if not Alibaba private image
+        if not image_name.startswith(('redhat_', 'rhel_')):
+            self.cancel(
+                'Not Alibaba private image. ImageName: {}'.format(image_name))
 
         # Cancel this case if not provided
-        if 'No such file or directory' in inside_name:
+        if 'No such file or directory' in image_label:
             self.cancel('/etc/image-id is not provided, skip checking.')
 
-        # Cancel this case if using official image
-        if self.image_name.startswith('RHEL'):
-            self.cancel(
-                'Won\'t compare for official images.\nInside:%s\nOutside:%s' %
-                (inside_name, self.image_name))
-
         # copied name: "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
-        idx = inside_name.rfind('.')
-        if idx < 0:
-            copied_name = inside_name + '_copied'
-        else:
-            copied_name = inside_name[:idx] + '_copied' + inside_name[idx:]
+        compare_name = image_name.replace('.qcow2',
+                                          '').replace('.vhd', '').replace(
+                                              '_copied', '')
+        compare_label = image_label.replace('.qcow2', '').replace('.vhd', '')
+
+        var_info = 'ImageName: {}\nImageLabel: {}\nCompareName: {}\n \
+CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
+        self.log.debug(var_info)
 
         # Compare image names
-        if self.image_name != inside_name and self.image_name != copied_name:
-            self.fail(
-                'The image names are mismatched.\nInside:%s\nOutside:%s' %
-                (inside_name, self.image_name))
+        if compare_name != compare_label:
+            self.fail('The image names are mismatched.\n{}'.format(var_info))
 
     def tearDown(self):
         self.session.close()
