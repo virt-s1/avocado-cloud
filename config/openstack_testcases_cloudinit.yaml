@@ -19,4 +19,6 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_two_nics
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_stateless_ipv6
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_stateful_ipv6
-    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ifcfg_no_startmode   
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ifcfg_no_startmode
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_no_duplicate_swap
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_multiple_files_in_authorizedkeysfile
