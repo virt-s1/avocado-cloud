@@ -604,6 +604,75 @@ mounts:
             "The /etc/fstab is not same before and after cloud-init config")
 
 
+    def _verify_authorizedkeysfile(self, keyfiles):
+        self.session.cmd_output("sudo su")
+        # 1. Modify /etc/ssh/sshd_config
+        self.session.cmd_output(
+            "sed -i 's/^AuthorizedKeysFile.*$/AuthorizedKeysFile {}/g' /etc/ssh/sshd_config".format(keyfiles.replace('/', '\/')))
+        self.assertEqual(self.session.cmd_status_output("grep '{}' /etc/ssh/sshd_config".format(keyfiles))[0], 0,
+                         "Fail to change /etc/ssh/sshd_config AuthorizedKeysFile value.")
+        self.session.cmd_output("systemctl restart sshd")
+        # 2. Remove cc_ssh flag and authorized_keys
+        self.session.cmd_output(
+            "rm -f /var/lib/cloud/instance/sem/config_ssh /home/{}/.ssh/authorized_keys".format(self.vm.vm_username))
+        self.session.cmd_output("rm -rf {}".format(keyfiles))
+        # 3. Run module ssh
+        self.session.cmd_output("cloud-init single -n ssh")
+        self.session.cmd_output("systemctl restart sshd")
+        # 4. Verify can login and no unexpected files in ~/.ssh
+        self.assertTrue(self.session.connect(timeout=10),
+                        "Fail to login after run ssh module")
+        files = self.session.cmd_output(
+            "find /home/{}/.ssh/*|grep -vE '(id_rsa|known_hosts)'".format(self.vm.vm_username))
+        self.assertEqual(len(files.split()), 1,
+                         "There are unexpected files under ~/.ssh: {}".format(files))
+
+    def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-189026	CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile
+        1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
+        AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
+        2. Remove cc_ssh module flag and authorized_keys
+        3. Run module ssh
+        # cloud-init single -n ssh
+        4. Verify can login and no unexpected files in ~/.ssh/
+        5. Set customized keyfile a the front:
+        AuthorizedKeysFile /etc/ssh/userkeys/%u.ssh/authorized_keys
+        Restart sshd service and rerun step2-4
+        """
+        self.log.info(
+            "RHEL-189026 CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile")
+        # Backup sshd_config
+        self.session.cmd_output("/usr/bin/cp /etc/ssh/sshd_config /root/")
+        # AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
+        self._verify_authorizedkeysfile(
+            ".ssh/authorized_keys /etc/ssh/userkeys/%u")
+        # AuthorizedKeysFile /etc/ssh/userkeys/%u .ssh/authorized_keys
+        self._verify_authorizedkeysfile(
+            "/etc/ssh/userkeys/%u .ssh/authorized_keys")
+        # Recover the config to default: AuthorizedKeysFile .ssh/authorized_keys
+        self._verify_authorizedkeysfile(
+            ".ssh/authorized_keys")
+
+
+    def test_cloudinit_verify_customized_file_in_authorizedkeysfile(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-189027	CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile
+        1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
+        AuthorizedKeysFile .ssh/authorized_keys2
+        2. Remove cc_ssh module flag and authorized_keys
+        3. Run module ssh
+        # cloud-init single -n ssh
+        4. Verify can login successfully
+        """
+        # There is bz 1862967, skip the case until the bz is fixed. 2021-5-11
+        self.log.info(
+            "RHEL-189027 CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile")
+        self._verify_authorizedkeysfile(".ssh/authorized_keys2")
+
+
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
             self.vm.delete(wait=True)
