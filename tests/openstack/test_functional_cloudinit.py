@@ -538,6 +538,8 @@ ssh_pwauth: 1
         bz#: 1931835,1930507
         check no STARTMODE in ifcfg-eth0, the case is for rhel > 8.2
         '''
+        self.log.info(
+            "RHEL-199308 - CLOUDINIT-TC: Check the network config file ifcfg-xxx")
         self.session.connect(timeout=self.ssh_wait_timeout)
         rhel_ver = self.session.cmd_output("sudo cat /etc/redhat-release")
         rhel_ver = float(re.search('release\s+(\d+.\d+)\s+', rhel_ver).group(1))
@@ -554,6 +556,53 @@ ssh_pwauth: 1
         else:
             self.cancel("RHEL is < 8.3. Skip this case.")
         
+
+    def test_cloudinit_no_duplicate_swap(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-205128 - CLOUDINIT-TC: Can deal with the conflict of having swap configured on /etc/fstab 
+        *and* having cloud-init duplicating this configuration automatically
+        1. Deploy a VM, attach an additional volume(or dd a file) to mkswap. 
+        Add it to /etc/fstab, swapon, then check the free -m
+        2. Configure cloud-init, /etc/cloud/cloud.cfg.d/cc_mount.cfg
+        3. Use this VM as a template and create a new VM_new based on this VM
+        4. Login VM_new and check /etc/fstab, no duplicate swap entry
+        """
+        self.log.info(
+            "RHEL-205128 - CLOUDINIT-TC: Can deal with the conflict of having swap configured on /etc/fstab")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        self.session.cmd_output("sudo su")
+        self.session.cmd_output("dd if=/dev/zero of=/root/swapfile01 bs=1M count=1024")
+        self.session.cmd_output("chmod 600 /root/swapfile01")
+        self.session.cmd_output("mkswap -L swap01 /root/swapfile01")
+        self.session.cmd_output("echo '/root/swapfile01    swap    swap    defaults    0 0' >> /etc/fstab")
+        old_fstab = self.session.cmd_output("cat /etc/fstab")
+        self.session.cmd_output("swapon -a")
+        old_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
+        cloudinit_config = """\
+mounts:
+  - ["/root/swapfile01"]
+"""
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/cc_mount.cfg".format(cloudinit_config))
+        self.session.cmd_output("rm -rf /var/lib/cloud/instance/sem")
+        self.session.cmd_output("cloud-init single --name cc_mounts")
+        self.session.cmd_output("swapoff -a")
+        self.session.cmd_output("swapon -a")
+        new_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
+        new_fstab = self.session.cmd_output("cat /etc/fstab")
+        # clean the swap config
+        self.session.cmd_output("swapoff -a")
+        self.session.cmd_output("rm -rf /etc/cloud/cloud.cfg.d/cc_mount.cfg")
+        self.session.cmd_output("sed -i '/swapfile01/d' /etc/fstab")
+        self.session.cmd_output("rm -rf /root/swapfile01")
+        self.session.cmd_output("exit")
+        self.assertNotEqual(old_swap, '0',
+            "Swap size is 0 before cloud-init config")
+        self.assertEqual(old_swap, new_swap,
+            "Swap size is not same before and after cloud-init config")
+        self.assertEqual(old_fstab, new_fstab,
+            "The /etc/fstab is not same before and after cloud-init config")
+
 
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
