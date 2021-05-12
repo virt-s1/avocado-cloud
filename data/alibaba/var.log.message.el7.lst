@@ -41,3 +41,10 @@ failed to assign [io  size 0x
 failed to assign [mem size 0x
 BERT: Boot Error Record Table support is disabled
 #################### KNOWN ISSUES BELOW ####################
+# BZ1958498
+Running module ssh-authkey-fingerprints
+cc_keys_to_console.py[WARNING]: Writing keys to the system console failed!
+Running module keys-to-console
+Failed to start Execute cloud user/final scripts.
+Unit cloud-final.service entered failed state.
+cloud-final.service failed.
