@@ -81,6 +81,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_subscription_manager_config
     test_general_verification.py:GeneralVerification.test_check_dmidecode_outofspec
     test_general_verification.py:GeneralVerification.test_podman_rm_stopped
+    test_general_verification.py:GeneralVerification.test_check_systemd_analyze_verify_ordering_cycle
     test_functional_ltp.py:LTPRun.test_ltp_hugemmap
     test_functional_ltp.py:LTPRun.test_ltp_cpuhotplug
     test_functional_ltp.py:LTPRun.test_ltp_add_key02
@@ -102,6 +103,7 @@ cases:
     test_functional_network.py:NetworkTest.test_ethtool_P
     test_functional_network.py:NetworkTest.test_network_hotplug
     test_functional_network.py:NetworkTest.test_second_ip_hotplug
+    test_functional_network.py:NetworkTest.test_ethtool_S_xdp
     test_functional_storage.py:StorageTest.test_ssd_trim
     test_functional_storage.py:StorageTest.test_nvme_basic
     test_functional_storage.py:StorageTest.test_disk_info
@@ -129,5 +131,7 @@ cases:
     test_cloud_init.py:CloudInit.test_check_cloudinit_log_imdsv2
     test_cloud_init.py:CloudInit.test_check_cloudinit_ds_identify_found
     test_cloud_init.py:CloudInit.test_check_lineoverwrite
+    test_cloud_init.py:CloudInit.test_check_cloudinit_cfg_no_wheel
+    test_cloud_init.py:CloudInit.test_check_cloudinit_fingerprints
     test_zcleanup.py:CleanUp.test_cleanupall
 

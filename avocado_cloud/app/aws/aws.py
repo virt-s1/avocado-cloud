@@ -59,6 +59,15 @@ def init_test(test_ins, instance_index=0):
             pre_delete = True
     if test_ins.name.name.endswith("test_start_vm"):
         pre_stop = True
+    if test_ins.name.name.endswith("test_stop_vm_hibernate"):
+        pre_delete = True
+        test_ins.params['HibernationOptions'] = True
+        test_ins.params['EbsEncrypted'] = True
+        test_ins.params['EbsVolumeSize'] = 100
+    else:
+        test_ins.params['HibernationOptions'] = False
+        test_ins.params['EbsEncrypted'] = False
+        test_ins.params['EbsVolumeSize'] = 10
     if test_ins.vm is None:
         cloud = Setup(test_ins.params, test_ins.name)
         test_ins.vm = cloud.vm

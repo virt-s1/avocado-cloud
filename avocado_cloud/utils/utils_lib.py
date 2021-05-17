@@ -283,7 +283,7 @@ def run_os_tests(test_instance, case_name=None, timeout=60):
     '''
     Run os_tests test case
     '''
-    cmd = "sudo /usr/local/bin/os-tests -p {}".format(case_name)
+    cmd = "source test_venv/bin/activate;os-tests -p {}".format(case_name)
     out = run_cmd(test_instance, cmd, cancel_not_kw='skipped=1', timeout=timeout)
     cmd_get_log = "sudo cat /tmp/os_tests_result/debug/{}.debug".format(case_name)
     run_cmd(test_instance, cmd_get_log, msg='Get test debug log', cancel_not_kw='skipped=1')
