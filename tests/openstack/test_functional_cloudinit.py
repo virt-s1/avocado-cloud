@@ -643,6 +643,7 @@ mounts:
         """
         self.log.info(
             "RHEL-189026 CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile")
+        self.session.connect(timeout=self.ssh_wait_timeout)
         # Backup sshd_config
         self.session.cmd_output("/usr/bin/cp /etc/ssh/sshd_config /root/")
         # AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
@@ -671,6 +672,61 @@ mounts:
         self.log.info(
             "RHEL-189027 CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile")
         self._verify_authorizedkeysfile(".ssh/authorized_keys2")
+
+
+    def test_cloudinit_check_NOZEROCONF(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-152730 - CLOUDINIT-TC: Check 'NOZEROCONF=yes' in /etc/sysconfig/network cannot be removed by cloud-init
+        1. Create a VM with rhel-guest-image
+        2. Login and check /etc/sysconfig/network
+        3. There is "NOZEROCONF=yes" in /etc/sysconfig/network
+        """
+        self.log.info(
+            "RHEL-152730 - CLOUDINIT-TC: Check 'NOZEROCONF=yes' in /etc/sysconfig/network cannot be removed by cloud-init")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'sudo cat /etc/sysconfig/network'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='NOZEROCONF=yes',
+                          msg='check if NOZEROCONF=yes in /etc/sysconfig/network',
+                          is_get_console=False)
+
+
+    def test_cloudinit_check_groups_no_wheel(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-185184 - CLOUDINIT-TC: "sudo" do not require passwd for user cloud-user
+        1. Create a VM 
+        2. Login and check "sudo" do not require passwd for default user
+        3. Check /etc/cloud/cloud.cfg, groups do not include "wheel"
+        """
+        self.log.info(
+            "RHEL-185184 - CLOUDINIT-TC: 'sudo' do not require passwd for user cloud-user")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'sudo -v'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='password',
+                          msg='check if sudo -v not require password',
+                          is_get_console=False)
+        cmd = 'sudo su -'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='password',
+                          msg='check if sudo su not require password',
+                          is_get_console=False)
+        self.session.cmd_output("exit")
+        cmd = 'cat /etc/cloud/cloud.cfg | grep groups:'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='wheel',
+                          msg='check if wheel is not in default user groups',
+                          is_get_console=False)
 
 
     def tearDown(self):
