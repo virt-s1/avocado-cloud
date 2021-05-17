@@ -50,7 +50,7 @@ has some pkg not signed")
 
     def test_check_virtwhat(self):
         '''
-        :avocado: tags=test_check_virtwhat,fast_check,kernel_tier1
+        :avocado: tags=test_check_virtwhat,virt_what,fast_check,kernel_tier1
         polarion_id: RHEL7-103857
         '''
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_virtwhat"
@@ -264,6 +264,34 @@ content manually!\n %s" % output)
         BZ#: 1852657
         '''
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_release_name"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_systemd_analyze_verify_ordering_cycle(self):
+        '''
+        :avocado: tags=test_check_systemd_analyze_verify_ordering_cycle,fast_check
+        description:
+            os-tests Make sure there is no ordering cycle which may block boot up.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_systemd_analyze_verify_ordering_cycle"
+        bugzilla_id: 
+            1932614
+        customer_case_id: 
+            BZ1932614
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            systemd
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Make sure there is no ordering cycle which may block boot up.
+        pass_criteria: 
+            No ordering cycle found
+
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_fingerprints"
         utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_product_id(self):
@@ -791,7 +819,7 @@ master.zip"
         :avocado: tags=test_subscription_manager_auto
         '''
         case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_subscription_manager_auto"
-        utils_lib.run_os_tests(self, case_name=case_name)
+        utils_lib.run_os_tests(self, case_name=case_name, timeout=1800)
 
     def test_subscription_manager_config(self):
         '''

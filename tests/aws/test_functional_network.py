@@ -361,6 +361,43 @@ bandwidth higher than 40G')
         case_name = "os_tests.tests.test_network_test.TestNetworkTest.test_ethtool_G"
         utils_lib.run_os_tests(self, case_name=case_name)
 
+    def test_ethtool_S_xdp(self):
+        '''
+        :avocado: tags=test_ethtool_S_xdp,fast_check
+        description:
+            os-tests Use ethtool to query the specified network device xdp statistics.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_S_xdp"
+        bugzilla_id: 
+            1908542
+        customer_case_id: 
+            
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Use ethtool to query the specified network device xdp statistics.
+        pass_criteria: 
+            Can read xdp statics newer than el8.3
+            eg. # ethtool -S eth0 |grep xdp
+                  queue_0_rx_xdp_aborted: 0
+                  queue_0_rx_xdp_drop: 0
+                  queue_0_rx_xdp_pass: 0
+                  queue_0_rx_xdp_tx: 0
+                  queue_0_rx_xdp_invalid: 0
+                  queue_0_rx_xdp_redirect: 0
+
+        '''
+        self.session1.connect(timeout=self.ssh_wait_timeout)
+        self.session = self.session1
+        aws.check_session(self)
+        case_name = "os_tests.tests.test_network_test.TestNetworkTest.test_ethtool_S_xdp"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_ethtool_K_offload(self):
         '''
         :avocado: tags=test_ethtool_K_offload,fast_check

@@ -327,6 +327,7 @@ class LifeCycleTest(Test):
         bz: 1660796, 1764790
         polarion_id:
         '''
+        utils_lib.is_arm(self, action='cancel')
         utils_lib.run_cmd(self,
                     r'sudo rm -rf /var/crash/*',
                     expect_ret=0,
@@ -341,14 +342,13 @@ class LifeCycleTest(Test):
             self.log.info("Wait 60s")
             time.sleep(60)
         self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.init_connection(self, timeout=800)
         utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='hpet_mmap=1')
         utils_lib.run_cmd(self, 'dmesg | grep -i hpet', expect_kw='enabled', expect_not_kw='6HPET')
         cmd = 'sudo cat /sys/devices/system/clocksource/clocksource0/available_clocksource'
         out = utils_lib.run_cmd(self, cmd)
         if 'hpet' in out:
             utils_lib.run_cmd(self, 'sudo cat /proc/iomem|grep -i hpet', expect_kw='HPET 0')
-        utils_lib.check_log(self, "error,warn,fail,trace,Trace", rmt_redirect_stdout=True)
+        utils_lib.run_cmd(self, "dmesg", expect_not_kw="Call trace,Call Trace")
 
     def test_boot_nr_cpus(self):
         '''
@@ -372,6 +372,7 @@ class LifeCycleTest(Test):
                 self.log.info("Wait 60s")
                 time.sleep(60)
             self.session.connect(timeout=self.ssh_wait_timeout)
+            utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='nr_cpus={}'.format(cpu))
             utils_lib.run_cmd(self, 'lscpu', msg='list cpus')
             cmd = "sudo cat /proc/cpuinfo |grep processor|wc -l"
             utils_lib.run_cmd(self, cmd, expect_kw=str(cpu), msg='check cpus')
@@ -419,10 +420,10 @@ class LifeCycleTest(Test):
                 self.log.info("Wait 300s")
                 time.sleep(300)
             self.session.connect(timeout=self.ssh_wait_timeout)
+            utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='fips=1')
             utils_lib.run_cmd(self,
                         'sudo fips-mode-setup --check',
                         expect_kw='enabled')
-            utils_lib.run_cmd(self, 'cat /proc/cmdline', expect_kw='fips=1')
             utils_lib.run_cmd(self, 'dmesg', msg='save dmesg')
             cmd = 'sudo fips-mode-setup --disable'
             utils_lib.run_cmd(self, cmd, msg='Disable fips!')

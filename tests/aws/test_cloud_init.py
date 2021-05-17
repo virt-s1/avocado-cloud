@@ -6,7 +6,7 @@ import time
 
 class CloudInit(Test):
     '''
-    :avocado: tags=cloudinit,acceptance,fulltest,outposts
+    :avocado: tags=cloudinit,cloud_init,acceptance,fulltest,outposts
     '''
     def setUp(self):
         self.session = None
@@ -64,6 +64,62 @@ class CloudInit(Test):
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_output_isexist"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_cloudinit_cfg_no_wheel(self):
+        '''
+        :avocado: tags=test_check_cloudinit_cfg_no_wheel,fast_check
+        description:
+            os-tests Check there is no wheel in default_user's group in "/etc/cloud/cloud.cfg"
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]CloudInit.test_check_cloudinit_cfg_no_wheel"
+        bugzilla_id: 
+            1549638
+        customer_case_id: 
+            BZ1549638
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            cloud-init
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Check there is no wheel in default_user's group in "/etc/cloud/cloud.cfg"
+        pass_criteria: 
+            No 'wheel' in "/etc/cloud/cloud.cfg"
+
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_cfg_no_wheel"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_cloudinit_fingerprints(self):
+        '''
+        :avocado: tags=test_check_cloudinit_fingerprints,fast_check
+        description:
+            os-tests check fingerprints is saved in /var/log/messages.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]CloudInit.test_check_cloudinit_fingerprints"
+        bugzilla_id: 
+            1957532
+        customer_case_id: 
+            BZ1957532
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            cloud-init
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. check fingerprints is saved in /var/log/messages.
+        pass_criteria: 
+            Fingerprints is saved in /var/log/messages.
+
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        case_name = "os_tests.tests.test_cloud_init.TestCloudInit.test_check_cloudinit_fingerprints"
         utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_metadata(self):
