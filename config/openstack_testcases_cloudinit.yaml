@@ -24,3 +24,4 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_multiple_files_in_authorizedkeysfile
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_NOZEROCONF
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_groups_no_wheel
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ds_identify_found

@@ -729,7 +729,24 @@ mounts:
                           is_get_console=False)
 
 
+    def test_cloudinit_check_ds_identify_found(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-188251 - CLOUDINIT-TC: check ds-identify path
+        1. Create a VM 
+        2. Check /run/cloud-init/cloud-init-generator.log, there should be "ds-identify _RET=found"
+        """
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'cat /run/cloud-init/cloud-init-generator.log'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='ds-identify _RET=found',
+                          msg='check if there is ds-identify _RET=found',
+                          is_get_console=False)
+
+
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
             self.vm.delete(wait=True)
-        self.session.close()
+        self.session.close()       
