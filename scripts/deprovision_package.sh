@@ -450,13 +450,28 @@ cloudinit)
     function deprovision() { deprovision_cloudinit; }
     function verify() { verify_cloudinit; }
 ;;
-cloudinit_wala|kernel)
+cloudinit_wala)
     function deprovision() { deprovision_cloudinit_wala; }
     function verify() { verify_cloudinit_wala; }
 ;;
 wala)
     function deprovision() { deprovision_wala; }
     function verify() { verify_wala; }
+;;
+kernel)
+# Some old images have no cloud-init
+    which cloud-init > /dev/null 2>&1
+    if [ $? -eq 0 ];then
+        function deprovision() { deprovision_cloudinit_wala; }
+        function verify() { verify_cloudinit_wala; }
+    else
+        function deprovision() { deprovision_wala; }
+        function verify() { verify_wala; }
+    fi
+;;
+*)
+    echo "$type: unsupported deprovision type! Exit."
+    exit 1
 ;;
 esac
 
