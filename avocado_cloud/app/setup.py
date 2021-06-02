@@ -19,6 +19,9 @@ class Setup(object):
         elif self.cloud_provider == "azure":
             from .azure import AzureVM
             self.vm = AzureVM(params, **kwargs)
+        elif self.cloud_provider == "ibmcloud":
+            from .ibmcloud import PowerVM
+            self.vm = PowerVM(params, **kwargs)
         elif self.cloud_provider == "alibaba":
             from .alibaba import AlibabaVM
             self.vm = AlibabaVM(params)

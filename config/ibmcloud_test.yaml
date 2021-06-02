@@ -1,0 +1,3 @@
+test:
+    !include : ibmcloud_common.yaml
+    !include : ibmcloud_testcases_cloudinit.yaml
