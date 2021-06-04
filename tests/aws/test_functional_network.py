@@ -117,10 +117,34 @@ class NetworkTest(Test):
     def test_mtu_min_set(self):
         '''
         :avocado: tags=test_mtu_min_set,fast_check
-        polarion_id: RHEL-111097
-        ena mtu range: 128~9216
-        ixgbevf mtu range: 68~9710
-        vif mtu range: 68~65535
+        description:
+            os-tests Test set mtu with minimal, maximum and various values in RHEL on AWS. Linked case RHEL-111097.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_mtu_min_set"
+        bugzilla_id: 
+            1502554
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Log into the instance via ssh and check the newwork driver used via command "$ sudo ethtool -i eth0".
+            3. Change mtu setting to value between 0 and the minimal one via command like "$ sudo ifconfig eth0 mtu 50".
+            4. Change mtu setting to value larger than the maximum one via command like "$ sudo ifconfig eth0 mtu 9711".
+            5. Change mtu setting to vaule in range via command like "$ sudo ifconfig eth0 mtu 68", and check connection via ping command.
+            6. Change mtu settings to minimal and maximum vaules, and check connection via ping command.
+            7. Here are the mtu ranges for different network drivers on AWS.
+               ena mtu range in 128~9216
+               ixgbevf mtu range in 68~9710
+               vif mtu range in 68~65535
+        pass_criteria: 
+            MTU should not be set to vaules smaller than minimal one or larger than maximum one in step 2 and 3 which will cause network problem.
+            MTU vaules are set to minimal and maximum ones or between them in step 4 and 5, and network connect works well with these vaules.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -352,8 +376,30 @@ bandwidth higher than 40G')
     def test_ethtool_G(self):
         '''
         :avocado: tags=test_ethtool_G,fast_check
+        description:
+            os-tests Use ethtool change the rx/tx ring parameters of the specified network device.
         polarion_id:
-        bz#: 1722628
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_G"
+        bugzilla_id: 
+            1722628
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Use ethtool to check maximums and current rx/tx ring parameters via command "$ sudo ethtool -g  eth0".
+            2. Use ethtool to change the rx/tx ring parameters via command "$ sudo ethtool -G eth0 rx 512 tx 512".
+            3. Change the rx/tx ring parameters to maximums, minimal and invalid parameters e.g., -1.
+            4. Check the rx/tx ring is changed via command "$ sudo ethtool -g eth0".
+        pass_criteria: 
+            The supported rx/tx ring parameters can be changed.
+            Cannot set the ring parameters to -1.
+            And no error, warning, call track or other exception in dmesg.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -365,13 +411,13 @@ bandwidth higher than 40G')
         '''
         :avocado: tags=test_ethtool_S_xdp,fast_check
         description:
-            os-tests Use ethtool to query the specified network device xdp statistics.
+            [RHEL8.5] os-tests Use ethtool to query the specified network device xdp statistics.
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_S_xdp"
         bugzilla_id: 
             1908542
         customer_case_id: 
-            
+            n/a
         maintainer: 
             xiliang
         case_priority: 
@@ -382,7 +428,7 @@ bandwidth higher than 40G')
             1. Launch an instance on AWS EC2.
             2. Use ethtool to query the specified network device xdp statistics.
         pass_criteria: 
-            Can read xdp statics newer than el8.3
+            Can read xdp statics from RHEL8.5.
             eg. # ethtool -S eth0 |grep xdp
                   queue_0_rx_xdp_aborted: 0
                   queue_0_rx_xdp_drop: 0
@@ -401,7 +447,29 @@ bandwidth higher than 40G')
     def test_ethtool_K_offload(self):
         '''
         :avocado: tags=test_ethtool_K_offload,fast_check
+        description:
+            Test use ethtool to change the offload parameters and other features of the specified network device in RHEL on AWS.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_K_offload"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Use command "$ sudo  ethtool -k eth0" to query currently state of protocol offload and other features.
+            3. Use ethtool to turn off offload parameters and other features via command "$ sudo ethtool -K eth0 $feature off".
+            4. Check currently state of offload and other features again.
+            5. Use ethtool to turn on offload parameters and other features via command "$ sudo ethtool -K eth0 $feature on".
+            6. Check currently state of offload and other features.
+       pass_criteria: 
+            Each offload and features could be turned off and turned on again, and no exception, warn, fail or call trace in dmesg.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -469,7 +537,30 @@ bandwidth higher than 40G')
     def test_ethtool_s_msglvl(self):
         '''
         :avocado: tags=test_ethtool_s_msglvl,fast_check
+        description:
+            Test use ethtool to change the driver message type flags in RHEL on AWS.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_s_msglvl"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Use ethtool to disable all msglvl via command "$ sudo ethtool -s ethX msglvl 0".
+            3. Change the driver message type to different vaules like 'drv', 'probe', 'link', 'timer', 'ifdown', 'ifup', 'rx_err', 'tx_err', 'tx_queued', 'intr', 'tx_done', 'rx_status', 'pktdata', 'hw', 'wol'.
+               "$ sudo ethtool -s eth0 msglvl $type on"
+               "$ sudo ethtool -s eth0 msglvl $type off"
+            4. Check the message level after each change via command "$ sudo ethtool eth0".
+       pass_criteria: 
+            When all msglvl disabled, no message level name displays.
+            The corresponding message level name displays when it's on.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -503,7 +594,29 @@ bandwidth higher than 40G')
     def test_ethtool_X(self):
         '''
         :avocado: tags=test_ethtool_X,fast_check
+        description:
+        Test using ethtool to change rxfh setting.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_X"
+        bugzilla_id: 
+            1693098
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Use ethtool to change rxfh setting via command "ethtool -X eth0 default".
+            3. Check the output of this command and dmesg.
+        pass_criteria: 
+            "Operation not permitted" message should be reported but no ena fail message reported in dmesg.
+            Since ena does not support reading this feature.
+            $sudo ethtool -x eth0
+            Cannot get RX flow hash indirection table: Operation not supported
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -525,9 +638,26 @@ bandwidth higher than 40G')
     def test_ethtool_P(self):
         '''
         :avocado: tags=test_ethtool_P,fast_check
+        description:
+            os-tests Test using ethtool to query permanent address.
         polarion_id:
-        bug_id: 1704435
-        Assertion: Can read mac address successfully
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_P"
+        bugzilla_id: 
+            1704435
+        customer_case_id: 
+            BZ1704435
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Use ethtool to query permanent address via command "$ sudo ethtool -P ethX".
+            3. Check the output of this command.
+        pass_criteria: 
+            Actual permanent address should be shown, but not 00:00:00:00:00:00.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -538,7 +668,29 @@ bandwidth higher than 40G')
     def test_network_hotplug(self):
         '''
         :avocado: tags=test_network_hotplug,fast_check
-        polarion_id: RHEL7-103904
+        description:
+            Test hotplug network interface to RHEL on AWS. Linked case RHEL7-103904.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_network_hotplug"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Attach a network interface to the instance, check the network in guest, e.g., "$ sudo lspci", "$ sudo ip addr show".
+            3. Detach the network interface from the instance, check the nework in guest again.
+            4. Check dmesg log of the instance.
+        pass_criteria: 
+            When the second network interface is attached in step 2, there are 2 Elastic Network Adapters displays in PCI devices, and the IP address are auto assigned to the device.
+            When the second network interface is detached in step 3, there are 1 Elastic Network Adapters displays in PCI devices, and only 1 NIC displays when showing ip information.
+            No crash or panic in system, no related error message or call trace in dmesg.
         '''
         self.network = NetworkInterface(self.params)
         self.assertTrue(self.network.create(),
@@ -570,8 +722,31 @@ bandwidth higher than 40G')
     def test_second_ip_hotplug(self):
         '''
         :avocado: tags=test_second_ip_hotplug,fast_check
+        description:
+            [RHEL8.4] Test hotplug network interface to RHEL on AWS. Linked case RHEL7-103904.
         polarion_id:
-        BZ: 1623084, 1642461
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_second_ip_hotplug"
+        bugzilla_id: 
+            1623084,1642461
+        customer_case_id: 
+            BZ1623084,BZ1642461
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Check if package NetworkManager-cloud-setup is installed via command "$ sudo rpm -q NetworkManager-cloud-setup", if not, use yum install to install it.
+            3. Check the service status via command "$ sudo systemctl status nm-cloud-setup.timer".
+            4. Assign the second IP to the NIC of instance.
+            5. Check the ip address of the NIC for several times via command "$ sudo ip addr show eth0".
+            6. Remove the second IP from the NIC of instance.
+            7. Check if the second IP address is removed from the NIC.
+        pass_criteria: 
+            After the second IP is assigned to the NIC of instance in step 4, there will be 2 IP address shows in step5.
+            After the second IP is removed from the NIC of instance 6, there will be only 1 IP address shows in the step7.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
