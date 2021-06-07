@@ -260,7 +260,6 @@ bandwidth higher than 40G')
     def test_sriov_ena(self):
         '''
         :avocado: tags=test_sriov_ena,fast_check
-        polarion_id: RHEL7-87117
         description:
             Test enhanced network type of ENA (Elastic Network Adapter) in RHEL on AWS. Linked case RHEL7-87117.
             Instances with ENA drivers include,
