@@ -155,10 +155,33 @@ class NetworkTest(Test):
     def test_iperf_ipv4(self):
         '''
         :avocado: tags=test_iperf_ipv4
+        description:
+            Use iperf to test network bandwidth of RHEL on AWS. 
+            For now, we only run iperf test and did not compare result with standard. 
+            If there is big gap, please manuall run inside the same placement group.
         polarion_id:
-        For now, we only run iperf test and did not compare result with
-        standard. If there is big gap, please manuall run inside the same
-        placement group.
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_iperf_ipv4"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Check the bandwidth in specs of the instance under test, if it is less than 40 Gbps, use iperf3 to do the test.
+            2. Launch two instances on AWS, one is as the server and the other is as the client.
+            3. Install iperf3 in both instances via command "$ sudo yum install -y iperf3".
+            4. Start the iperf server in instance A via command "$ sudo iperf3 -s" and check the ip address of the server.
+               Note You may need to change security settings to allow connection between 2 instances (--protocol tcp --port 5001).
+            5. Run iperf tests from the client via command "$ sudo iperf3 -P 10 -c $PrivateIPOfServer".
+            6. Check the SUM bandwidth in the results.
+        pass_criteria: 
+            The SUM bandwidth run with iperf3 should be close but no big gap to the bandwidth in instance specs. 
+            No exception when running iperf3 in instance on AWS.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -172,7 +195,29 @@ bandwidth higher than 40G')
     def test_sriov_ixbgevf(self):
         '''
         :avocado: tags=test_sriov_ixbgevf,fast_check
-        polarion_id: RHEL7-87119
+        description:
+            Test enhanced network type of SRIOV (ixgbevf driver) in RHEL on AWS. Linked case RHEL7-87119.
+            Instances with ixgbevf driver include C3, C4, D2, I2, R3 and M4 (excluding m4.16xlarge).
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_sriov_ixbgevf"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance with ixgbevf driver on AWS.
+            2. Connect the instance via ssh, and check the ixgbevf module is installed and loaded by default via command "$ sudo modinfo ixgbevf".
+            3. Verify the ixgbevf module is being used on a particular interface via command "$ sudo ethtool -i eth0".
+            4. Run iperf tests according to case test_iperf_ipv4 to check the bandwidth of network as specs (5 Gbit/s or 10 Gbit/s).
+        pass_criteria: 
+            The ixgbevf module is installed and loaded by default.
+            The ixgbevf driver is used by the specified network interface.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         if not self.name.name.endswith("test_cleanup"):
@@ -184,7 +229,7 @@ bandwidth higher than 40G')
         else:
             utils_lib.run_cmd(self, eth_cmd, expect_ret=0, cancel_kw='ixgbevf')
 
-        self.log.info("Trying to check sriov ixbgevf interface!")
+        self.log.info("Trying to check sriov ixgbevf interface!")
 
         mod_cmd = "modinfo ixgbevf"
 
@@ -216,6 +261,44 @@ bandwidth higher than 40G')
         '''
         :avocado: tags=test_sriov_ena,fast_check
         polarion_id: RHEL7-87117
+        description:
+            Test enhanced network type of ENA (Elastic Network Adapter) in RHEL on AWS. Linked case RHEL7-87117.
+            Instances with ENA drivers include,
+            R4, H1, m4.16xlarge,
+            X1, X1e, X2gd,
+            I3, I3en, 
+            T3, T3a, T4g,
+            C5, C5a, C5ad, C5d, C5n, 
+            M5, M5a, M5ad, M5d, M5dn, M5n, M5zn,
+            R5, R5a, R5ad, R5b, R5d, R5dn, R5n,
+            A1, C6g, C6gd, C6gn, M6g, M6gd, R6g, R6gd, 
+            F1, Inf1,
+            D3, D3en,
+            G3, G3s, G4ad, G4dn, 
+            P2, P3, P3dn, P4d,
+            Mac1, z1d and so on.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_sriov_ena"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance with ena drivers on AWS.
+            2. Connect the instance via ssh, and check the ena module is installed and loaded by default via command "$ sudo modinfo ena".
+            3. Verify the ena module is being used on a particular interface via command "$ sudo ethtool -i eth0".
+            4. Check the dmesg info related to ena "$ sudo dmesg|grep -w ena".
+            5. Run iperf tests according to case test_iperf_ipv4 to check the bandwidth of network as specs (5 Gbit/s to 100 Gbit/s).
+        pass_criteria: 
+            The ena module is installed and loaded by default.
+            The ena driver is used by the specified network interface.
+            There are no error/warning/failure/unsupported feature messages about ena, better to compare the output with privious version, make sure there isn't regression which doesn't display as error in message.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -255,7 +338,27 @@ bandwidth higher than 40G')
     def test_sriov_ena_dmesg(self):
         '''
         :avocado: tags=test_sriov_ena_dmesg,fast_check
+        description:
+            Check dmesg related to ENA (Elastic Network Adapter) driver in RHEL on AWS. Linked case RHEL7-87117.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_sriov_ena_dmesg"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance with ENA drivers (instance list refer to description in case test_sriov_ena) on AWS.
+            2. Connect the instance via ssh, and verify the ena module is being used on a particular interface via command "$ sudo ethtool -i eth0".
+            3. Check the dmesg info related to ena "$ sudo dmesg|grep -w ena".
+        pass_criteria: 
+            The ena driver is used by the specified network interface.
+            There are no error/warning/failure/unsupported feature messages about ena, better to compare the output with privious version, make sure there isn't regression which doesn't display as error in message.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -270,7 +373,28 @@ bandwidth higher than 40G')
     def test_sriov_ena_unload_load(self):
         '''
         :avocado: tags=test_sriov_ena_unload_load,fast_check
+        description:
+            Test unload and reload ENA (Elastic Network Adapter) module in RHEL on AWS.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_sriov_ena_unload_load"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance with ENA drivers (instance list refer to description in case test_sriov_ena) on AWS.
+            2. Connect the instance via ssh, and verify the ena module is being used on a particular interface via command "$ sudo ethtool -i eth0".
+            3. Unload and load ena moudle via command "$ sudo modprobe -r ena; sudo modprobe ena".
+            4. Check the dmesg info related to ena "$ sudo dmesg|grep -w ena".
+        pass_criteria: 
+            The ena can be unloaded and loaded without error.
+            There are no error/warning/failure/unsupported feature messages about ena.
         '''
         self.log.info("Test unload and load ena module")
         self.session1.connect(timeout=self.ssh_wait_timeout)
@@ -292,7 +416,29 @@ bandwidth higher than 40G')
     def test_xen_netfront_unload_load(self):
         '''
         :avocado: tags=test_xen_netfront_unload_load,fast_check
+        description:
+            Test unload and reload xen_netfront module in RHEL on AWS.
+            Instances with xen_netfront dirver include T2 and G2.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_xen_netfront_unload_load"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an T2 or G2 instance on AWS.
+            2. Connect the instance via ssh, and verify the xen_netfront module is being used on a particular interface via command "$ sudo ethtool -i eth0".
+            3. Unload and load xen_netfront moudle via command "$ sudo modprobe -r xen_netfront; sudo modprobe xen_netfront".
+            4. Check the dmesg info related to xen_netfront "$ sudo dmesg|grep -w ena".
+        pass_criteria: 
+            The xen_netfront can be unloaded and loaded without error.
+            There are no error/warning/failure/unsupported feature messages about xen_netfront.
         '''
         self.log.info("Test unload and load xen_netfront module")
         self.session1.connect(timeout=self.ssh_wait_timeout)
@@ -317,7 +463,29 @@ bandwidth higher than 40G')
     def test_pci_reset(self):
         '''
         :avocado: tags=test_pci_reset
+        description:
+            [Skip] Test unload and reload xen_netfront module in RHEL on AWS.
+            Skip this case since there is a CANTFIX bug 1687330 with this case.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_pci_reset"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance with ENA drivers (instance list refer to description in case test_sriov_ena) on AWS.
+            2. Connect the instance via ssh, check the ena driver is used by NIC via command "$ sudo ethtool -i eth0".
+            3. List PCI devices information via command "$ sudo lspci".
+            4. Reset ena device via command "$ sudo echo 1 > /sys/devices/pci0000:00/0000:00:05.0/reset".
+        pass_criteria: 
+            PCI reset successfully.
+            There are no error/warning/failure/unsupported feature messages about ena.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -342,7 +510,34 @@ bandwidth higher than 40G')
     def test_ethtool_C_coalesce(self):
         '''
         :avocado: tags=test_ethtool_C_coalesce,fast_check
+        description:
+        Use ethtool to change the coalescing settings of the specified network device.
         polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_C_coalesce"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Use ethtool to query the specified network device for coalescing information via command "$ sudo ethtool -c  eth0".
+            3. Use ethtool to change the coalescing settings via command "$ sudo ethtool -C eth0 rx-usecs 3".
+            4. Change the coalescing settings to different vaules like 
+            'stats-block-usecs', 'sample-interval', 'pkt-rate-low',
+            'pkt-rate-high', 'rx-usecs', 'rx-frames', 'rx-usecs-irq',
+            'rx-frames-irq', 'tx-usecs', 'tx-frames', 'tx-usecs-irq',
+            'tx-frames-irq', 'rx-usecs-low', 'rx-frame-low', 'tx-usecs-low',
+            'tx-frame-low', 'rx-usecs-high', 'rx-frame-high', 'tx-usecs-high',
+            'tx-frame-high'.
+        pass_criteria: 
+            The coalescing setting can be change successfully, or if cannot be change, message like "Operation not permitted" should be reported.
+            And no error, warning, call track or other exception in dmesg.
         '''
         self.session1.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session1
@@ -377,7 +572,7 @@ bandwidth higher than 40G')
         '''
         :avocado: tags=test_ethtool_G,fast_check
         description:
-            os-tests Use ethtool change the rx/tx ring parameters of the specified network device.
+            os-tests Use ethtool to change the rx/tx ring parameters of the specified network device.
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_ethtool_G"
         bugzilla_id: 
