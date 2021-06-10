@@ -748,14 +748,15 @@ will not check kernel-devel package.')
         cmd = 'sudo cat /etc/image-id | cut -d\'"\' -f2'
         image_label = self.session.cmd_output(cmd)
 
-        # Cancel this case if not Alibaba private image
-        if not image_name.startswith(('redhat_', 'rhel_')):
-            self.cancel(
-                'Not Alibaba private image. ImageName: {}'.format(image_name))
-
         # Cancel this case if not provided
         if 'No such file or directory' in image_label:
             self.cancel('/etc/image-id is not provided, skip checking.')
+
+        # Cancel this case if not Alibaba private image
+        if not image_name.startswith(('redhat_', 'rhel_')):
+            self.cancel(
+                'Not Alibaba private image.\nImageName: {}\nImageLable: {}'.
+                format(image_name, image_label))
 
         # copied name: "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
         compare_name = image_name.replace('.qcow2',
