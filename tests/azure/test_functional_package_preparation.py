@@ -169,9 +169,9 @@ tcpdump"
                     pkg[:-4]))[0], 0,
                 "Package {} is not installed.".format(pkg))
         # Install RHUI package in case LISAv2 need to yum install packages.
-        # Ignore error in case no rhui package.
         self.session.cmd_output(
-            "rpm -ivh /root/rhui-azure-*.rpm --force||true")
+            "rpm -e rhui-azure-rhel{0}; yum -y --config='https://rhelimage.blob.core.windows.net/repositories/rhui-microsoft-azure-rhel{0}.config' install 'rhui-azure-rhel{0}'".format(x_version)
+        )
         # Enable IPv6 init in ifcfg-eth0 for IPv6 case
         self.session.cmd_output(
             "sed -i 's/^IPV6INIT.*$/IPV6INIT=yes/g' /etc/sysconfig/network-scripts/ifcfg-eth0")
