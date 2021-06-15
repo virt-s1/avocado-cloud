@@ -11,7 +11,7 @@ from avocado_cloud.app.azure import AzurePublicIP
 from avocado_cloud.app.azure import AzureNicIpConfig
 from avocado_cloud.app.azure import AzureImage
 from distutils.version import LooseVersion
-from avocado_cloud.utils.utils_azure import command
+from avocado_cloud.utils import utils_azure
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
@@ -216,6 +216,11 @@ class CloudinitTest(Test):
                 "sudo cat /etc/sudoers.d/90-cloud-init-users"),
             "No sudo privilege")
 
+    def _get_boot_temp_devices(self):
+        boot_dev = self.session.cmd_output("mount|grep 'boot'|head -1|cut -c1-8")
+        temp_dev = '/dev/sda' if boot_dev == '/dev/sdb' else '/dev/sdb'
+        return(boot_dev, temp_dev)
+
     def test_cloudinit_login_with_publickey(self):
         """
         :avocado: tags=tier1,cloudinit,cloud_utils_growpart,dependencies
@@ -245,7 +250,7 @@ class CloudinitTest(Test):
             self.session.cmd_output("sudo cp /var/log/messages /tmp/logs/")
             self.session.cmd_output("sudo chmod 644 /tmp/logs/*")
             host_logpath = os.path.dirname(self.job.logfile) + "/logs"
-            command("mkdir -p {}".format(host_logpath))
+            utils_azure.command("mkdir -p {}".format(host_logpath))
             self.session.copy_files_from("/tmp/logs/*", host_logpath)
         except:
             pass
@@ -460,7 +465,7 @@ partition and filesystem")
                     "rpm -q cloud-utils-growpart gdisk")[0] != 0:
                 self.fail("Cannot install cloud-utils-growpart gdisk packages")
         # 2. Check os disk and fs capacity
-        boot_dev = self.session.cmd_output("mount|grep 'boot ' | cut -c6-8")
+        boot_dev = self._get_boot_temp_devices()[0].split('/')[-1]
         partition = self.session.cmd_output(
             "find /dev/ -name {}[0-9]|sort|tail -n 1".format(boot_dev))
         dev_size = self.session.cmd_output(
@@ -488,7 +493,7 @@ partition and filesystem")
         # 4. Start VM and login. Check os disk and fs capacity
         self.vm.start()
         self.session.connect()
-        boot_dev = self.session.cmd_output("mount|grep 'boot ' | cut -c6-8")
+        boot_dev = self._get_boot_temp_devices()[0].split('/')[-1]
         partition = self.session.cmd_output(
             "find /dev/ -name {}[0-9]|sort|tail -n 1".format(boot_dev))
         new_dev_size = self.session.cmd_output(
@@ -516,24 +521,25 @@ partition and filesystem")
         """
         self.log.info("RHEL-131780: WALA-TC: [Cloudinit] Check temporary \
 disk mount point")
-        boot_dev = self.session.cmd_output("mount|grep 'boot ' | cut -c1-8")
-        temp_dev = '/dev/sda' if boot_dev == '/dev/sdb' else '/dev/sdb'
+        # boot_dev = self.session.cmd_output("mount|grep 'boot ' | cut -c1-8")
+        # temp_dev = '/dev/sda' if boot_dev == '/dev/sdb' else '/dev/sdb'
+        # temp_dev = utils_azure.get_temporary_device()
         status = self.session.cmd_status_output(
-            "mount|grep {}1".format(temp_dev))[0]
-        self.log.info(
-            self.session.cmd_output("sudo fdisk -l {}".format(temp_dev)))
+            "mount|grep '/mnt '")[0]
+        # self.log.info(
+        #     self.session.cmd_output("sudo fdisk -l {}".format(temp_dev)))
         self.assertEqual(
-            status, 0, "After create VM, {}1 is not mounted".format(temp_dev))
+            status, 0, "After create VM, temporary disk is not mounted to /mnt")
         # Redeply VM (move to another host. The ephemeral disk will be new)
         self.vm.redeploy()
         self.session.connect()
         status = self.session.cmd_status_output(
-            "mount|grep {}1".format(temp_dev))[0]
-        self.log.info(
-            self.session.cmd_output("sudo fdisk -l {}".format(temp_dev)))
+            "mount|grep '/mnt '")[0]
+        # self.log.info(
+        #     self.session.cmd_output("sudo fdisk -l {}".format(temp_dev)))
         self.assertEqual(
             status, 0,
-            "After redeploy VM, {}1 is not mounted".format(temp_dev))
+            "After redeploy VM, temporary disk is not mounted to /mnt")
 
     def test_cloudinit_check_service_status(self):
         """
