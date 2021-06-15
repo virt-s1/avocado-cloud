@@ -32,6 +32,14 @@ class CloudinitTest(Test):
 #        if self.case_short_name == "test_cloudinit_verify_customized_file_in_authorizedkeysfile":
 #            self.cancel("BZ#1862967 has not been fixed yet. Skip.")
         self.pwd = os.path.abspath(os.path.dirname(__file__))
+        if LooseVersion(self.project) >= LooseVersion('9.0.0'):
+            if self.case_short_name in [
+                "test_cloudinit_no_networkmanager"
+            ]:
+                self.cancel(
+                    "Skip case base RHEL-{} doesn't support this feature".format(self.project)
+                )
+            
         if self.case_short_name in [
             "test_cloudinit_provision_gen2_vm",
             "test_cloudinit_verify_storage_rule_gen2"
@@ -40,18 +48,14 @@ class CloudinitTest(Test):
                 self.cancel(
                     "Skip case because RHEL-{} ondemand image doesn't support gen2".format(self.project))
             cloud = Setup(self.params, self.name, size="DS2_v2")
-        else:
-            cloud = Setup(self.params, self.name)
-        if self.case_short_name in [
-            "test_cloudinit_provision_gen2_vm",
-            "test_cloudinit_verify_storage_rule_gen2",
-        ]:
             cloud.vm.vm_name += "-gen2"
             self.image = AzureImage(self.params, generation="V2")
             if not self.image.exists():
                 self.image.create()
             cloud.vm.image = self.image.name
             cloud.vm.use_unmanaged_disk = False
+        else:
+            cloud = Setup(self.params, self.name)
         self.vm = cloud.vm
         self.package = self.params.get("packages", "*/Other/*")
         if self.case_short_name in [
@@ -1022,6 +1026,7 @@ EOF""".format(device, size))
         #     local_path="/tmp/config_rh_subscription",
         #     remote_path="/tmp/config_rh_subscription"
         # )
+        self.session.cmd_output("sudo su -")
         self.session.cmd_output("subscription-manager unregister")
         self.session.cmd_output(
             "rm -f /var/lib/cloud/instance/sem/config_rh_subscription /var/log/cloud-init*.log")
@@ -1036,8 +1041,7 @@ EOF""".format(device, size))
         self.assertEqual(self.session.cmd_status_output(
             "grep 'Registered successfully' /var/log/cloud-init.log")[0], 0,
             "No 'Registered successfully log in cloud-init.log")
-        self.assertNotIn("Unknown", 
-            self.session.cmd_output("subscription-manager status|grep Overall"),
+        self.assertEqual(self.session.cmd_status_output("subscription-manager identity")[0], 0,
             "Fail to register with subscription-manager")
         self._check_cloudinit_log(additional_ignore_msg=["WARNING"])
 
@@ -1059,10 +1063,6 @@ rh_subscription:
   username: {}
   password: {}'''.format(self.subscription_username, self.subscription_password)
         self._verify_rh_subscription(CONFIG)
-        self.session.cmd_output("subscription-manager attach --auto", timeout=120)
-        self.assertNotEqual("",
-            self.session.cmd_output("subscription-manager list --consumed --pool-only"),
-            "Cannot auto-attach pools manually")
 
     def test_cloudinit_auto_install_package_with_subscription_manager(self):
         """
@@ -1565,7 +1565,7 @@ ssh_pwauth: 1
         '''
         self.log.info("RHEL-196477 - CLOUDINIT-TC: cloud-init works well if NetworkManager not installed")
         self.session.cmd_output("sudo su -")
-        if "could not be found" in self.session.cmd_output("systemctl status network.service"):
+        if self.session.cmd_status_output("rpm -q network-scripts")[0] != 0:
             self.session.cmd_output("yum install -y network-scripts", timeout=300)
             self.session.cmd_output("/usr/lib/systemd/systemd-sysv-install enable network")
             # Remove ifcfg files other than eth0 and lo
@@ -1605,7 +1605,7 @@ ssh_pwauth: 1
                 "test_cloudinit_auto_install_package_with_subscription_manager",
                 "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo"
         ]:
-            self.session.cmd_output("subscription-manager unregister")
+            self.session.cmd_output("sudo subscription-manager unregister")
         elif self.case_short_name in [
                 "test_cloudinit_enable_swap_in_temporary_disk",
         ]:
