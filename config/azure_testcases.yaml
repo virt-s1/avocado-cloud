@@ -22,5 +22,3 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_extend_root_partition_and_filesystem
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password
 
-    
-
