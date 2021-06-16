@@ -835,9 +835,6 @@ EOF""".format(device, size))
             error_msg += "Verify hostname failed\n"
         # Verify hostname is published to DNS
         try:
-            self.assertIn(".internal.cloudapp.net",
-                          self.session.cmd_output("hostname -f"),
-                          "Cannot get whole FQDN")
             self.assertNotIn(
                 "NXDOMAIN",
                 self.session.cmd_output("nslookup {0}".format(
@@ -1592,8 +1589,8 @@ ssh_pwauth: 1
             return
         if self.case_short_name == \
                 "test_cloudinit_check_networkmanager_dispatcher":
-            self.session.cmd_output("mv /tmp/enabled /run/cloud-init/")
-            self.session.cmd_output("systemctl restart NetworkManager")
+            self.session.cmd_output("sudo mv /tmp/enabled /run/cloud-init/")
+            self.session.cmd_output("sudo systemctl restart NetworkManager")
         elif self.case_short_name in [
                 "test_cloudinit_verify_multiple_files_in_authorizedkeysfile",
                 "test_cloudinit_verify_customized_file_in_authorizedkeysfile"
