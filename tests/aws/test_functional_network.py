@@ -116,7 +116,7 @@ class NetworkTest(Test):
 
     def test_mtu_min_set(self):
         '''
-        :avocado: tags=test_mtu_min_set,fast_check
+        :avocado: tags=test_mtu_min_set,fast_check,kernel
         description:
             os-tests Test set mtu with minimal, maximum and various values in RHEL on AWS. Linked case RHEL-111097.
         polarion_id:
@@ -371,7 +371,7 @@ bandwidth higher than 40G')
 
     def test_sriov_ena_unload_load(self):
         '''
-        :avocado: tags=test_sriov_ena_unload_load,fast_check
+        :avocado: tags=test_sriov_ena_unload_load,fast_check,kernel
         description:
             Test unload and reload ENA (Elastic Network Adapter) module in RHEL on AWS.
         polarion_id:

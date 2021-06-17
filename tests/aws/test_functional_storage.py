@@ -586,7 +586,7 @@ later! expected: %s lsblk: %s assigned: %s" %
 
     def test_iostat_x(self):
         '''
-        :avocado: tags=test_iostat_x,fast_check,acceptance,outposts
+        :avocado: tags=test_iostat_x,fast_check,acceptance,outposts,kernel
         description:
             os-tests check iostat output in RHEL on AWS.
         polarion_id:
@@ -613,7 +613,6 @@ later! expected: %s lsblk: %s assigned: %s" %
                 Device            r/s     w/s     rkB/s     wkB/s   rrqm/s   wrqm/s  %rrqm  %wrqm r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
                 nvme0n1         46.06    2.82   1587.81    274.62     0.00     0.23   0.00   7.52    0.50    1.32   0.00    34.47    97.31   0.86   4.19
                 nvme1n1          0.15    0.00     10.43      0.00     0.00     0.00   0.00   0.00    1.00    0.00   0.00    70.40     0.00   1.50   0.02
-
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session

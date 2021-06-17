@@ -16,7 +16,7 @@ class CloudInit(Test):
 
     def test_check_username(self):
         '''
-        :avocado: tags=test_check_username,fast_check,kernel_tier1
+        :avocado: tags=test_check_username,fast_check,kernel
         description:
             Check the username for guests on AWS. Linked case RHEL7-103986
         polarion_id:
@@ -45,7 +45,7 @@ class CloudInit(Test):
 
     def test_check_userdata(self):
         '''
-        :avocado: tags=test_check_userdata,fast_check,kernel_tier1
+        :avocado: tags=test_check_userdata,fast_check,kernel
         description:
             Check the userdata can be passed when creating instance. Linked case RHEL7-87120
         polarion_id:
@@ -196,7 +196,7 @@ class CloudInit(Test):
 
     def test_check_metadata(self):
         '''
-        :avocado: tags=test_check_metadata,fast_check,kernel_tier1,fast_check
+        :avocado: tags=test_check_metadata,fast_check,kernel,fast_check
         description:
             os-tests Check the cloud-init metadata.
             https://cloudinit.readthedocs.io/en/latest/topics/datasources/ec2.html

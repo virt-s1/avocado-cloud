@@ -115,7 +115,7 @@ class LifeCycleTest(Test):
 
     def test_reboot_vm_from_control(self):
         '''
-        :avocado: tags=test_reboot_vm_from_control,kernel_tier1
+        :avocado: tags=test_reboot_vm_from_control,kernel
         description:
         Test reboot RHEL instance from AWS platform. Linked case RHEL7-103636.
         polarion_id:
@@ -220,7 +220,7 @@ class LifeCycleTest(Test):
 
     def test_stop_vm(self):
         '''
-        :avocado: tags=test_stop_vm,kernel_tier1
+        :avocado: tags=test_stop_vm,kernel
         description:
         Test stop RHEL instance from AWS platform. Linked case RHEL7-103634.
         polarion_id:
@@ -769,8 +769,10 @@ class LifeCycleTest(Test):
         kernel_ver = utils_lib.run_cmd(self, 'uname -r', expect_ret=0)
         if 'el7' in kernel_ver:
             debug_kernel = "/boot/vmlinuz-" + kernel_ver.strip('\n') + ".debug"
+            debug_kernel_2 = kernel_ver.strip('\n') + ".debug"
         else:
             debug_kernel = "/boot/vmlinuz-" + kernel_ver.strip('\n') + "+debug"
+            debug_kernel_2 = kernel_ver.strip('\n') + "+debug"
 
         utils_lib.run_cmd(self,
                     "sudo grubby --info=%s" % debug_kernel,
@@ -794,9 +796,9 @@ class LifeCycleTest(Test):
             time.sleep(120)
         self.session.connect(timeout=self.ssh_wait_timeout)
         utils_lib.run_cmd(self,
-                    'uname -r',
+                    'cat /proc/cmdline',
                     expect_ret=0,
-                    expect_kw='debug',
+                    expect_kw=debug_kernel_2,
                     msg="checking debug kernel booted")
         utils_lib.run_cmd(self, 'dmesg', expect_ret=0, msg="saving dmesg output")
         utils_lib.run_cmd(self, 'sudo su', expect_ret=0)

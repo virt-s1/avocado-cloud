@@ -86,7 +86,7 @@ has some pkg not signed")
 
     def test_check_virtwhat(self):
         '''
-        :avocado: tags=test_check_virtwhat,virt_what,fast_check,kernel_tier1
+        :avocado: tags=test_check_virtwhat,virt_what,fast_check,kernel
         description:
             os-tests detect the type of virtual machine in RHEL on AWS. Linked case RHEL7-103857.
         polarion_id:
@@ -116,7 +116,7 @@ has some pkg not signed")
 
     def test_fork_pte(self):
         '''
-        :avocado: tags=test_fork_pte,fast_check,kernel_tier1
+        :avocado: tags=test_fork_pte,fast_check,kernel
         description:
             [RHEL8.4] os-tests Check dirty bit is preserved across pte_wrprotect in RHEL on AWS.
             The patch supports this feature in arm64 was backported from RHEL8.4 as well as RHEL8.3.z.
@@ -379,7 +379,7 @@ x86_64.rpm'
 
     def test_check_dmesg_calltrace(self):
         '''
-        :avocado: tags=test_check_dmesg_calltrace,fast_check,kernel_tier1
+        :avocado: tags=test_check_dmesg_calltrace,fast_check,kernel
         description:
             os-tests Check call trace in dmesg for RHEL on AWS. Linked case RHEL7-103851.
         polarion_id:
@@ -406,7 +406,7 @@ x86_64.rpm'
 
     def test_check_dmesg_unknownsymbol(self):
         '''
-        :avocado: tags=test_check_dmesg_unknownsymbol,fast_check,kernel_tier1
+        :avocado: tags=test_check_dmesg_unknownsymbol,fast_check,kernel
         description:
             os-tests Check unknown symbol in dmesg for RHEL on AWS. Linked case RHEL7-103851.
         polarion_id:
@@ -796,7 +796,7 @@ itlb_multihit|sed 's/:/^/' | column -t -s^"
 
     def test_check_avclog(self):
         '''
-        :avocado: tags=test_check_avclog,fast_check,kernel_tier1
+        :avocado: tags=test_check_avclog,fast_check,kernel
         description:
             os-tests Check avclog in RHEL on AWS.
         polarion_id:
@@ -1077,18 +1077,17 @@ in RHEL7|6, bug1625874")
         output = utils_lib.run_cmd(self, "uname -r", expect_ret=0)
         if 'el8' in output:
             utils_lib.run_cmd(self,
-                        'sudo systemctl status rngd',
+                        'sudo systemctl status -l rngd',
                         expect_kw='active (running)',
                         msg="Checking rngd service")
         else:
             utils_lib.run_cmd(self,
-                        'sudo systemctl status rngd',
-                        expect_not_ret=0,
+                        'sudo systemctl status -l rngd',
                         msg="Checking rngd service")
 
     def test_check_service(self):
         '''
-        :avocado: tags=test_check_service,fast_check,kernel_tier1
+        :avocado: tags=test_check_service,fast_check,kernel
         description:
             os-tests Check no failed service in start up in RHEL on AWS.
  for RHEL on AWS.
@@ -1115,7 +1114,7 @@ in RHEL7|6, bug1625874")
 
     def test_check_cpupower(self):
         '''
-        :avocado: tags=test_check_cpupower,fast_check,kernel_tier1
+        :avocado: tags=test_check_cpupower,fast_check,kernel
         description:
             os-tests Check no exception when run cpupower command in RHEL on AWS.
         polarion_id:
@@ -1333,7 +1332,7 @@ in RHEL7|6, bug1625874")
 
     def test_check_available_clocksource(self):
         '''
-        :avocado: tags=test_check_available_clocksource,fast_check,kernel_tier1
+        :avocado: tags=test_check_available_clocksource,fast_check,kernel
         description:
             os-tests Check available clocksource in RHEL on AWS.
         polarion_id:
@@ -1406,7 +1405,7 @@ in RHEL7|6, bug1625874")
 
     def test_change_tracer(self):
         '''
-        :avocado: tags=test_change_tracer,fast_check
+        :avocado: tags=test_change_tracer,fast_check,kernel
         description:
             os-tests Test change tracer in RHEL on AWS.
         polarion_id:
@@ -1640,7 +1639,7 @@ in RHEL7|6, bug1625874")
 
     def test_check_cpu_count(self):
         '''
-        :avocado: tags=test_check_cpu_count,fast_check,kernel_tier1
+        :avocado: tags=test_check_cpu_count,fast_check,kernel
         description:
             Check cpu count is the same as in specs for RHEL on AWS.
         polarion_id:
@@ -2074,6 +2073,187 @@ master.zip"
             myctr1 and myctr2 are both removed without any error.
         '''
         case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_podman_rm_stopped"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_podman_build_image(self):
+        '''
+        :avocado: tags=test_podman_build_image,fulltest,acceptance
+        case_name:
+            test_podman_build_image
+        case_priority:
+            2
+        component:
+            podman
+        bugzilla_id:
+            1903412
+        customer_case_id:
+
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_podman_build_image"
+
+        maintainer:
+            xiliang@redhat.com
+
+        description:
+            podman can build an image using '--network container' in rootless or root mode
+
+        key_steps:
+            1. $ cat Dockerfile
+               FROM registry.access.redhat.com/ubi8/ubi
+               RUN touch /tmp/test.txt
+            2. # podman build --network container -t build_test .
+
+        expected_result:
+            Build successfully.
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_podman_build_image"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_podman_leaks_exit(self):
+        '''
+        :avocado: tags=test_podman_leaks_exit,fulltest,acceptance
+        case_name:
+            test_podman_leaks_exit
+
+        case_priority:
+            2
+
+        component:
+            podman
+
+        bugzilla_id:
+            1730281
+
+        customer_case_id:
+            02390622
+
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_podman_leaks_exit"
+
+        maintainer:
+            xiliang@redhat.com
+
+        description:
+            podman leaks kernel memory due to return code stored in tmpfs
+
+        key_steps:
+            1. $ podman run --name test -d ubi
+            2. $ ls /run/libpod/exits/
+
+        expected_result:
+            Step2 return nothing.
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_podman_leaks_exit"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_podman_dev_null_permission(self):
+        '''
+        :avocado: tags=test_podman_dev_null_permission,fulltest,acceptance
+        case_name:
+            test_podman_dev_null_permission
+
+        case_priority:
+            2
+
+        component:
+            podman
+
+        bugzilla_id:
+            1952698
+
+        customer_case_id:
+            02920986
+
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_podman_dev_null_permission"
+
+        maintainer:
+            xiliang@redhat.com
+
+        description:
+            Make sure permission on /dev/null are not changing from 666 to 777 after running podman as root
+
+        key_steps:
+            1. # sudo podman run -d -p 80:80 httpd
+            2. # ls -l /dev/null
+
+        expected_result:
+            /dev/null permission keeps 666
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_podman_dev_null_permission"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_dmidecode_dump_segfault(self):
+        '''
+        :avocado: tags=test_check_dmidecode_dump_segfault,fulltest,acceptance
+        case_name:
+            test_check_dmidecode_dump_segfault
+
+        case_priority:
+            2
+
+        component:
+            dmidecode
+
+        bugzilla_id:
+            1885823
+
+        customer_case_id:
+            02939365
+
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_podman_dev_null_permission"
+
+        maintainer:
+            xiliang@redhat.com
+
+        description:
+            check there is no segmentation fault while run 'dmidecode --dump'
+
+        key_steps:
+            # dmidecode --dump |grep -i Segmentation 
+
+        expected_result:
+            No segmentation fault found.
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_dmidecode_dump_segfault"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_fips_selftest(self):
+        '''
+        :avocado: tags=test_fips_selftest,fulltest,acceptance
+        case_name:
+            test_fips_selftest
+
+        case_priority:
+            2
+
+        component:
+            openssl
+
+        bugzilla_id:
+            1940085
+
+        customer_case_id:
+            02874840
+
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_fips_selftest"
+
+        maintainer:
+            xiliang@redhat.com
+
+        description:
+            FIPS_selftest() pass
+
+        key_steps:
+            1. # gcc fipstest.c -o fipstest -lcrypto
+            2. # # ./fipstest
+
+        expected_result:
+            No fips selftest failed.
+        '''
+        case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_fips_selftest"
         utils_lib.run_os_tests(self, case_name=case_name)
 
     def tearDown(self):

@@ -85,7 +85,7 @@ class KdumpTest(Test):
 
     def test_kdump_no_specify_cpu(self):
         '''
-        :avocado: tags=test_kdump_no_specify_cpu,acceptance,fast_check,outposts
+        :avocado: tags=test_kdump_no_specify_cpu,acceptance,fast_check,outposts,kernel
         description:
             Test kdump works with RHEL on AWS. Linked case RHEL7-58669.
         polarion_id:
