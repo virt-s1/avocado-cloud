@@ -1,5 +1,6 @@
 cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_publickey
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_startup_time
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_critical_log
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_cloudinit_log
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_service_status
@@ -13,10 +14,29 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_extend_root_partition_and_filesystem
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_regenerate_sshd_keypairs
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_resize_partition_in_gpt
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_resize_partition_in_mbr
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_start_sector_equal_to_partition_size
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_upgrade_downgrade_package
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_multiple_nics
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_sriov_nic
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_vm_with_ipv6
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_provision_gen2_vm
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_storage_rule_gen1
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_storage_rule_gen2
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_multiple_files_in_authorizedkeysfile
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_customized_file_in_authorizedkeysfile
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_remove_cache_and_reboot_password
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_register_with_subscription_manager
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_enable_swap_in_temporary_disk
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_swapon_with_xfs_filesystem
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_chpasswd_with_hashed_passwords
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_runcmd_module_execute_command
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ds_identity_path
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_random_password_len
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_man_page
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_show_full_version
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_default_config
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_lang_is_not_en_us_utf8
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_mount_with_noexec_option
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_no_networkmanager

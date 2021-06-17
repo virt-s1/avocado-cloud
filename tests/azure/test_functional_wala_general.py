@@ -448,7 +448,7 @@ be removed and a new *_waagent.pid file is generated")
 
     def test_upgrade_downgrade_package(self):
         """
-        :avocado: tags=tier3
+        :avocado: tags=tier2
         RHEL7-41626	WALA-TC: [General] Upgrading and downgrading the WALinuxAgent package
         """
         self.log.info(
@@ -459,6 +459,9 @@ be removed and a new *_waagent.pid file is generated")
             "Fail to downgrade package through rpm")
         old_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
+        # Modify waagent.conf and waagent.logrotate before update
+        self.session.cmd_output("echo '# teststring' >> /etc/waagent.conf")
+        self.session.cmd_output("echo '# teststring' >> /etc/logrotate.d/waagent.logrotate")
         self.assertEqual(0, self.session.cmd_status_output(
             "rpm -Uvh /tmp/{}".format(self.package))[0],
             "Fail to upgrade package through rpm")
@@ -466,6 +469,10 @@ be removed and a new *_waagent.pid file is generated")
                          "After upgrade, the waagent service is not enabled")
         self.assertEqual("active", self.session.cmd_output("systemctl is-active waagent"),
                          "After upgrade, the waagent service is not active")
+        self.assertEqual("# teststring", self.session.cmd_output("tail -1 /etc/waagent.conf"), 
+            "Cannot keep the /etc/waagent.conf after upgrade")
+        self.assertEqual("# teststring", self.session.cmd_output("tail -1 /etc/logrotate.d/waagent.logrotate"), 
+            "Cannot keep the /etc/logrotate.d/waagent.logrotate after upgrade")
         new_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
         self.assertNotEqual(old_pid, new_pid,
@@ -684,6 +691,7 @@ Retry: {0}/10".format(retry+1))
             if self.case_short_name == "test_host_plugin_extension":
                 self.vm.extension_delete("enablevmaccess")
         if self.case_short_name in [
+                "test_upgrade_downgrade_package",
                 "test_install_uninstall_package",
                 "test_provision_with_2_keys",
                 "test_provision_gen2_vm"]:

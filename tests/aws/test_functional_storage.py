@@ -139,7 +139,31 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_ssd_trim(self):
         '''
         :avocado: tags=test_ssd_trim,acceptance,fast_check,outposts
-        polarion_id: RHEL7-87311
+        description:
+            Test ssd trim in RHEL on AWS. Linked case RHEL7-87311.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_ssd_trim"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance which supports SSD volumes with TRIM on AWS.
+            2. Check block devices information via command "$ sudo lsblk -d -O -J".
+            3. If the disc-max value isn't 0B, the disk supports discard.
+            4. Check the disk partition information via command "$ sudo lsblk |grep -i part".
+            5. Create file system on this device via command "$ sudo mkfs.xfs /dev/nvme0n1".
+            6. Mount it and make sure trim successfully via below commands.
+               "$ sudo mount /dev/nvme0n1 /mnt"
+               "$ sudo fstrim -v /mnt"
+        pass_criteria: 
+            Block devices can be mount and trimmed infomation displays, no error message or any exception.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
@@ -181,7 +205,43 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_nvme_basic(self):
         '''
         :avocado: tags=test_nvme_basic,acceptance,fast_check,outposts
-        polarion_id: RHEL7-87122
+        description:
+            Test basic nvme functions in RHEL on AWS. Linked case RHEL7-87122.
+            Instances with nvme drivers include,
+            X2gd, I3, I3en, 
+            T3, T3a, T4g,
+            C5, C5a, C5ad, C5d, C5n, 
+            M5, M5a, M5ad, M5d, M5dn, M5n, M5zn,
+            R5, R5a, R5ad, R5b, R5d, R5dn, R5n,
+            A1, C6g, C6gd, C6gn, M6g, M6gd, R6g, R6gd, 
+            F1, Inf1,
+            D3, D3en,
+            G4ad, G4dn, 
+            P3dn, P4d,
+            Mac1, z1d and so on.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_nvme_basic"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance with nvme drivers on AWS.
+            2. Check block devices information via command "$ sudo lsblk".
+            3. Check nvme module is loaded via command "pciutils".
+            4. Install package pciutils, and check nvme pci via command "$ sudo lspci|grep Non-Volatile"
+            5. Install package nvme-cli, and check nvme devices via command "sudo nvme list".
+            6. Do read and write tests with non boot nvme devices via below commands.
+               "sudo nvme read /dev/nvme0n1 --data-size=10000"
+               "echo "write test"|sudo nvme write /dev/nvme0n1 --data-size=10000"
+        pass_criteria: 
+            Basic function tests pass for nmve blockers with nvme cli.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
@@ -239,11 +299,27 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_disk_info(self):
         '''
         :avocado: tags=test_disk_info,acceptance,fast_check,outposts
-        check disk information via fdisk and lsblk.
-        For now, no exactly check result as output format may different
-        on RHEL6/7/8.
-        Only comparing disk count from fdisk and lsblk to vm assigned.
-        polarion_id: RHEL7-103855
+        description:
+            Check disk information via fdisk and lsblk in RHEL on AWS. Linked case RHEL7-103855.
+            For now, no exactly check result as output format may different on RHEL6/7/8.
+            Only comparing disk count from fdisk and lsblk to vm assigned.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_disk_info"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Check disk information via command "$ sudo fdisk -l".
+        pass_criteria: 
+            Disk information lists as the same with instance specs, and no error, hang or crash in system.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
@@ -254,14 +330,61 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_check_disk_count(self):
         '''
         :avocado: tags=test_check_disk_count,acceptance,fast_check,tire1,outposts
+        description:
+            Check disk count in RHEL on AWS.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_check_disk_count"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Check online disks count via command "$ sudo lsblk -d".
+        pass_criteria: 
+            The online disks count is the same with attached disks, and no error, hang or crash in system.
         '''
         self._check_disk_count()
 
     def test_multi_disk(self):
         '''
         :avocado: tags=test_multi_disk,acceptance,outposts
-        check system can boot up with multiple disks assigned.
-        polarion_id: RHEL7-103954
+        description:
+            Check system can boot up with multiple disks assigned on AWS. Linked case RHEL7-103954.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_multi_disk"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Check online disks count via command "$ sudo lsblk -d".
+            3. Stop the instance. 
+            4. Attach 4 disks to this instance.
+            5. Start the instance.
+            6. When instance is in running state, connect instance via ssh.
+            7. Check online disks count again.
+            8. Create partition and filesystem for the attached disks, format and mount the disk, check read and write in the attached disks.
+            9. Stop the instance and detach the disks.
+        pass_criteria: 
+            Instance can boot up with multiple disks attached.
+            The online disks count is the same with the orignial disks in spec plus attached disks.
+            Read and write in attached disks work well.
+            And no error, hang or crash in system.
+            Disks can be detached successfully in step 8.
         '''
         vm_local_disks = int(self.params.get('disks',
                                              '*/instance_types/*')) - 1
@@ -302,9 +425,34 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_multi_disk_hotplug(self):
         '''
         :avocado: tags=test_multi_disk_hotplug,acceptance,fast_check,outposts
-        check disk hotplug when instance running
-        will add disk read&write test later
-        polarion_id: RHEL7-93570
+        description:
+            Check hotplug disks when instance is running on AWS. Linked case RHEL7-93570.
+            Will add disk read&write in auto test later.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_multi_disk_hotplug"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Check online disks count via command "$ sudo lsblk -d".
+            3. When instance is in running state, attach 4 disks to this instance.
+            4. Connect instance via ssh, check online disks count again.
+            5. Create partition and filesystem for the attached disks, format and mount the disks, check read and write in the attached disks.
+            6. Detach the disks.
+        pass_criteria: 
+            Disks can be attached to the running instance successfully.
+            The online disks count is the same with the orignial disks in spec plus attached disks.
+            Read and write in attached disks work well.
+            And no error, hang or crash in system.
+            Disks can be detached successfully in step 6.
         '''
         vm_local_disks = int(self.params.get('disks',
                                              '*/instance_types/*')) - 1
@@ -374,11 +522,34 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_virsh_pci_reattach(self):
         '''
         :avocado: tags=test_virsh_pci_reattach,acceptance,outposts
-        Test no exception when system does nvme pci detach and attach operation
+        description:
+            Test nodedev-detach and nodedev-reattach pci devices with virsh on AWS.
+            The case is only for bare metal instances with local disks include c5d.metal, c6gd.metal, m5d.metal, m6gd.metal, r5d.metal, r6gd.metal, x2gd.metal, z1d.metal.
         polarion_id:
-        bz#: 1700254
-        #virsh  nodedev-detach $pci
-        #virsh  nodedev-reattach $pci
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_virsh_pci_reattach"
+        bugzilla_id: 
+            1700254
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch a bare metal instance with local disks on AWS.
+            2. Configure intel_iommu=on in the grubby file to enable SR-IOV in the kernel via command "sudo grubby --update-kernel=ALL --args="intel_iommu=on""
+            3. Reboot the instance.
+            4. Install package libvirt via command "$ sudo yum install -y libvirt".
+            5. Start libvirt service via command "$ sudo systemctl restart libvirtd".
+            6. Get pci list via command "$ sudo lspci".
+            7. Check the nvme pci devices via command "$ sudo find /sys/devices -name *nvme*".
+            8. Use virsh to nodedev-detach non boot nvme pci device via command "$ sudo virsh nodedev-detach pci_0000_2b_00_0".
+            9. Use virsh to nodedev-reattach non boot nvme pci device via command "$ sudo virsh nodedev-detach pci_0000_2b_00_0".
+            10. Disable SR-IOV in kernel via command "$ sudo grubby --update-kernel=ALL --remove-args="intel_iommu=on"".
+        pass_criteria: 
+            nodedev-detach and nodedev-reattach pci devices with virsh on AWS success, and no panic or hang in system.
         '''
         if 'metal' in self.vm.instance_type:
             self.log.info("Instance is bare metal")
@@ -416,9 +587,32 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_iostat_x(self):
         '''
         :avocado: tags=test_iostat_x,fast_check,acceptance,outposts,kernel
-        run blktests block test
-        polarion_id: N/A
-        BZ#: 1661977
+        description:
+            os-tests check iostat output in RHEL on AWS.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_iostat_x"
+        bugzilla_id: 
+            1661977,1669684
+        customer_case_id: 
+            BZ1661977, BZ1669684
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Check the iostat via command "$ iostat -x".
+        pass_criteria: 
+            No high utils reported when no obviously read/write operations.
+            eg. # iostat -x
+                Linux 4.18.0-236.el8.aarch64 (ip-xx-xxx-x-xxx.us-west-2.compute.internal) 	09/28/2020 	_aarch64_	(2 CPU)
+                avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+                           7.77    0.00    1.48    0.69    0.00   90.06
+                Device            r/s     w/s     rkB/s     wkB/s   rrqm/s   wrqm/s  %rrqm  %wrqm r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+                nvme0n1         46.06    2.82   1587.81    274.62     0.00     0.23   0.00   7.52    0.50    1.32   0.00    34.47    97.31   0.86   4.19
+                nvme1n1          0.15    0.00     10.43      0.00     0.00     0.00   0.00   0.00    1.00    0.00   0.00    70.40     0.00   1.50   0.02
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
@@ -428,8 +622,29 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_blktests_block(self):
         '''
         :avocado: tags=test_blktests_block
-        run blktests block test
-        polarion_id: N/A
+        description:
+            Run blktests block test in RHEL on AWS.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_blktests_block"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            1
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. If there are not local disks by default in the instance, attach 4 disks for blktest.
+            3. Install blktest required packages blktrace fio nvme-cli git sysstat.
+            4. Download blktest "git clone https://github.com/osandov/blktests.git".
+            5. Add test disks to configure file in blktest, e.g., echo 'TEST_DEVS=(/dev/nvme5n1)' > blktests/config".
+            6. Run blktest block test via command "$ sudo cd blktests;sudo ./check block".
+        pass_criteria: 
+            There are not unknown failures in test results.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
@@ -474,8 +689,29 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_blktests_nvme(self):
         '''
         :avocado: tags=test_blktests_nvme
-        run blktests block test
-        polarion_id: N/A
+        description:
+            Run blktests nvme test in RHEL on AWS.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_blktests_nvme"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            1
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. If there are not local disks by default in the instance, attach 4 disks for blktest.
+            3. Install blktest required packages blktrace fio nvme-cli git sysstat.
+            4. Download blktest "git clone https://github.com/osandov/blktests.git".
+            5. Add test disks to configure file in blktest, e.g., echo 'TEST_DEVS=(/dev/nvme5n1)' > blktests/config".
+            6. Run blktest nvme test via command "$ sudo cd blktests;sudo ./check nvme".
+        pass_criteria: 
+            There are not unknown failures in test results.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session
@@ -516,6 +752,27 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_fsadm_resize(self):
         '''
         :avocado: tags=test_fsadm_resize
+        description:
+            os-tests check fsadm resize doesn't crash when using it without size argument in RHEL on AWS.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_fsadm_resize"
+        bugzilla_id: 
+            1905705
+        customer_case_id: 
+            BZ1905705
+        maintainer: 
+            xiliang
+        case_priority:
+            1
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Connect the instance, Use "$ sudo df -h" to check the filesystem.
+            3. Use "$ sudo fsadm resize $device_path" to resize the filesystem without size argument.
+            4. Or use this command to instead step 2 and 3, "$ sudo fsadm resize $(findmnt -n -o source /)".
+        pass_criteria: 
+            fsadm does nothing since the filesystem is already at maximum size, no crash like this "/sbin/fsadm: line 818: $3: unbound variable".
         '''
         case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_fsadm_resize"
         utils_lib.run_os_tests(self, case_name=case_name)
@@ -523,8 +780,25 @@ later! expected: %s lsblk: %s assigned: %s" %
     def test_fio_cpuclock(self):
         '''
         :avocado: tags=test_fio_cpuclock,acceptance,fast_check,outposts
+        description:
+            os-tests use fio to test internal CPU clock in RHEL on AWS.
         polarion_id:
-        Perform test and validation of internal CPU clock.
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_fio_cpuclock"
+        bugzilla_id: 
+            1943474
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Connect the instance, Use "$ sudo fio --cpuclock-test" to test internal CPU clock.
+        pass_criteria: 
+            cpuclock test pass.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_fio_cpuclock"
@@ -534,7 +808,25 @@ later! expected: %s lsblk: %s assigned: %s" %
         '''
         :avocado: tags=test_fio_crctest,acceptance,fast_check,outposts
         polarion_id:
-        Test  the  speed  of  the built-in checksumming functions.
+        description:
+            Use fio to test the speed of the built-in checksumming functions in RHEL on AWS.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]StorageTest.test_fio_crctest"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority:
+            0
+        case_component: 
+            Storage
+        key_steps:
+            1. Launch an instance on AWS.
+            2. Connect the instance, Use "$ sudo fio --crctest" to test the speed of the built-in checksumming functions.
+        pass_criteria: 
+            crc test pass.
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
         self.session = self.session

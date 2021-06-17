@@ -1,0 +1,9 @@
+cases:
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_publickey
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_hostname
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_service_status
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_traceback
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_unexpected
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_critical
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_warn
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_error

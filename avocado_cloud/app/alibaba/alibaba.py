@@ -27,6 +27,7 @@ from aliyunsdkecs.request.v20140526 import CreateNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import AttachNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import DescribeNetworkInterfacesRequest
 from aliyunsdkecs.request.v20140526 import DetachNetworkInterfaceRequest
+from aliyunsdkecs.request.v20140526 import DeleteNetworkInterfaceRequest
 
 
 class AliyunConfig(object):
@@ -37,24 +38,24 @@ class AliyunConfig(object):
     ossutilconfig = {"path": os.path.join(aliyuncli, ".ossutilconfig")}
 
     configure["content"] = """\
-    [default]
-    output = json
-    region = %(region)s
-    """
+[default]
+output = json
+region = %(region)s
+"""
 
     credentials["content"] = """\
-    [default]
-    aliyun_access_key_secret = %(access_key_secret)s
-    aliyun_access_key_id = %(access_key_id)s
-    """
+[default]
+aliyun_access_key_secret = %(access_key_secret)s
+aliyun_access_key_id = %(access_key_id)s
+"""
 
     ossutilconfig["content"] = """\
-    [Credentials]
-    language=CH
-    endpoint=oss-%(region)s.aliyuncs.com
-    accessKeyID=%(access_key_id)s
-    accessKeySecret=%(access_key_secret)s
-    """
+[Credentials]
+language=CH
+endpoint=oss-%(region)s.aliyuncs.com
+accessKeyID=%(access_key_id)s
+accessKeySecret=%(access_key_secret)s
+"""
 
     def __init__(self,
                  access_key_id=None,
@@ -93,15 +94,16 @@ class AlibabaSDK(object):
         # VM parameters
         self.vm_params = dict()
         self.vm_params["InstanceType"] = params.get('name', '*/Flavor/*')
-        self.vm_params["region"] = region
+        self.vm_params["RegionId"] = region
         self.vm_params["InstanceName"] = params.get('vm_name',
                                                     '*/VM/*').replace(
                                                         '_', '-')
         self.vm_params["HostName"] = self.vm_params["InstanceName"]
-        self.vm_params["username"] = params.get('username', '*/VM/*')
+        self.vm_params["Username"] = params.get('username', '*/VM/*')
         self.vm_params["Password"] = params.get('password', '*/VM/*')
         self.vm_params["KeyPairName"] = params.get('keypair', '*/VM/*')
         self.vm_params["ZoneId"] = params.get('az', '*/VM/*')
+        self.vm_params["ImageName"] = params.get('name', '*/Image/*')
         self.vm_params["ImageId"] = params.get('id', '*/Image/*')
         self.vm_params["SecurityGroupId"] = params.get('id',
                                                        '*/SecurityGroup/*')
@@ -110,6 +112,17 @@ class AlibabaSDK(object):
         self.vm_params["Size"] = params.get('cloud_disk_size', '*/Disk/*')
         self.vm_params["NetworkInterfaceName"] = params.get(
             'nic_name', '*/NIC/*')
+
+        # Assign DiskCategory
+        family = str(
+            self.vm_params['InstanceType']).split('.')[1].split('-')[0]
+        essd_only_families = ('ebmc6e', 'ebmg6e', 'ebmr6e', 'c6e', 'g6e',
+                              'r6e')
+        if family in essd_only_families:
+            self.vm_params['DiskCategory'] = 'cloud_essd'
+        else:
+            # AFAIK, gen4 families only support SSD
+            self.vm_params['DiskCategory'] = 'cloud_ssd'
 
     def _send_request(self, request):
         request.set_accept_format('json')
@@ -123,6 +136,7 @@ class AlibabaSDK(object):
             return response_detail
         except Exception as e:
             logging.error(e)
+            return e
 
     @staticmethod
     def _add_params(request, key_list=None, params=None):
@@ -132,8 +146,7 @@ class AlibabaSDK(object):
             for key in key_list:
                 if params.get(key) is not None:
                     value = params.get(key)
-                    if "Ids" in key or \
-                            "Names" in key:
+                    if "Ids" in key or "Names" in key:
                         value = str(value.split(',')).replace('\'', '"')
                     eval("request.set_{0}('{1}')".format(key, value))
         request.get_query_params()
@@ -154,12 +167,12 @@ class AlibabaSDK(object):
             "InstanceChargeType", "ImageId", "InstanceType",
             "InternetChargeType", "SecurityGroupId", "VSwitchId",
             "SystemDiskCategory", "HostName", "InstanceName",
-            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn", "RegionId",
-            "ZoneId"
+            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn", "ZoneId"
         ]
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
         self.vm_params.setdefault("InternetChargeType", "PayByTraffic")
-        self.vm_params.setdefault("SystemDiskCategory", "cloud_efficiency")
+        self.vm_params.setdefault("SystemDiskCategory",
+                                  self.vm_params['DiskCategory'])
         self.vm_params.setdefault("InternetMaxBandwidthIn", "5")
         self.vm_params.setdefault("InternetMaxBandwidthOut", "5")
         if authentication == "publickey":
@@ -167,7 +180,10 @@ class AlibabaSDK(object):
         elif authentication == "password":
             key_list.append("Password")
         request = self._add_params(request, key_list, self.vm_params)
-        return self._send_request(request)
+        response = self._send_request(request)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
     def start_instance(self, instance_id):
         request = StartInstanceRequest.StartInstanceRequest()
@@ -276,10 +292,15 @@ class AlibabaSDK(object):
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
 
+    # Disk
     def describe_disks(self, diskids=None):
+        """Describe cloud disks.
+
+        diskids should be a string like '"id1","id2","id3"'.
+        """
         request = DescribeDisksRequest.DescribeDisksRequest()
-        key_list = ["RegionId", "ZoneId", "DiskName", "Category", "PageSize"]
-        self.vm_params.setdefault("Category", "cloud_ssd")
+        key_list = ["ZoneId", "DiskName", "Category", "PageSize"]
+        self.vm_params.setdefault("Category", self.vm_params['DiskCategory'])
         self.vm_params.setdefault("PageSize", "100")
         if diskids:
             key_list.append("DiskIds")
@@ -289,8 +310,9 @@ class AlibabaSDK(object):
 
     def create_disk(self):
         request = CreateDiskRequest.CreateDiskRequest()
-        key_list = ["RegionId", "ZoneId", "DiskName", "DiskCategory", "Size"]
-        self.vm_params.setdefault("DiskCategory", "cloud_ssd")
+        key_list = ["ZoneId", "DiskName", "DiskCategory", "Size"]
+        self.vm_params.setdefault("DiskCategory",
+                                  self.vm_params['DiskCategory'])
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
 
@@ -342,7 +364,7 @@ class AlibabaSDK(object):
                       nic_ids=None):
         request = DescribeNetworkInterfacesRequest.\
             DescribeNetworkInterfacesRequest()
-        key_list = ["InstanceId", "RegionId", "Type"]
+        key_list = ["InstanceId", "Type"]
         self.vm_params["InstanceId"] = instance_id
         self.vm_params["Type"] = nic_type
         if nic_name:
@@ -350,6 +372,8 @@ class AlibabaSDK(object):
                 self.vm_params["NetworkInterfaceName"] = nic_name
             key_list.append("NetworkInterfaceName")
         if nic_ids:
+            if not isinstance(nic_ids, str):
+                nic_ids = ','.join(nic_ids)
             key_list.append("NetworkInterfaceIds")
             self.vm_params["NetworkInterfaceIds"] = nic_ids
         key_list.append("PageSize")
@@ -361,6 +385,13 @@ class AlibabaSDK(object):
         request = DetachNetworkInterfaceRequest.DetachNetworkInterfaceRequest()
         key_list = ["InstanceId", "NetworkInterfaceId"]
         self.vm_params["InstanceId"] = instance_id
+        self.vm_params["NetworkInterfaceId"] = nic_id
+        request = self._add_params(request, key_list, self.vm_params)
+        return self._send_request(request)
+
+    def delete_nic(self, nic_id):
+        request = DeleteNetworkInterfaceRequest.DeleteNetworkInterfaceRequest()
+        key_list = ["NetworkInterfaceId"]
         self.vm_params["NetworkInterfaceId"] = nic_id
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)

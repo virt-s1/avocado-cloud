@@ -1,4 +1,5 @@
 import os
+import requests
 from avocado import Test
 from avocado import main
 from avocado_cloud.app import Setup
@@ -19,6 +20,7 @@ class PackagePreparation(Test):
         self.package_list = self.packages.split(',')
         self.log.debug("Package list: {}".format(self.package_list))
         self.with_wala = self.params.get("with_wala", "*/others/*", False)
+        self.project = self.params.get("rhel_ver", "*/VM/*")
 
     def test_package_00_preparation(self):
         """
@@ -46,31 +48,58 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
         if x_match:
             x_version = int(x_match[0])
         else:
-            # Currently the latest major release is 8. Need to be updated for
-            # future major releases
-            x_version = 8
+            if self.project:
+                x_version = self.project.split('.')[0]
+            else:
+                # Currently the latest major release is 8. Need to be updated for
+                # future major releases
+                x_version = 9
         label = "BaseOS" if x_version > 7 else "Server"
+        # Validate these repos one by one and select the available one
+        base_url_list = [ "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/updates/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/nightly/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                        ]
+        for base_url in base_url_list:
+            if requests.get(base_url.format(label)).ok:
+                break
         BASEREPO = """
 [rhel-base]
 name=rhel-base
-baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{0}/compose/{1}/x86_64/os/
+baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
 
 EOF
-""".format(x_version, label)
+""".format(base_url.format(label))
         APPSTREAMREPO = """
 [rhel-appstream]
 name=rhel-appstream
-baseurl=http://download-node-02.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{0}/compose/AppStream/x86_64/os/
+baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
+
 EOF
-""".format(x_version)
+""".format(base_url.format("AppStream"))
+        pulpcore_url = "http://download.eng.bos.redhat.com/brewroot/repos/pulpcore-3.4-rhel-{}-build/latest/x86_64/".format(x_version)
+        PULPCOREREPO = """
+[pulpcore-3.4]
+name=pulpcore-3.4
+baseurl={}
+enabled=1
+gpgcheck=0
+proxy=http://127.0.0.1:8080/
+
+EOF
+""".format(pulpcore_url)
         self.session.cmd_output("cat << EOF > /etc/yum.repos.d/rhel.repo%s" %
                                 (BASEREPO))
+        # WALA doesn't use pulpcore repo to avoid the RHEL-8.0 systemd update issue
+        if "WALinuxAgent" not in self.packages and requests.get(pulpcore_url).ok:
+            self.session.cmd_output("cat << EOF >> /etc/yum.repos.d/rhel.repo%s" %
+                                    (PULPCOREREPO))
         if x_version > 7:
             self.session.cmd_output(
                 "cat << EOF >> /etc/yum.repos.d/rhel.repo%s" % (APPSTREAMREPO))
@@ -106,7 +135,9 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
             cloudinit_pkgs = [
                 'cloud-init', 'python-jsonpatch', 'cloud-utils-growpart',
                 'python-jsonschema', 'python-httpretty', 'pyserial',
-                'python-prettytable'
+                'python-prettytable',
+                'python3-jsonpatch', 'python3-jsonschema', 'python3-httpretty',
+                'python3-prettytable'
             ]
         for cloudinit_pkg in cloudinit_pkgs:
             if cloudinit_pkg in self.packages:
@@ -138,9 +169,9 @@ tcpdump"
                     pkg[:-4]))[0], 0,
                 "Package {} is not installed.".format(pkg))
         # Install RHUI package in case LISAv2 need to yum install packages.
-        # Ignore error in case no rhui package.
         self.session.cmd_output(
-            "rpm -ivh /root/rhui-azure-*.rpm --force||true")
+            "rpm -e rhui-azure-rhel{0}; yum -y --config='https://rhelimage.blob.core.windows.net/repositories/rhui-microsoft-azure-rhel{0}.config' install 'rhui-azure-rhel{0}'".format(x_version)
+        )
         # Enable IPv6 init in ifcfg-eth0 for IPv6 case
         self.session.cmd_output(
             "sed -i 's/^IPV6INIT.*$/IPV6INIT=yes/g' /etc/sysconfig/network-scripts/ifcfg-eth0")
@@ -153,8 +184,10 @@ tcpdump"
                 depro_type = "cloudinit"
         elif "WALinuxAgent" in pkgname_list:
             depro_type = "wala"
-        else:
+        elif "kernel" in pkgname_list:
             depro_type = "kernel"
+        else:
+            self.fail("Not supported package(s): {}".format(pkgname_list))
         script = "deprovision_package.sh"
         self.session.copy_files_to(local_path="{0}/../../scripts/{1}".format(
             self.pwd, script),

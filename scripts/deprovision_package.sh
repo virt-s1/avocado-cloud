@@ -27,66 +27,78 @@ delete_arr=(/var/lib/waagent /var/lib/cloud /var/log/waagent.log* /var/log/cloud
 function deprovision_wala() {
     systemctl stop waagent
     systemctl enable waagent > /dev/null 2>&1
-    systemctl disable cloud-{init-local,init,config,final} > /dev/null 2>&1
+    # systemctl disable cloud-{init-local,init,config,final} > /dev/null 2>&1
+    rpm -e cloud-init > /dev/null 2>&1
     sed -i -e 's/^ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' \
         -e 's/^ResourceDisk.SwapSizeMB=.*/ResourceDisk.SwapSizeMB=2048/g' \
         /etc/waagent.conf
-    swapoff /mnt/resource/swapfile
+    swapoff -a
     for i in "${delete_arr[@]}";
     do
         rm -rf $i
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i '/DHCP_HOSTNAME/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
+    # Remove duplicated dhcp=dhclient
+    release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
+    if [ ${release%%.*} == '8' ];then
+        sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
+    fi
 }
 
 function deprovision_cloudinit_wala() {
     systemctl stop waagent
     systemctl enable waagent > /dev/null 2>&1
-    systemctl enable cloud-{init-local,init,config,final}
+    systemctl enable cloud-{init-local,init,config,final} > /dev/null 2>&1
     sed -i -e 's/^ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' \
         -e 's/^ResourceDisk.SwapSizeMB=.*/ResourceDisk.SwapSizeMB=2048/g' \
         -e 's/^Provisioning.Enabled=y/Provisioning.Enabled=n/g' \
         -e 's/Provisioning.UseCloudInit=n/Provisioning.UseCloudInit=y/g' \
         -e 's/ResourceDisk.MountPoint=.*/ResourceDisk.MountPoint=\/mnt/g' \
         /etc/waagent.conf
-    swapoff /mnt/resource/swapfile
-    swapoff /mnt/swapfile
+    swapoff -a
     for i in "${delete_arr[@]}";
     do
         rm -rf $i
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i '/DHCP_HOSTNAME/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
     fi
-    # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1661574
+    # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1641190
+    # Remove duplicated dhcp=dhclient
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
     if [ ${release%%.*} == '8' ];then
-        sed -i -e '/\[main\]/a\dhcp=dhclient' -e '/dhcp=dhclient/d' /etc/NetworkManager/NetworkManager.conf
+        sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
     fi
 }
 
 function deprovision_cloudinit() {
     systemctl stop waagent
     rpm -e WALinuxAgent
-    systemctl enable cloud-{init-local,init,config,final}
-    swapoff /mnt/resource/swapfile
+    systemctl enable cloud-{init-local,init,config,final} > /dev/null 2>&1
+    swapoff -a
     for i in "${delete_arr[@]}";
     do
         rm -rf $i
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i '/DHCP_HOSTNAME/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
+    fi
+    # If is RHEL-8.0, add dhcp=dhclient in NetworkManager.conf for bug 1661574
+    # Remove duplicated dhcp=dhclient
+    release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
+    if [ ${release%%.*} == '8' ];then
+        sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
     fi
 }
 
@@ -232,6 +244,18 @@ function verify_cloudinit_disabled() {
     return $ret
 }
 
+function verify_cloudinit_removed() {
+    rpm -q cloud-init 2>&1
+    if [[ $? -eq 0 ]];then
+        format_echo "Verify cloud-init is removed: FAIL"
+        ret=1
+    else
+        format_echo "Verify cloud-init is removed: PASS"
+        ret=0
+    fi
+    return $ret
+}
+
 function verify_waagent_enabled() {
     output=`systemctl is-enabled waagent`
     if [[ $? -ne 0 ]] || [[ $output =~ "disable" ]];then
@@ -320,11 +344,12 @@ function verify_dhclient_in_networkmanager() {
     ret=0
     release=`cat /etc/redhat-release| sed 's/.*release \([0-9]*\.[0-9]*\).*/\1/g'`
     if [ ${release%%.*} == '8' ];then
-        grep "dhcp=dhclient" /etc/NetworkManager/NetworkManager.conf > /dev/null
-        if [ $? -eq 0 ];then
-            format_echo "Verify dhcp=dhclient added: PASS"
+        num=$(grep "dhcp *= *dhclient" /etc/NetworkManager/NetworkManager.conf|wc -l)
+        if [ $num -eq 1 ];then
+            format_echo "Verify dhcp = dhclient added: PASS"
         else
-            format_echo "Verify dhcp=dhclient added: FAIL"
+            format_echo "Verify dhcp = dhclient added: FAIL"
+            format_echo "Number of dhclient lines: $num"
             ret=1
         fi
     fi
@@ -351,8 +376,8 @@ function verify_wala() {
     verify_wala_resourcedisk_enableswap||((rflag=rflag+1))
     # Verify ResourceDisk.SwapSizeMB=2048
     verify_wala_resourcedisk_swapsize||((rflag=rflag+1))
-    # Verify cloud-init services are disabled
-    verify_cloudinit_disabled||((rflag=rflag+1))
+    # Verify cloud-init package is removed
+    verify_cloudinit_removed||((rflag=rflag+1))
     # Verify waagent is enabled
     verify_waagent_enabled||((rflag=rflag+1))
     # Verify no azure line in /etc/fstab
@@ -415,6 +440,8 @@ function verify_cloudinit() {
     verify_disksetup_in_cloudcfg||((rflag=rflag+1))
     # Verify account removed
     verify_account_removed||((rflag=rflag+1))
+    # Verify dhcp=dhclient added (RHEL-8.0 only)
+    verify_dhclient_in_networkmanager||((rflag=rflag+1))
     exit $rflag
 }
 
@@ -432,8 +459,19 @@ wala)
     function verify() { verify_wala; }
 ;;
 kernel)
-    function deprovision() { deprovision_wala; }
-    function verify() { verify_wala; }
+# Some old images have no cloud-init
+    which cloud-init > /dev/null 2>&1
+    if [ $? -eq 0 ];then
+        function deprovision() { deprovision_cloudinit_wala; }
+        function verify() { verify_cloudinit_wala; }
+    else
+        function deprovision() { deprovision_wala; }
+        function verify() { verify_wala; }
+    fi
+;;
+*)
+    echo "$type: unsupported deprovision type! Exit."
+    exit 1
 ;;
 esac
 

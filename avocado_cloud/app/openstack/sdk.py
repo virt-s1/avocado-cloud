@@ -37,6 +37,8 @@ class OpenstackVM(VM):
         self.size = params.get('size', '*/Flavor/*')
         self.keypair = params.get('keypair', '*/VM/*')
         self.user_data = None
+        self.config_drive = None
+        self.second_nic_id = None
 
         # VM creation timeout
         self.create_timeout = kwargs.get("create_timeout")
@@ -65,22 +67,31 @@ class OpenstackVM(VM):
             for ip in net:
                 if ip['OS-EXT-IPS:type'] == 'floating':
                     f_ip = ip['addr']
-                elif ip['OS-EXT-IPS:type'] == 'fixed':
+                elif ip['OS-EXT-IPS:type'] == 'fixed' and  ip['version']== 4:
                     f_ip = ip['addr']
         return f_ip
 
     def create(self, wait=False, auto_ip=True):
         image_id = self.conn.compute.find_image(self.image_name).id
 
-        server = self.conn.compute.create_server(name=self.vm_name,
-                                                 image_id=image_id,
-                                                 flavor_id=self.flavor_id,
-                                                 networks=[{
-                                                     "uuid":
-                                                     self.network_id
-                                                 }],
-                                                 key_name=self.keypair,
-                                                 userdata=self.user_data)
+        args = {
+            'name': self.vm_name,
+            'image_id': image_id,
+            'flavor_id': self.flavor_id,
+            'networks': [{
+                "uuid": self.network_id
+            }],
+        }
+        if self.keypair:
+            args['key_name'] = self.keypair
+        if self.user_data:
+            args['user_data'] = self.user_data
+        if self.config_drive:
+            args['config_drive']= True
+        if self.second_nic_id:
+            args['networks'].append({"uuid": self.second_nic_id })
+
+        server = self.conn.compute.create_server(**args)
 
         if wait:
             if self.create_timeout:

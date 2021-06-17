@@ -33,7 +33,8 @@ cases:
     test_functional_wala_network.py:NetworkTest.test_provision_vm_with_multiple_nics
     test_functional_wala_network.py:NetworkTest.test_provision_vm_with_sriov_nic
     test_functional_wala_network.py:NetworkTest.test_provision_vm_with_ipv6
-    test_functional_wala_storage.py:StorageTest.test_verify_storage_rule
+    test_functional_wala_storage.py:StorageTest.test_verify_storage_rule_gen1
+    test_functional_wala_storage.py:StorageTest.test_verify_storage_rule_gen2
     test_functional_wala_settings.py:SettingsTest.test_reset_existing_sshkey
     test_functional_wala_settings.py:SettingsTest.test_reset_existing_password
     test_functional_wala_settings.py:SettingsTest.test_reset_remote_access

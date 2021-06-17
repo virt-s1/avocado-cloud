@@ -7,3 +7,21 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_critical
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_warn
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_error
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_instance_data_json
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_config_ipv6
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_random_password_len
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_login_repeatedly
+    test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_resize_partition_first_boot
+    test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_gpt
+    test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_mbr
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_config_drive
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_two_nics
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_stateless_ipv6
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_stateful_ipv6
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ifcfg_no_startmode
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_no_duplicate_swap
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_multiple_files_in_authorizedkeysfile
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_NOZEROCONF
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_groups_no_wheel
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ds_identify_found

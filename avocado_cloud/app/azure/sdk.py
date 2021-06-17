@@ -357,6 +357,74 @@ class AzureNicIpConfig(Base):
         return self.show()
 
 
+class AzureImage(Base):
+    basecli = 'az image'
+
+    def __init__(self, params, **kwargs):
+        """
+        :param: name:[REQUIRED]image name
+        :param: source:[REQUIRED]The source(.vhd url) of the image
+        """
+        super(AzureImage, self).__init__(params)
+        size = kwargs.get("size") if "size" in kwargs else params.get(
+            "size", "*/VM/*")
+        self.resource_group = params.get("resource_group",
+                                         "*/vm_sizes/{}/*".format(size))
+        vhd_name = params.get("image", "*/VM/*")
+        storage_account = params.get("storage_account",
+                                     "*/vm_sizes/{}/*".format(size))
+        self.source = "https://{}.blob.core.windows.net/vhds/{}"\
+                      .format(storage_account, vhd_name)
+        timestamp = time.strftime("%m%d%H%M%S", time.localtime())
+        self.generation = kwargs.get("generation", "V1")
+        self.name = kwargs.get("name", "{}-{}-{}".format(vhd_name.replace(".vhd", ''),
+                               self.generation, timestamp))
+        # After it is created, properties below will be set
+        self.id = None
+        self.properties = None
+
+    def create(self):
+        cmd = self.basecli + ' create --name "{}" --resource-group "{}" '\
+            '--source {} --hyper-v-generation {} --os-type linux'.format(
+                self.name, self.resource_group, self.source, self.generation)
+        ret = command(cmd)
+        if len(ret.stdout):
+            info = json.loads(ret.stdout)
+            self.id = info["id"]
+            self.properties = info
+            return True
+
+    def delete(self):
+        cmd = self.basecli + ' delete --name {} --resource-group "{}"'.format(
+                self.name, self.resource_group)
+        command(cmd)
+        return True
+
+    def show(self):
+        cmd = self.basecli + ' show --name {} --resource-group "{}"'.format(
+                self.name, self.resource_group)
+        try:
+            ret = command(cmd)
+        except:
+            return False
+        if len(ret.stdout):
+            info = json.loads(ret.stdout)
+            self.id = info["id"]
+            self.properties = info
+            return True
+
+    def update(self):
+        self.show()
+
+    def list(self):
+        cmd = self.basecli + " list"
+        ret = command(cmd)
+        return json.loads(ret.stdout)
+
+    def exists(self):
+        return self.show()
+
+
 class AzureVM(VM):
     def __init__(self, params, **kwargs):
         super(AzureVM, self).__init__(params)
@@ -395,6 +463,7 @@ class AzureVM(VM):
         self.subnet = self.resource_group
         self.rhel_version = params.get("rhel_ver", "*/VM/*")
         self.nics = kwargs.get("nics")
+        self.os_disk_size = kwargs.get("os_disk_size")
         self.properties = {}
 
     def show(self):
@@ -413,10 +482,10 @@ class AzureVM(VM):
     def create(self, wait=True):
         cmd = 'az vm create --name "{}" --resource-group "{}" --image "{}" '\
             '--size "{}" --admin-username "{}" --authentication-type "{}" '\
-            '--storage-account "{}" --os-disk-name "{}"'\
+            ' --os-disk-name "{}"'\
             .format(self.vm_name, self.resource_group, self.image,
                     self.size, self.vm_username, self.authentication_type,
-                    self.storage_account, self.os_disk_name)
+                    self.os_disk_name)
         if self.ssh_key_value:
             cmd += ' --ssh-key-value {}'.format(self.ssh_key_value)
         elif self.generate_ssh_keys:
@@ -426,7 +495,7 @@ class AzureVM(VM):
         if self.custom_data:
             cmd += ' --custom-data "{}"'.format(self.custom_data)
         if self.use_unmanaged_disk:
-            cmd += " --use-unmanaged-disk"
+            cmd += ' --use-unmanaged-disk --storage-account {}'.format(self.storage_account)
         if self.assign_identity:
             cmd += " --assign-identity"
             cmd += ' --scope "{}"'.format(self.scope)
@@ -437,6 +506,8 @@ class AzureVM(VM):
         else:
             cmd += ' --vnet-name "{}" --subnet "{}"'.format(
                 self.vnet_name, self.subnet)
+        if self.os_disk_size:
+            cmd += ' --os-disk-size-gb {}'.format(self.os_disk_size)
         if not wait:
             cmd += " --no-wait"
         ret = command(cmd)
@@ -527,6 +598,20 @@ class AzureVM(VM):
         cmd = 'az vm unmanaged-disk detach \
 --name {} --vm-name "{}" --resource-group {}'.format(name, self.vm_name,
                                                      self.resource_group)
+        command(cmd)
+
+    def disk_attach(self, name, size, new=True):
+        cmd = 'az vm disk attach --name {} --vm-name "{}" '\
+              '--resource-group {} --size-gb {}'\
+              .format(name, self.vm_name, self.resource_group, size)
+        if new:
+            cmd += " --new"
+        command(cmd)
+
+    def disk_detach(self, name):
+        cmd = 'az vm disk detach --name {} --vm-name "{}" '\
+              '--resource-group {}'.format(name, self.vm_name,
+                                           self.resource_group)
         command(cmd)
 
     def user_update(self, username, password=None, ssh_key_value=None):

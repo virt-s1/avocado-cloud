@@ -68,8 +68,8 @@ class NetworkTest(Test):
             return
         if self.name.name.endswith("test_provision_vm_with_ipv6"):
             self.vm.vm_name += "ipv6"
-            if self.vm.exists():
-                self.vm.delete()
+            # if self.vm.exists():
+            #     self.vm.delete()
             publicip_name = self.vm.vm_name + "publicip"
             publicip = AzurePublicIP(self.params,
                                      name=publicip_name)
@@ -117,9 +117,12 @@ lo eth0\
         Check DNS
         """
         self.log.info("Check DNS")
-        self.assertIn(".internal.cloudapp.net",
-                      self.session.cmd_output("hostname -f"),
-                      "Cannot get whole FQDN")
+        if self.project.split('.')[0] < 9:
+            self.assertIn(".internal.cloudapp.net",
+                        self.session.cmd_output("hostname -f"),
+                        "Cannot get whole FQDN")
+        else:
+            self.log.info("For RHEL-{}, skip checking hostname -f".format(self.project))
         self.assertNotIn(
             "NXDOMAIN",
             self.session.cmd_output("nslookup {0}".format(self.vm.vm_name)),
@@ -139,7 +142,7 @@ lo eth0\
         else:
             self.session.cmd_output(
                 "hostnamectl set-hostname {0}".format(new_hostname))
-        time.sleep(15)
+        time.sleep(40)
         self.assertNotIn(
             "NXDOMAIN",
             self.session.cmd_output("nslookup {0}".format(new_hostname)),
@@ -159,7 +162,7 @@ lo eth0\
         old_hostname = self.vm.vm_name
         new_hostname = self.vm.vm_name + "new"
         self.session.cmd_output("nmcli gen hostname {0}".format(new_hostname))
-        time.sleep(15)
+        time.sleep(30)
         # Check DNS
         self.assertNotIn(
             "NXDOMAIN",
@@ -311,9 +314,15 @@ lo eth0\
             "RHEL-176199 WALA-TC: [Network] Provision VM with IPv6 address")
         # 1. Create a VM with NIC in IPv6 subnet
         self.vm.create()
+        self.vm.show()
         self.session.connect(timeout=60)
         self.session.cmd_output("sudo su -")
         # 2. Verify can get IPv6 IP
+        # Set IPV6INIT=yes in ifcfg-eth0
+        eth0_cfg = "/etc/sysconfig/network-scripts/ifcfg-eth0"
+        self.session.cmd_output("sed -i 's/^IPV6INIT=.*/IPV6INIT=yes/;t;$a IPV6INIT=yes' {}".format(eth0_cfg))
+        self.session.cmd_output("systemctl restart NetworkManager")
+        time.sleep(5)
         azure_ip = self.vm.properties.get("privateIps").split(',')[1]
         vm_ip = self.session.cmd_output(
             "ip addr|grep global|grep -Po 'inet6 \\K.*(?=/)'")
@@ -332,6 +341,7 @@ lo eth0\
         self.assertEqual(
             vm_ip_list, azure_ip, "The private IPv6 address is wrong after restart.\n"
             "Expect: {}\nReal: {}".format(azure_ip, vm_ip_list))
+        time.sleep(10)
         self.assertEqual(0, self.session.cmd_status_output("ping6 ace:cab:deca::fe -c 1")[0],
                          "Cannot ping6 though vnet after restart")
 

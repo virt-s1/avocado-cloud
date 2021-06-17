@@ -186,7 +186,8 @@ class SettingsTest(Test):
 
     def test_extension_cleanup_if_invalid(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier4
+        * Invalid since WALinuxAgent-2.2.49.2-2.el8
         WALA-TC: [Settings] Extension clean up if status is not valid
         1. Prepare a VM on Azure with an extension installed
         2. Login VM. Remove status file:

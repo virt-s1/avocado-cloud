@@ -86,8 +86,28 @@ class KdumpTest(Test):
     def test_kdump_no_specify_cpu(self):
         '''
         :avocado: tags=test_kdump_no_specify_cpu,acceptance,fast_check,outposts,kernel
-        polarion_id: RHEL7-58669
-        bz#: 1654962
+        description:
+            Test kdump works with RHEL on AWS. Linked case RHEL7-58669.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]KdumpTest.test_kdump_no_specify_cpu"
+        bugzilla_id: 
+            1654962
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            Kdump
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Check the kdump status by command "systemctl status kdump.service".
+            3. Trigger kernel panic by command "echo c > /proc/sysrq-trigger".
+            4. Check vmcore generated in /var/crash/ after system reboot.
+        pass_criteria: 
+            System can enter to the second kernel and then reboot, and crash call can be gernerated.
+            Only Nitro based VMs support kdump, there are known issue BZ1654962 in arm instances.      
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
@@ -130,10 +150,27 @@ no plan to fix it in the near future!")
     def test_kdump_unknown_nmi_panic_disabled(self):
         '''
         :avocado: tags=test_kdump_unknown_nmi_panic_disabled,acceptance,outposts
-        polarion_id: 
-        trigger kdump via nmi
-        https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-\
-            diagnose-unresponsive-ec2-instances/
+        description:
+            Test Diagnostic Interrupt doesn't trigger the kdump when unknown_nmi_panic is disabled with RHEL on AWS. https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-diagnose-unresponsive-ec2-instances/
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]KdumpTest.test_kdump_unknown_nmi_panic_disabled"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            Kdump
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Check the kdump status by command "systemctl status kdump.service".
+            3. Disable kernel to trigger a kernel panic upon receiving the interrupt by set /etc/sysctl.conf and add a line : kernel.unknown_nmi_panic=0 and reboot. Or by command "sudo sysctl kernel.unknown_nmi_panic=0".
+            4. Send Diagnostic Interrupt to the instance.
+        pass_criteria: 
+            Unknown NMI received and kernel panic isn't triggered, system is still running with no error message.
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
@@ -151,7 +188,7 @@ no plan to fix it in the near future!")
         utils_lib.run_cmd(self,
                     r'sudo sysctl kernel.unknown_nmi_panic=0',
                     expect_ret=0,
-                    msg='enable unknown_nmi_panic')
+                    msg='disable unknown_nmi_panic')
         utils_lib.run_cmd(self,
                     r'sudo sysctl -a|grep -i nmi',
                     expect_ret=0,
@@ -172,10 +209,27 @@ no plan to fix it in the near future!")
     def test_kdump_unknown_nmi_panic_enabled(self):
         '''
         :avocado: tags=test_kdump_unknown_nmi_panic_enabled,acceptance,outposts
-        polarion_id: 
-        trigger kdump via nmi
-        https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-\
-            diagnose-unresponsive-ec2-instances/
+        description:
+            Test Diagnostic Interrupt triggers the kdump when unknown_nmi_panic is enabled with RHEL on AWS. https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-diagnose-unresponsive-ec2-instances/
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]KdumpTest.test_kdump_unknown_nmi_panic_enabled"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            Kdump
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Check the kdump status by command "systemctl status kdump.service".
+            3. Disable kernel to trigger a kernel panic upon receiving the interrupt by set /etc/sysctl.conf and add a line : kernel.unknown_nmi_panic=1 and reboot. Or by command "sudo sysctl kernel.unknown_nmi_panic=1".
+            4. Send Diagnostic Interrupt to the instance.
+        pass_criteria: 
+            Kernel panic is triggered, system reboot after panic, and vm core is gernerated in /var/crash after crash. 
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
@@ -223,9 +277,28 @@ if crashed successfully!")
         '''
         :avocado: tags=test_kdump_unknown_nmi_panic_enabled_sysrq_trigger,
                        acceptance,outposts
+        description:
+            Test kdump works while triggerring panic inside guest via sysrq-trigger when unknown_nmi_panic is enabled with RHEL on AWS. 
+            https://aws.amazon.com/blogs/aws/new-trigger-a-kernel-panic-to-diagnose-unresponsive-ec2-instances/
         polarion_id:
-        Test kdump works while triggerring panic inside guest via 
-        sysrq-trigger when unknown_nmi_panic_enabled=1
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]KdumpTest.test_kdump_unknown_nmi_panic_enabled_sysrq_trigger"
+        bugzilla_id: 
+            n/a
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            Kdump
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Check the kdump status by command "systemctl status kdump.service".
+            3. Disable kernel to trigger a kernel panic upon receiving the interrupt by set /etc/sysctl.conf and add a line : kernel.unknown_nmi_panic=1 and reboot. Or by command "sudo sysctl kernel.unknown_nmi_panic=1".
+            4. Trigger kernel panic inside guest with command echo c > /proc/sysrq-trigger.
+        pass_criteria: 
+            Kernel panic is triggered inside guest, system reboot after panic, and vm core is gernerated.
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
@@ -274,7 +347,31 @@ if crashed successfully!")
     def test_kdump_each_cpu(self):
         '''
         :avocado: tags=test_kdump_each_cpu
-        polarion_id: RHEL7-88711
+        description:
+            Test kdump works with RHEL on AWS. Linked case RHEL7-88711.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]KdumpTest.test_kdump_each_cpu"
+        bugzilla_id: 
+            1396554
+        customer_case_id: 
+            n/a
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            Kdump
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. Check the kdump status by command "systemctl status kdump.service".
+            3. Create 'crash.sh' file with the following content and make it executable.
+                #! /bin/bash
+                echo c > /proc/sysrq-trigger
+            4. For each CPU trigger the kernel panic by running 'taskset -c $CPUNum ./crash.sh'
+            5. Check vmcore generated in /var/crash/ after system reboot.
+        pass_criteria: 
+            System can enter to the second kernel and then reboot, and crash call can be gernerated.
+            Only Nitro based VMs support kdump, there are known issue BZ1654962
         '''
         for i in range(int(self.cpu_count)):
             self.session.connect(timeout=self.ssh_wait_timeout)
@@ -305,9 +402,25 @@ if crashed successfully!")
     def test_kdump_fastboot_systemctl_kexec(self):
         '''
         :avocado: tags=test_kdump_fastboot_systemctl_kexec,acceptance
+        description:
+            Test loading kernel via kexec with RHEL on AWS.
         polarion_id:
-        bz#: 1758323, 1841578
-        "systemctl kexec": Shut down and reboot the system via kexec.
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]KdumpTest.test_kdump_fastboot_systemctl_kexec"
+        bugzilla_id: 
+            1758323, 1841578
+        customer_case_id: 
+            BZ1758323, BZ1841578
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            Kdump
+        key_steps:
+            1. Launch an instance on AWS EC2 with multi kernels installed.
+            2. Load each kernel with command "sudo kexec -l /boot/vmlinuz-$version --initrd=/boot/initramfs-$version.img --reuse-cmdline"
+        pass_criteria: 
+            System shutdown and reboot with the specified kernel version, kernel can be loaded via kexec.
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")
@@ -331,9 +444,26 @@ if crashed successfully!")
     def test_kdump_fastboot_kexec_e(self):
         '''
         :avocado: tags=test_kdump_fastboot_kexec_e,acceptance,outposts
+        description:
+            Test loading kernel via kexec with RHEL on AWS.
         polarion_id:
-        bz#: 1758323, 1841578
-        "kexec -e": Run the currently loaded kernel. Note that it will reboot into the loaded kernel without calling shutdown(8).
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]KdumpTest.test_kdump_fastboot_kexec_e"
+        bugzilla_id: 
+            1758323, 1841578
+        customer_case_id: 
+            BZ1758323, BZ1841578
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            Kdump
+        key_steps:
+            1. Launch an instance on AWS EC2 with multi kernels installed.
+            2. Load each kernel with command "sudo kexec -l /boot/vmlinuz-$version --initrd=/boot/initramfs-$version.img --reuse-cmdline"
+            3. When the kernel is loaded, run command "sudo kexec -e".
+        pass_criteria: 
+            Kernel can be loaded via kexec, and system will reboot into the loaded kernel via kexec -e without calling shutdown(8).
         '''
         if not self.kdump_status:
             self.cancel("Cancle test as kdump not running!")

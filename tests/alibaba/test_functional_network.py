@@ -33,8 +33,7 @@ class NetworkTest(Test):
         self.assertEqual(len(self.vm.query_nics()), count + 1,
                          "Total NICs number is not %d" % (count + 1))
 
-        if self.cloud.cloud_provider == "alibaba":
-            guest_cmd = """
+        guest_cmd = """
 primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
 grep -e eth -e ens | head -n 1)
 device_name=$(echo $primary_nic | tr -d '[:digit:]')
@@ -53,17 +52,8 @@ for offset in $(seq 1 %s); do
     sleep 1s
 done
 """ % count
-            self.session.cmd_output(guest_cmd, timeout=180)
-        else:
-            self.session.cmd_output(
-                "for i in {1..%s};do sudo cp "
-                "/etc/sysconfig/network-scripts/ifcfg-eth0 "
-                "/etc/sysconfig/network-scripts/ifcfg-eth$i; "
-                "sudo sed -i -e \"s/eth0/eth$i/g\" "
-                "-e '$a\DEFROUTE=no' -e '/HWADDR/d' "
-                "/etc/sysconfig/network-scripts/ifcfg-eth$i; "
-                "sudo ifup eth$i;sleep 2; done" % count,
-                timeout=180)
+        self.session.cmd_output(guest_cmd, timeout=180)
+
         time.sleep(10)
         outside_ips = [
             str(self.vm.get_private_ip_address(nic))
@@ -83,8 +73,7 @@ done
         # 3. Detach all NICs. NICs should be removed inside guest
         self.log.info("Step 3: Detach all NICs")
 
-        if self.cloud.cloud_provider == "alibaba":
-            guest_cmd = """
+        guest_cmd = """
 primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
 grep -e eth -e ens | head -n 1)
 device_name=$(echo $primary_nic | tr -d '[:digit:]')
@@ -96,10 +85,8 @@ for dev in $dev_list; do
     sleep 1s
 done
 """
-            self.session.cmd_output(guest_cmd)
-        else:
-            self.session.cmd_output(
-                "for i in {1..%s};do sudo ifdown eth$i;done" % count)
+        self.session.cmd_output(guest_cmd, timeout=180)
+
         nic_ids = [
             self.vm.get_nic_id(nic) for nic in self.vm.query_nics()
             if self.vm.get_nic_id(nic) != self.primary_nic_id
@@ -108,15 +95,11 @@ done
         self.assertEqual(len(self.vm.query_nics()), 1,
                          "Fail to remove all NICs outside guest")
         time.sleep(5)
-        if self.cloud.cloud_provider == "alibaba":
-            self.assertEqual(
-                self.session.cmd_output(
-                    "ip addr | grep -e 'eth.*mtu' -e 'ens.*mtu' | wc -l"), "1",
-                "Fail to remove all NICs inside guest")
-        else:
-            self.assertEqual(
-                self.session.cmd_output("ip addr|grep 'eth.*mtu'|wc -l"), "1",
-                "Fail to remove all NICs inside guest")
+        self.assertEqual(
+            self.session.cmd_output(
+                "ip addr | grep -e 'eth.*mtu' -e 'ens.*mtu' | wc -l"), "1",
+            "Fail to remove all NICs inside guest")
+
         self.log.info("Detach all NICs successfully")
 
     def test_coldplug_nics(self):
@@ -125,6 +108,12 @@ done
         2. Stop VM. Add 1 more NIC. Should not be added
         3. Stop VM. Detach all NICs. Device should be removed inside guest
         """
+        # Set timeout for Alibaba baremetal
+        if 'ecs.ebm' in self.vm.flavor:
+            connect_timeout = 600
+        else:
+            connect_timeout = 120
+
         # 1. Attach max NICs and check all can get IP
         count = self.vm.nic_count - 1
         self.log.info("Step 1: Attach %s NICs." % count)
@@ -132,10 +121,9 @@ done
         self.assertEqual(len(self.vm.query_nics()), count + 1,
                          "Total NICs number is not %d" % (count + 1))
         self.vm.start(wait=True)
-        self.session.connect(timeout=300)
+        self.session.connect(timeout=connect_timeout)
 
-        if self.cloud.cloud_provider == "alibaba":
-            guest_cmd = """
+        guest_cmd = """
 primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
 grep -e eth -e ens | head -n 1)
 device_name=$(echo $primary_nic | tr -d '[:digit:]')
@@ -154,17 +142,7 @@ for offset in $(seq 1 %s); do
     sleep 1s
 done
 """ % count
-            self.session.cmd_output(guest_cmd, timeout=180)
-        else:
-            self.session.cmd_output(
-                "for i in {1..%s};do sudo cp "
-                "/etc/sysconfig/network-scripts/ifcfg-eth0 "
-                "/etc/sysconfig/network-scripts/ifcfg-eth$i; "
-                "sudo sed -i -e \"s/eth0/eth$i/g\" "
-                "-e '$a\DEFROUTE=no' -e '/HWADDR/d' "
-                "/etc/sysconfig/network-scripts/ifcfg-eth$i; "
-                "sudo ifup eth$i;sleep 2; done" % count,
-                timeout=180)
+        self.session.cmd_output(guest_cmd, timeout=180)
 
         time.sleep(10)
         outside_ips = [
@@ -195,11 +173,8 @@ done
                          "Fail to remove all NICs outside guest")
         self.vm.start(wait=True)
         self.assertTrue(self.vm.is_started(), "Fail to start VM")
-        self.session.connect(timeout=300)
-        if self.cloud.cloud_provider == "alibaba":
-            guest_cmd = "ip addr | grep -e 'eth.*mtu' -e 'ens.*mtu' | wc -l"
-        else:
-            guest_cmd = "ip addr|grep 'eth.*mtu'|wc -l"
+        self.session.connect(timeout=connect_timeout)
+        guest_cmd = "ip addr | grep -e 'eth.*mtu' -e 'ens.*mtu' | wc -l"
 
         self.assertEqual(self.session.cmd_output(guest_cmd), "1",
                          "Fail to remove all NICs inside guest")
@@ -208,17 +183,12 @@ done
     def tearDown(self):
         if self.name.name.endswith("test_hotplug_nics") or \
            self.name.name.endswith("test_coldplug_nics"):
-            if self.cloud.cloud_provider == "alibaba":
-                guest_cmd = """
+            guest_cmd = """
 primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
 grep -e eth -e ens | head -n 1)
 device_name=$(echo $primary_nic | tr -d '[:digit:]')
 ls /etc/sysconfig/network-scripts/ifcfg-${device_name}* | \
 grep -v ${primary_nic} | xargs sudo rm -f
 """
-            else:
-                guest_cmd = "ls /etc/sysconfig/network-scripts/ifcfg-eth*|\
-grep -v eth0|xargs rm -f"
-
             self.session.cmd_output(guest_cmd, timeout=180)
         self.session.close()

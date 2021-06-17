@@ -38,6 +38,9 @@
 # v2.21    2020-05-21  charles.shih  Add command 'systemctl status'
 # v2.22    2020-05-28  charles.shih  Add some commands for cloud-init
 # v2.23    2020-06-01  charles.shih  Update commands for cloud-init
+# v2.23.1  2020-07-30  charles.shih  Bugfix on cloud-init command
+# v2.24    2020-07-30  charles.shih  Add commands for memory
+# v2.25    2020-08-19  charles.shih  Add commands for other Linux distros
 
 # Notes:
 # On AWS the default user is ec2-user and it is an sudoer without needing a password;
@@ -131,6 +134,8 @@ run_cmd 'uname -a'
 run_cmd 'lsb_release -a'
 run_cmd 'cat /etc/redhat-release'
 run_cmd 'cat /etc/issue'
+run_cmd 'cat /etc/lsb-release'
+run_cmd 'cat /etc/os-release'
 
 ## bios and hardware
 run_cmd 'dmidecode'
@@ -181,6 +186,7 @@ run_cmd 'ps -eo pid,tt,user,fname,tmout,f,wchan'
 run_cmd 'free'
 run_cmd 'free -k'
 run_cmd 'free -m'
+run_cmd 'free -g'
 run_cmd 'free -h'
 run_cmd 'cat /proc/meminfo'
 run_cmd 'lscpu'
@@ -276,7 +282,7 @@ run_cmd 'service cloud-final status'
 run_cmd 'systemctl status cloud-{init-local,init,config,final}'
 run_cmd 'cloud-init analyze show'
 run_cmd 'cloud-init analyze blame'
-run_cmd 'cloud-init analyze boot'
+run_cmd 'cloud-init analyze dump'
 run_cmd 'cat /var/run/cloud-init/status.json'
 run_cmd 'cat /var/run/cloud-init/instance-data.json'
 run_cmd 'cat /var/run/cloud-init/ds-identify.log'

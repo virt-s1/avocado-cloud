@@ -1,0 +1,17 @@
+Cloud:
+    provider: ibmcloud
+    project_name: xen-jenkins
+Credential:
+    username: xiachen@redhat.com
+    password: Redhat@2020
+    endpoint: "https://test.cloud.ibm.com"
+VM:
+    rhel_ver: "8.3"
+    username: cloud-user
+    vm_name: auto-deployment-vm
+    service: "crn:v1:staging:public:power-iaas:syd05:a/5eee248b918b42d8a5c0699c03385dc4:64705392-fdab-4299-9751-39a1995fdb1c::"
+    image: RHEL83_CI194_Nov19
+    memory: 5
+    processor-type: shared
+    ssh_key_name: xialapx1
+    network: public-192_168_163_64-29-VLAN_3309

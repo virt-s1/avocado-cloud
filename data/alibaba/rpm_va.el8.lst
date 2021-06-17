@@ -67,4 +67,10 @@ S.5....T.    /var/lib/selinux/targeted/active/file_contexts
 .......T.    /boot/efi/EFI/redhat/shimx64.efi
 .......T.    /boot/efi/EFI/redhat/grubx64.efi
 .M.......    /boot/efi/EFI
+.......T.  c /etc/dnf/plugins/product-id.conf
+.......T.  c /etc/dnf/plugins/subscription-manager.conf
+.M.......  g /run/cockpit
+SM5....T.  c /boot/grub2/grubenv
+.M.......  c /etc/crypto-policies/back-ends/nss.config
 #################### KNOWN ISSUES BELOW ####################
+S.5....T.    /usr/lib/systemd/system/cloud-init.service

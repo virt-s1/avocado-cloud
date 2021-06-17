@@ -1,4 +1,5 @@
 cases:
+  test_functional_lifecycle.py:LifeCycleTest.test_create_vm_password
   test_functional_lifecycle.py:LifeCycleTest.test_create_vm_sshkey
   test_functional_checkup.py:GeneralTest.test_check_boot_message
   test_functional_checkup.py:GeneralTest.test_check_fstab

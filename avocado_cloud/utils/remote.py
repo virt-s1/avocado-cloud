@@ -466,7 +466,8 @@ def _remote_scp(session,
     """
     password_prompt_count = 0
     patterns = [
-        r"[Aa]re you sure", r"[Pp]assword:\s*$", r"lost connection", r".*%.*/s"
+        r"[Aa]re you sure", r"[Pp]assword:\s*$", r"lost connection", r"%.*/s",
+        r"^Sending file modes:", r"^Sink:"
     ]
     timeout = login_timeout
     authentication_done = False
@@ -504,7 +505,13 @@ def _remote_scp(session,
                                                  text)
             elif match == 2:  # "lost connection"
                 raise SCPError("SCP client said 'lost connection'", text)
-            elif match == 3:  # "FILENAME       100% 1087     3.6MB/s   00:00"
+            elif match in [3, 4, 5]:
+                # 3: "FILENAME       100% 1087     3.6MB/s   00:00"
+                # 4: "Sending file modes: C0644 10 FILENAME"
+                # 5: "Sink: C0644 10 FILENAME"
+                # Note: Add patterns 4 and 5 for RHEL7.x. The function
+                #       read_until_last_line_matches returns after 'timeout'
+                #       is reached.
                 logging.debug(
                     "Transfer started without explicit authentication.")
                 authentication_done = True

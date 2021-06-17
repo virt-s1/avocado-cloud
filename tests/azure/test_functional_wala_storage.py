@@ -4,6 +4,7 @@ from avocado import Test
 from avocado import main
 from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount
+from avocado_cloud.app.azure import AzureImage
 
 
 class StorageTest(Test):
@@ -15,7 +16,17 @@ class StorageTest(Test):
         account.login()
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         self.project = self.params.get("rhel_ver", "*/VM/*")
-        cloud = Setup(self.params, self.name, size="D2_v2")
+        if self.case_short_name == "test_verify_storage_rule_gen2":
+            # cloud.vm.vm_name += "-gen2"
+            # self.image = AzureImage(self.params, generation="V2")
+            # if not self.image.exists():
+            #     self.image.create()
+            # cloud.vm.image = self.image.name
+            # cloud.vm.use_unmanaged_disk = False
+            size = "DC2s"
+        else:
+            size = "DS2_v2"
+        cloud = Setup(self.params, self.name, size=size)
         self.vm = cloud.vm
         self.session = cloud.init_vm()
         self.session.cmd_output("sudo su -")
@@ -118,11 +129,8 @@ class StorageTest(Test):
     def _get_links(self, disk_path):
         return self.session.cmd_output("ls -l " + disk_path)
 
-    def test_verify_storage_rule(self):
+    def _verify_storage_rule(self):
         """
-        :avocado: tags=tier2
-        RHEL7-90706	WALA-TC: [Storage] Verify storage rule
-        Prepare a VM of D2_v2 size in Azure.
         1. Check /dev/disk/azure/, there should be soft links to sda and sdb
         2. Attach a new disk, then check /dev/disk/azure again. There should
            be a new folder scsi1, and a soft link to sdc.
@@ -137,7 +145,6 @@ class StorageTest(Test):
            ATTRS{device_id} to check the device_id
         7. Detach the disk2, then check /dev/disk/azure/scsi1 again.
         """
-        self.log.info("RHEL7-90706	WALA-TC: [Storage] Verify storage rule")
         azure_disk_path = "/dev/disk/azure"
         scsi1_path = azure_disk_path + "/scsi1"
         # 1. Check /sda and /sdb soft links
@@ -147,6 +154,9 @@ class StorageTest(Test):
                                   self.session.cmd_output("cd /dev;ls sd*"))
         for device in devices_list:
             self._check_in_link(device, links)
+        # There should be root and resource links
+        self._check_in_link('root', links)
+        self._check_in_link('resource', links)
         # 2. Attach a new disk, check /dev/disk/azure/scsi1
         self.log.info("2. Attach a new disk, check /dev/disk/azure/scsi1")
         disk1_name = "{}-disk1-{}".format(self.vm.vm_name, self.postfix)
@@ -182,12 +192,21 @@ and check /dev/disk/azure/scsi1")
         links = self._get_links(scsi1_path)
         self._check_in_link("sdd", links)
         self._check_in_link("sdd1", links)
+        disk1_identifier = self.session.cmd_output("fdisk -l /dev/sdc | grep 'Disk identifier'")
+        disk2_identifier = self.session.cmd_output("fdisk -l /dev/sdd | grep 'Disk identifier'")
         # 6. Restart the VM. Then check /dev/disk/azure/scsi1
         self.log.info("6. Restart the VM. Then check /dev/disk/azure/scsi1")
         self.vm.reboot()
         self.session.connect()
+        self.session.cmd_output("sudo su -")
+        for device in ['sda', 'sdb', 'sdc', 'sdd']:
+            tmp_identifier = self.session.cmd_output("fdisk -l /dev/{} | grep 'Disk identifier'".format(device))
+            if disk1_identifier == tmp_identifier:
+                disk1 = device
+            if disk2_identifier == tmp_identifier:
+                disk2 = device
         links = self._get_links(scsi1_path)
-        for device in ["sdc", "sdd", "sdd1"]:
+        for device in [disk1, disk2, disk2+"1"]:
             self._check_in_link(device, links)
         # 7. Detach the disk2, then check /dev/disk/azure/scsi1 again
         self.log.info(
@@ -195,9 +214,26 @@ and check /dev/disk/azure/scsi1")
         self.vm.unmanaged_disk_detach(disk2_name)
         time.sleep(5)
         links = self._get_links(scsi1_path)
-        self._check_in_link("sdc", links)
-        self._check_not_in_link("sdd", links)
-        self._check_not_in_link("sdd1", links)
+        self._check_in_link(disk1, links)
+        self._check_not_in_link(disk2, links)
+        self._check_not_in_link(disk2+"1", links)
+
+    def test_verify_storage_rule_gen1(self):
+        """
+        :avocado: tags=tier2
+        RHEL7-90706	WALA-TC: [Storage] Verify storage rule - Gen1
+        """
+        self.log.info("RHEL7-90706	WALA-TC: [Storage] Verify storage rule - Gen1")
+        self._verify_storage_rule()
+
+    def test_verify_storage_rule_gen2(self):
+        """
+        :avocado: tags=tier2
+        RHEL-188921	WALA-TC: [Storage] Verify storage rule - Gen2
+        BZ#1859037
+        """
+        self.log.info("RHEL-188921	WALA-TC: [Storage] Verify storage rule - Gen2")
+        self._verify_storage_rule()
 
     def tearDown(self):
         self.vm.delete(wait=False)

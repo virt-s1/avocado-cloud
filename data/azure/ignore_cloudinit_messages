@@ -4,3 +4,5 @@ Failed mounting /dev/sd.1 to .* due to: Unexpected error while running command
 nofail
 Ran .* modules with 0 failures
 DEBUG.: Fetched.*mounts from proc
+finish: azure-ds/load_azure_ds_dir: FAIL: load_azure_ds_dir
+dhclient error stream: Internet Systems Consortium DHCP Client
