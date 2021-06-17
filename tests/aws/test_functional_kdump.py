@@ -85,7 +85,7 @@ class KdumpTest(Test):
 
     def test_kdump_no_specify_cpu(self):
         '''
-        :avocado: tags=test_kdump_no_specify_cpu,acceptance,fast_check,outposts
+        :avocado: tags=test_kdump_no_specify_cpu,acceptance,fast_check,outposts,kernel
         polarion_id: RHEL7-58669
         bz#: 1654962
         '''

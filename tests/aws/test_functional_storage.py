@@ -415,7 +415,7 @@ later! expected: %s lsblk: %s assigned: %s" %
 
     def test_iostat_x(self):
         '''
-        :avocado: tags=test_iostat_x,fast_check,acceptance,outposts
+        :avocado: tags=test_iostat_x,fast_check,acceptance,outposts,kernel
         run blktests block test
         polarion_id: N/A
         BZ#: 1661977

@@ -116,7 +116,7 @@ class NetworkTest(Test):
 
     def test_mtu_min_set(self):
         '''
-        :avocado: tags=test_mtu_min_set,fast_check
+        :avocado: tags=test_mtu_min_set,fast_check,kernel
         polarion_id: RHEL-111097
         ena mtu range: 128~9216
         ixgbevf mtu range: 68~9710
@@ -245,7 +245,7 @@ bandwidth higher than 40G')
 
     def test_sriov_ena_unload_load(self):
         '''
-        :avocado: tags=test_sriov_ena_unload_load,fast_check
+        :avocado: tags=test_sriov_ena_unload_load,fast_check,kernel
         polarion_id:
         '''
         self.log.info("Test unload and load ena module")

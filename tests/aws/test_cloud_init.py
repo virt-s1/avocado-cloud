@@ -16,7 +16,7 @@ class CloudInit(Test):
 
     def test_check_username(self):
         '''
-        :avocado: tags=test_check_username,fast_check,kernel_tier1
+        :avocado: tags=test_check_username,fast_check,kernel
         polarion_id: RHEL7-103986
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
@@ -27,7 +27,7 @@ class CloudInit(Test):
 
     def test_check_userdata(self):
         '''
-        :avocado: tags=test_check_userdata,fast_check,kernel_tier1
+        :avocado: tags=test_check_userdata,fast_check,kernel
         polarion_id: RHEL7-87120
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
@@ -124,7 +124,7 @@ class CloudInit(Test):
 
     def test_check_metadata(self):
         '''
-        :avocado: tags=test_check_metadata,fast_check,kernel_tier1,fast_check
+        :avocado: tags=test_check_metadata,fast_check,kernel,fast_check
         polarion_id:
         https://cloudinit.readthedocs.io/en/latest/topics/datasources/ec2.html
         '''

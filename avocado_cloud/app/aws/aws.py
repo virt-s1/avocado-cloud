@@ -43,6 +43,14 @@ def init_test(test_ins, instance_index=0):
         if test_ins.vm.reuse_init(test_ins.vm.instance_id):
             test_ins.log.info("Reuse existing instance %s!" %
                               test_ins.vm.instance_id)
+            if test_ins.vm.is_started():
+                test_ins.session = cloud.init_vm(pre_delete=False, pre_stop=False)
+                if not check_session(test_ins):
+                    test_ins.vm.delete(wait=True)
+                    cleanup_stored(test_ins.teststmpdir,
+                                   test_ins.params,
+                                   resource_id=test_ins.vm.instance_id)
+                    test_ins.vm = None
             if pre_delete:
                 test_ins.log.info("Test needs no reuse!")
                 test_ins.vm.delete(wait=True)
@@ -59,15 +67,17 @@ def init_test(test_ins, instance_index=0):
             pre_delete = True
     if test_ins.name.name.endswith("test_start_vm"):
         pre_stop = True
-    if test_ins.name.name.endswith("test_stop_vm_hibernate"):
-        pre_delete = True
-        test_ins.params['HibernationOptions'] = True
-        test_ins.params['EbsEncrypted'] = True
-        test_ins.params['EbsVolumeSize'] = 100
-    else:
-        test_ins.params['HibernationOptions'] = False
-        test_ins.params['EbsEncrypted'] = False
-        test_ins.params['EbsVolumeSize'] = 10
+    #10:15:57 ERROR|     test_ins.params['HibernationOptions'] = False
+    #10:15:57 ERROR| TypeError: 'AvocadoParams' object does not support item assignment
+    #if test_ins.name.name.endswith("test_stop_vm_hibernate"):
+    #    pre_delete = True
+    #    test_ins.params['HibernationOptions'] = True
+    #    test_ins.params['EbsEncrypted'] = True
+    #    test_ins.params['EbsVolumeSize'] = 100
+    #else:
+    #    test_ins.params['HibernationOptions'] = False
+    #    test_ins.params['EbsEncrypted'] = False
+    #    test_ins.params['EbsVolumeSize'] = 10
     if test_ins.vm is None:
         cloud = Setup(test_ins.params, test_ins.name)
         test_ins.vm = cloud.vm
