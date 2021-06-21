@@ -774,6 +774,29 @@ CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
             self.fail('The image names are mismatched.\n{}'.format(var_info))
 
     def test_check_yum_repoinfo(test_instance):
+        """Check the yum repoinfo for RHUI repos.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_yum_repoinfo
+        description:
+            Check the yum repoinfo for RHUI repos.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_yum_repoinfo"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. yum repoinfo, Repo-pkgs is not zero.
+        pass_criteria:
+            All commands succeed.
+        """
         run_cmd(test_instance,
                 'sudo yum repoinfo',
                 expect_ret=0,
@@ -782,6 +805,34 @@ CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
                 msg='try to get repo info')
 
     def test_yum_package_install(test_instance):
+        """Check the yum package installation.
+
+        case_name:
+            [Aliyun]GeneralTest.test_yum_package_install
+        description:
+            Check the yum package installation.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_yum_package_install"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. yum clean all
+            2. yum repolist
+            3. yum check-update
+            4. yum search zsh
+            5. yum -y install zsh
+            6. sudo rpm -e zsh
+        pass_criteria:
+            All commands succeed.
+        """
         run_cmd(test_instance, "sudo yum clean all", expect_ret=0, timeout=180)
         run_cmd(test_instance, "sudo yum repolist", expect_ret=0, timeout=1200)
         run_cmd(test_instance, "sudo yum check-update", timeout=1200)
@@ -811,17 +862,19 @@ CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
         #         expect_ret=0)
         #     run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
 
-    def test_yum_group_install(test_instance):
-        cmd = "sudo yum -y groupinstall 'Development tools'"
-        run_cmd(test_instance,
-                cmd,
-                expect_ret=0,
-                timeout=1200,
-                msg='try to install Development tools group')
-        run_cmd(test_instance,
-                'sudo rpm -q glibc-devel',
-                expect_ret=0,
-                msg='try to check installed pkg')
+    # def test_yum_group_install(test_instance):
+    #     # Skip this case due to yum server support is needed.
+    #     # Output message: "There is no installed groups file."
+    #     cmd = "sudo yum -y groupinstall 'Development tools'"
+    #     run_cmd(test_instance,
+    #             cmd,
+    #             expect_ret=0,
+    #             timeout=1200,
+    #             msg='try to install Development tools group')
+    #     run_cmd(test_instance,
+    #             'sudo rpm -q glibc-devel',
+    #             expect_ret=0,
+    #             msg='try to check installed pkg')
 
     def tearDown(self):
         self.session.close()
