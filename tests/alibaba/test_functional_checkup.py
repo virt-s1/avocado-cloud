@@ -2,6 +2,7 @@ from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
 from avocado_cloud.utils import utils_alibaba
+from avocado_cloud.utils.utils_alibaba import run_cmd
 from avocado.utils import process
 import re
 import os
@@ -771,6 +772,56 @@ CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
         # Compare image names
         if compare_name != compare_label:
             self.fail('The image names are mismatched.\n{}'.format(var_info))
+
+    def test_check_yum_repoinfo(test_instance):
+        run_cmd(test_instance,
+                'sudo yum repoinfo',
+                expect_ret=0,
+                expect_not_kw='Repo-pkgs          : 0',
+                timeout=1200,
+                msg='try to get repo info')
+
+    def test_yum_package_install(test_instance):
+        run_cmd(test_instance, "sudo yum clean all", expect_ret=0, timeout=180)
+        run_cmd(test_instance, "sudo yum repolist", expect_ret=0, timeout=1200)
+        run_cmd(test_instance, "sudo yum check-update", timeout=1200)
+        run_cmd(test_instance,
+                "sudo yum search zsh",
+                expect_ret=0,
+                timeout=180)
+        run_cmd(test_instance,
+                "sudo yum -y install zsh",
+                expect_ret=0,
+                timeout=180)
+        run_cmd(test_instance,
+                r"sudo rpm -q --queryformat '%{NAME}' zsh",
+                expect_ret=0)
+        run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
+
+        # if 'SAP' in test_instance.info['name'].upper(
+        # ) and '6.5' in test_instance.info['name']:
+        #     test_instance.log.info("Below is specified for SAP AMIs")
+        #     run_cmd(test_instance,
+        #             "sudo tuned-profiles-sap-hana",
+        #             expect_ret=0,
+        #             timeout=180)
+        #     run_cmd(
+        #         test_instance,
+        #         r"sudo rpm -q --queryformat '%{NAME}' tuned-profiles-sap-hana",
+        #         expect_ret=0)
+        #     run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
+
+    def test_yum_group_install(test_instance):
+        cmd = "sudo yum -y groupinstall 'Development tools'"
+        run_cmd(test_instance,
+                cmd,
+                expect_ret=0,
+                timeout=1200,
+                msg='try to install Development tools group')
+        run_cmd(test_instance,
+                'sudo rpm -q glibc-devel',
+                expect_ret=0,
+                msg='try to check installed pkg')
 
     def tearDown(self):
         self.session.close()

@@ -34,6 +34,8 @@ cases:
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_vm
   test_functional_checkup.py:GeneralTest.test_collect_information_for_reboot
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_inside_vm
+  test_functional_checkup.py:GeneralTest.test_check_yum_repoinfo
+  test_functional_checkup.py:GeneralTest.test_yum_package_install
   test_functional_lifecycle.py:LifeCycleTest.test_delete_vm
   test_zcleanup.py:CleanUp.test_release_nics
   test_zcleanup.py:CleanUp.test_release_cloud_disks
