@@ -114,11 +114,11 @@ mkdir -p $base
 joblog=$base/job.txt
 
 
-# echo -e "\n\nInstallation:\n===============\n" >> $joblog
+echo -e "\n\nInstallation:\n===============\n" >> $joblog
 
 # Install essential tools
-# sudo yum install sysstat -y &>> $joblog
-# sudo yum install redhat-lsb -y &>> $joblog
+sudo yum install sysstat -y &>> $joblog
+sudo yum install redhat-lsb -y &>> $joblog
 
 echo -e "\n\nTest Results:\n===============\n" >> $joblog
 
