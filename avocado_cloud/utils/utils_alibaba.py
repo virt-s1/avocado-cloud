@@ -33,7 +33,7 @@ def collect_information(test_instance, label='general'):
                                                   label, timestamp)
     test_instance.session.cmd_output('bash {0}/vm_check.sh {1}'.format(
         guest_path, logpath),
-                                     timeout=300)
+                                     timeout=1200)
 
     # Create tarball
     # test_instance.session.cmd_output(
