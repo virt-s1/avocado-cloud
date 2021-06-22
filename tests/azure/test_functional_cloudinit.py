@@ -1626,9 +1626,13 @@ ssh_pwauth: 1
                 "test_cloudinit_runcmd_module_execute_command",
                 "test_cloudinit_check_random_password_len",
         ]:
-            self.session.cmd_output("rm -f /etc/cloud/cloud.cfg.d/test_*.cfg")
-            if self.case_short_name == "test_cloudinit_check_random_password_len":
-                self.session.cmd_output("userdel -r test1")
+            self.session.cmd_output("sudo rm -f /etc/cloud/cloud.cfg.d/test_*.cfg")
+            if self.case_short_name in [
+                "test_cloudinit_check_random_password_len",
+                "test_cloudinit_chpasswd_with_hashed_passwords",
+            ]:
+                for user in self.session.cmd_output("sudo grep ^test /etc/passwd|cut -d: -f1").split('\n'):
+                    self.session.cmd_output("sudo userdel -r {}".format(user))
         elif self.case_short_name in [
                 "test_cloudinit_provision_vm_with_multiple_nics",
                 "test_cloudinit_provision_vm_with_sriov_nic",
