@@ -4,7 +4,7 @@ Cloud test suite for RHEL guests with avocado framework.
 
 ## 1. Clone the code
 
-`git clone ssh://cheshi@code.engineering.redhat.com/avocado-cloud`
+`git clone https://github.com/virt-s1/avocado-cloud`
 
 ## 2. Install avocado-cloud
 
