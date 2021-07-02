@@ -162,16 +162,23 @@ lo eth0\
         old_hostname = self.vm.vm_name
         new_hostname = self.vm.vm_name + "new"
         self.session.cmd_output("nmcli gen hostname {0}".format(new_hostname))
-        time.sleep(30)
-        # Check DNS
-        self.assertNotIn(
-            "NXDOMAIN",
-            self.session.cmd_output("nslookup {0}".format(new_hostname)),
-            "New hostname {0} is not in DNS list".format(new_hostname))
-        self.assertIn(
-            "NXDOMAIN",
-            self.session.cmd_output("nslookup {0}".format(old_hostname)),
-            "Old hostname {0} should not be in DNS list".format(old_hostname))
+        time.sleep(10)
+        # Loop check DNS
+        for retry in range(1, 11):
+            if "NXDOMAIN" not in self.session.cmd_output("nslookup {0}".format(new_hostname)) and \
+               "NXDOMAIN" in self.session.cmd_output("nslookup {0}".format(old_hostname)):
+               break
+            self.log.debug("Wait for 10s and retry...({}/10)".format(retry))
+            time.sleep(10)
+        else:
+            self.assertNotIn(
+                "NXDOMAIN",
+                self.session.cmd_output("nslookup {0}".format(new_hostname)),
+                "New hostname {0} is not in DNS list".format(new_hostname))
+            self.assertIn(
+                "NXDOMAIN",
+                self.session.cmd_output("nslookup {0}".format(old_hostname)),
+                "Old hostname {0} should not be in DNS list".format(old_hostname))
 
     def _get_pid(self, process_key):
         pid = self.session.cmd_output(
