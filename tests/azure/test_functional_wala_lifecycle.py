@@ -1,10 +1,12 @@
 import time
 import re
+import os
 from avocado import Test
 from avocado import main
 from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount
 from distutils.version import LooseVersion
+from avocado_cloud.utils import utils_azure
 
 
 class LifeCycleTest(Test):
@@ -35,7 +37,8 @@ class LifeCycleTest(Test):
             return
         if self.case_short_name == "test_create_vm_sshkey":
             if self.vm.exists():
-                self.vm.delete(wait=True)
+                # self.vm.delete(wait=True)
+                pass
             self.vm.create(wait=True)
             self.session = cloud.init_session()
         if self.case_short_name == "test_start_vm":
@@ -54,6 +57,18 @@ class LifeCycleTest(Test):
         self.assertEqual(
             output, expect, "Wrong sudoer permission.\nExpect: {0}\n"
             "Real: {1}".format(expect, output))
+        # Collect /var/log/cloud-init.log and /var/log/messages
+        try:
+            self.session.cmd_output("mkdir -p /tmp/logs")
+            self.session.cmd_output(
+                "sudo cp /var/log/waagent.log /tmp/logs/")
+            self.session.cmd_output("sudo cp /var/log/messages /tmp/logs/")
+            self.session.cmd_output("sudo chmod 644 /tmp/logs/*")
+            host_logpath = os.path.dirname(self.job.logfile) + "/logs"
+            utils_azure.command("mkdir -p {}".format(host_logpath))
+            self.session.copy_files_from("/tmp/logs/*", host_logpath)
+        except:
+            pass
 
     def test_create_vm_password(self):
         """

@@ -90,7 +90,7 @@ sudo chown -R root:root /root/.ssh")
         self.session.cmd_output(
             "sudo sed -i -e '$a{0}{1}{2}' -e '/^.*{0}.*$/d' {3}".format(
                 key, sepr, value, conf_file))
-        self.session.cmd_output("sync")
+        self.session.cmd_output("sync", timeout=60)
         self._verify_value(key, value, conf_file, sepr)
 
     def _verify_value(self,
@@ -361,11 +361,9 @@ not enabled in xfs file system." % max_retry)
         self.log.info("ResourceDisk.SwapSizeMB={0}".format(swapsize))
         self._modify_value("ResourceDisk.EnableSwap", "y")
         self._modify_value("ResourceDisk.SwapSizeMB", swapsize)
-        self.session.close()
-        self.vm.reboot()
-        self.session.connect()
-        time.sleep(30)
-        # Retry 10 times (300s in total) to wait for the swap file created.
+        self.session.cmd_output("sudo systemctl restart waagent")
+        time.sleep(10)
+        # Retry 30 times (300s in total) to wait for the swap file created.
         # The real swapsize is a little smaller than standard. So the
         # std_swapsize is swapsize-1
         if not isinstance(std_swapsize, int):
@@ -384,7 +382,7 @@ not enabled in xfs file system." % max_retry)
             else:
                 self.log.info("Swap size is wrong. Retry %d/%d times." %
                               (retry, max_retry))
-                time.sleep(30)
+                time.sleep(10)
         else:
             self.fail("After retry {0} times, \
 ResourceDisk.SwapSizeMB={1} doesn't work.".format(max_retry, swapsize))
@@ -460,30 +458,7 @@ rhel-swap/s/^/#/' /etc/fstab")
                 "parted {} print|grep gpt".format(temporary_disk)), "",
             "{} is not GPT partition. Exit.".format(temporary_disk))
         # Set resource disk
-        swapsize_std = "1958138"
-        self.log.info("ResourceDisk.SwapSizeMB={}".format(swapsize_std))
-        self._verify_value("ResourceDisk.Format", "y")
-        self._verify_value("ResourceDisk.Filesystem", "ext4")
-        self._modify_value("ResourceDisk.EnableSwap", "y")
-        self._modify_value("ResourceDisk.SwapSizeMB", swapsize_std)
-        self.session.close()
-        self.vm.reboot()
-        self.session.connect()
-        # Retry 10 times (300s in total) to wait for the swap file created.
-        for count in range(1, 11):
-            swapsize = self.session.cmd_output(
-                "cat /proc/meminfo|grep SwapTotal|awk '{print $2}'")
-            if (int(swapsize) + 4) / 1024 == int(swapsize_std):
-                break
-            else:
-                self.log.info("Swap size is wrong. Retry %d times." % count)
-                time.sleep(30)
-        else:
-            self.log.info(
-                self.session.cmd_output("tail -10 /var/log/waagent.log"))
-            self.fail(
-                "ResourceDisk.SwapSizeMB=%s doesn't work in GPT partition" %
-                swapsize_std)
+        self._swapsize_check(swapsize="2048")
         # Check waagent.log
         with open("{}/data/azure/ignore_waagent_messages".format(BASEPATH),
                   'r') as f:

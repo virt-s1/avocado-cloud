@@ -539,12 +539,19 @@ to login as root"
                        "-configuration-path:<path to configuration file>"\
                        "-deprovision[+user]|-register-service|-version|"\
                        "-daemon|-start|-run-exthandlers]"
-        else:
+        elif wala_version < LooseVersion("2.3.0"):
             help_msg = "[-verbose] [-force] [-help] " \
                        "-configuration-path:<path to configuration file>"\
                        "-deprovision[+user]|-register-service|-version|"\
                        "-daemon|-start|-run-exthandlers|"\
                        "-show-configuration]"
+        else:
+            help_msg = "[-verbose] [-force] [-help] " \
+                       "-configuration-path:<path to configuration file>"\
+                       "-deprovision[+user]|-register-service|-version|"\
+                       "-daemon|-start|-run-exthandlers|-show-configuration|"\
+                       "-collect-logs [-full]|-setup-firewall "\
+                       "[-dst_ip=<IP> -uid=<UID> [-w/--wait]]"
         # self.log.info("help_msg: \n" + help_msg)
         cmd_output = self.session.cmd_output("waagent -help").strip(
             '\n').split("waagent")[-1].strip()

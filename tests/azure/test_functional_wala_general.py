@@ -10,7 +10,6 @@ from avocado_cloud.utils.utils_azure import command
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
-
 class GeneralTest(Test):
     """
     :avocado: tags=wala,general
@@ -78,6 +77,10 @@ class GeneralTest(Test):
             except:
                 self.cancel(
                     "No old or new package in guest VM. Skip this case.")
+
+    @property
+    def wala_version(self):
+        return LooseVersion(self.session.cmd_output("rpm -q WALinuxAgent").split("-")[1])
 
     def test_check_hostname(self):
         """
@@ -196,7 +199,7 @@ class GeneralTest(Test):
         """
         :avocado: tags=tier2
         1. Verify waagent logrotate
-        2. Verify waagent extension logrotate
+        2. Verify waagent extension logrotate (<2.3.0.2)
         """
         self.log.info("logrotate")
         self.session.cmd_output("sudo su -")
@@ -225,30 +228,31 @@ class GeneralTest(Test):
             self.session.cmd_output("grep %s %s" %
                                     (test_str, rotate_log[:-3])),
             "The rotated log doesn't contain the old logs")
-        # 2. Verify waagent extension logrotate
-        # Preparation
-        extension_dir = "/var/log/azure/test"
-        self.session.cmd_output(
-            "rm -rf {0};mkdir {0}".format(extension_dir))
-        self.session.cmd_output(
-            "echo '{}' >> {}/test.log".format(test_str, extension_dir))
-        # Rotate log
-        self.session.cmd_output(
-            "logrotate -vf /etc/logrotate.d/waagent-extn.logrotate")
-        # Check rotated log
-        ret,rotate_log = self.session.cmd_status_output("ls {}/test.log-*.gz".format(extension_dir))
-        self.assertEqual(ret, 0,
-                         "Fail to rotate extension log")
-        self.assertNotEqual(
-            self.session.cmd_status_output(
-                "grep {} {}/test.log".format(test_str, extension_dir))[0], 0,
-            "The {}/test.log is not cleared".format(extension_dir))
-        self.session.cmd_output("gunzip %s" % rotate_log)
-        self.assertEqual(
-            test_str,
-            self.session.cmd_output("grep %s %s" %
-                                    (test_str, rotate_log[:-3])),
-            "The extension rotated log doesn't contain the old logs")
+        # 2. Verify waagent extension logrotate(<2.2.54)
+        if self.wala_version < LooseVersion('2.2.54'):
+            # Preparation
+            extension_dir = "/var/log/azure/test"
+            self.session.cmd_output(
+                "rm -rf {0};mkdir {0}".format(extension_dir))
+            self.session.cmd_output(
+                "echo '{}' >> {}/test.log".format(test_str, extension_dir))
+            # Rotate log
+            self.session.cmd_output(
+                "logrotate -vf /etc/logrotate.d/waagent-extn.logrotate")
+            # Check rotated log
+            ret,rotate_log = self.session.cmd_status_output("ls {}/test.log-*.gz".format(extension_dir))
+            self.assertEqual(ret, 0,
+                            "Fail to rotate extension log")
+            self.assertNotEqual(
+                self.session.cmd_status_output(
+                    "grep {} {}/test.log".format(test_str, extension_dir))[0], 0,
+                "The {}/test.log is not cleared".format(extension_dir))
+            self.session.cmd_output("gunzip %s" % rotate_log)
+            self.assertEqual(
+                test_str,
+                self.session.cmd_output("grep %s %s" %
+                                        (test_str, rotate_log[:-3])),
+                "The extension rotated log doesn't contain the old logs")
 
     def _check_file_permission(self, filename, std_permission):
         """
@@ -577,9 +581,13 @@ Retry: {0}/10".format(retry+1))
             time.sleep(10)
         else:
             self.fail("Fail to download auto-update packages from host plugin")
+        if self.wala_version < LooseVersion('2.3.0.2'):
+            keywords = "Setting host plugin as default channel"
+        else:
+            keywords = "Default channel changed to HostGA channel"
         self.assertEqual(0, self.session.cmd_status_output(
-            "grep 'Setting host plugin as default channel' /var/log/waagent.log")[0],
-            "No 'Setting host plugin as default channel' notice in waagent.log")
+            "grep '{}' /var/log/waagent.log".format(keywords))[0],
+            "No '{}' notice in waagent.log".format(keywords))
 
     def test_host_plugin_extension(self):
         """
@@ -610,9 +618,13 @@ Retry: {0}/10".format(retry+1))
             time.sleep(10)
         else:
             self.fail("Fail to download extension packages from host plugin")
+        if self.wala_version < LooseVersion('2.3.0.2'):
+            keywords = "Setting host plugin as default channel"
+        else:
+            keywords = "Default channel changed to HostGA channel"
         self.assertEqual(0, self.session.cmd_status_output(
-            "grep 'Setting host plugin as default channel' /var/log/waagent.log")[0],
-            "No 'Setting host plugin as default channel' notice in waagent.log")
+            "grep '{}' /var/log/waagent.log".format(keywords))[0],
+            "No '{}' notice in waagent.log".format(keywords))
 
     def test_host_plugin_blob_status_upload(self):
         """
@@ -683,7 +695,7 @@ Retry: {0}/10".format(retry+1))
         if self.case_short_name.startswith("test_host_plugin"):
             self.session.cmd_output(
                 "/usr/bin/mv /etc/waagent.conf-bak /etc/waagent.conf")
-            self.session.cmd_output("rm -f /var/log/waagent")
+            self.session.cmd_output("rm -f /var/log/waagent.log")
             self.session.cmd_output(
                 "iptables -D OUTPUT -p tcp --dport 443 -j DROP")
             time.sleep(10)
