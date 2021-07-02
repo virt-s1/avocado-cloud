@@ -85,5 +85,4 @@ cases:
     test_functional_wala_lifecycle.py:LifeCycleTest.test_stop_vm
     test_functional_wala_lifecycle.py:LifeCycleTest.test_start_vm
     test_functional_wala_lifecycle.py:LifeCycleTest.test_restart_vm
-    test_functional_wala_lifecycle.py:LifeCycleTest.test_reboot_vm_inside_guest
     test_functional_wala_lifecycle.py:LifeCycleTest.test_delete_vm

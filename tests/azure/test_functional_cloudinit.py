@@ -37,7 +37,7 @@ class CloudinitTest(Test):
                 "test_cloudinit_no_networkmanager"
             ]:
                 self.cancel(
-                    "Skip case base RHEL-{} doesn't support this feature".format(self.project)
+                    "Skip case because RHEL-{} doesn't support this feature".format(self.project)
                 )
             
         if self.case_short_name in [

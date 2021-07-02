@@ -212,8 +212,10 @@ class GeneralTest(Test):
         self.session.cmd_output(
             "echo '%s' >> /var/log/waagent.log" % test_str)
         # Rotate log
+        # logrotate filename is different in RHEL-8/9. Get name first.
+        logrotate_file = self.session.cmd_output("ls -d /etc/logrotate.d/*|grep -E '(WALinuxAgent|waagent)'")
         self.session.cmd_output(
-            "logrotate -vf /etc/logrotate.d/waagent.logrotate")
+            "logrotate -vf {}".format(logrotate_file))
         # Check rotated log
         ret,rotate_log = self.session.cmd_status_output("ls /var/log/waagent.log-*.gz")
         self.assertEqual(ret, 0,
