@@ -1,5 +1,6 @@
 from avocado import Test
 from avocado_cloud.app import Setup
+import os
 import time
 
 
@@ -7,6 +8,7 @@ class NetworkTest(Test):
     def setUp(self):
         self.cloud = Setup(self.params, self.name)
         self.vm = self.cloud.vm
+        self.pwd = os.path.abspath(os.path.dirname(__file__))
         pre_delete = False
         pre_stop = False
         if self.name.name.endswith("test_coldplug_nics"):
@@ -33,26 +35,22 @@ class NetworkTest(Test):
         self.assertEqual(len(self.vm.query_nics()), count + 1,
                          "Total NICs number is not %d" % (count + 1))
 
-        guest_cmd = """
-primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
-grep -e eth -e ens | head -n 1)
-device_name=$(echo $primary_nic | tr -d '[:digit:]')
-device_numb=$(echo $primary_nic | tr -d '[:alpha:]')
-[ "${device_name}" = "ens" ] && return    # ens* will up automatically
-spath="/etc/sysconfig/network-scripts"
-for offset in $(seq 1 %s); do
-    device=${device_name}$((${device_numb}+${offset}))
-    echo "STEP1: Create configure file ifcfg-${device}..."
-    echo DEVICE=${device} | sudo tee $spath/ifcfg-${device}
-    echo BOOTPROTO=dhcp   | sudo tee -a $spath/ifcfg-${device}
-    echo ONBOOT=yes       | sudo tee -a $spath/ifcfg-${device}
-    echo DEFROUTE=no      | sudo tee -a $spath/ifcfg-${device}
-    echo "STEP2: 'ifup' this device..."
-    sudo ifup ${device}
-    sleep 1s
-done
-""" % count
-        self.session.cmd_output(guest_cmd, timeout=180)
+        guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
+        self.session.cmd_output("mkdir -p {0}".format(guest_path))
+
+        self.session.copy_files_to(
+            local_path="{0}/../../scripts/aliyun_enable_nics.sh".format(
+                self.pwd),
+            remote_path=guest_path)
+
+        self.log.info("NIC Count: %s" % count)
+        self.session.cmd_output("bash {0}/aliyun_enable_nics.sh {1}".format(
+            guest_path, count),
+                                timeout=180)
+
+        self.session.cmd_output('ip addr', timeout=30)
+        time.sleep(60)  # waiting for dhcp works
+        self.session.cmd_output('ip addr', timeout=30)
 
         time.sleep(10)
         outside_ips = [
@@ -64,28 +62,26 @@ done
             self.assertIn(
                 outside_ip, inside_ips, "Some of NICs are not available. "
                 "Outside IP: %s Inside IPs:\n %s" % (outside_ip, inside_ips))
+
         # 2. Add 1 more NIC. Should not be added
         self.log.info("Step 2: Add 1 more NIC, should not be added.")
         self.vm.attach_nics(1)
         self.assertEqual(
             len(self.vm.query_nics()), count + 1,
             "NICs number should not greater than %d" % (count + 1))
+
         # 3. Detach all NICs. NICs should be removed inside guest
         self.log.info("Step 3: Detach all NICs")
 
-        guest_cmd = """
-primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
-grep -e eth -e ens | head -n 1)
-device_name=$(echo $primary_nic | tr -d '[:digit:]')
-dev_list=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
-grep $device_name | grep -v $primary_nic)
-for dev in $dev_list; do
-    echo "'ifdown' device $dev..."
-    sudo ifdown $dev
-    sleep 1s
-done
-"""
-        self.session.cmd_output(guest_cmd, timeout=180)
+        self.session.copy_files_to(
+            local_path="{0}/../../scripts/aliyun_disable_nics.sh".format(
+                self.pwd),
+            remote_path=guest_path)
+
+        self.log.info("NIC Count: %s" % count)
+        self.session.cmd_output("bash {0}/aliyun_disable_nics.sh {1}".format(
+            guest_path, count),
+                                timeout=180)
 
         nic_ids = [
             self.vm.get_nic_id(nic) for nic in self.vm.query_nics()
@@ -123,28 +119,22 @@ done
         self.vm.start(wait=True)
         self.session.connect(timeout=connect_timeout)
 
-        guest_cmd = """
-primary_nic=$(ifconfig | grep "flags=.*\<UP\>" | cut -d: -f1 | \
-grep -e eth -e ens | head -n 1)
-device_name=$(echo $primary_nic | tr -d '[:digit:]')
-device_numb=$(echo $primary_nic | tr -d '[:alpha:]')
-[ "${device_name}" = "ens" ] && return    # ens* will up automatically
-spath="/etc/sysconfig/network-scripts"
-for offset in $(seq 1 %s); do
-    device=${device_name}$((${device_numb}+${offset}))
-    echo "STEP1: Create configure file ifcfg-${device}..."
-    echo DEVICE=${device} | sudo tee $spath/ifcfg-${device}
-    echo BOOTPROTO=dhcp   | sudo tee -a $spath/ifcfg-${device}
-    echo ONBOOT=yes       | sudo tee -a $spath/ifcfg-${device}
-    echo DEFROUTE=no      | sudo tee -a $spath/ifcfg-${device}
-    echo "STEP2: 'ifup' this device..."
-    sudo ifup ${device}
-    sleep 1s
-done
-""" % count
-        self.session.cmd_output(guest_cmd, timeout=180)
+        guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
+        self.session.cmd_output("mkdir -p {0}".format(guest_path))
+
+        self.session.copy_files_to(
+            local_path="{0}/../../scripts/aliyun_enable_nics.sh".format(
+                self.pwd),
+            remote_path=guest_path)
+
+        self.log.info("NIC Count: %s" % count)
+        self.session.cmd_output("bash {0}/aliyun_enable_nics.sh {1}".format(
+            guest_path, count),
+                                timeout=180)
 
         time.sleep(10)
+        self.session.cmd_output('ip addr', timeout=30)
+
         outside_ips = [
             self.vm.get_private_ip_address(nic)
             for nic in self.vm.query_nics()
@@ -154,6 +144,7 @@ done
             self.assertIn(
                 outside_ip, inside_ips,
                 "Some of NICs are not available. Inside IPs: %s" % inside_ips)
+
         # 2. Add 1 more NIC. Should not be added
         self.log.info("Step 2: Add 1 more NIC, should not be added.")
         self.vm.stop(wait=True)
@@ -162,6 +153,7 @@ done
         self.assertEqual(
             len(self.vm.query_nics()), count + 1,
             "NICs number should not greater than %d" % (count + 1))
+
         # 3. Detach all NICs. NICs should be removed inside guest
         self.log.info("Step 3: Detach all NICs.")
         nic_ids = [

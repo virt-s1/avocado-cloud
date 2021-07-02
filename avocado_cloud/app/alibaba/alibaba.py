@@ -114,15 +114,15 @@ class AlibabaSDK(object):
             'nic_name', '*/NIC/*')
 
         # Assign DiskCategory
-        family = str(
-            self.vm_params['InstanceType']).split('.')[1].split('-')[0]
-        essd_only_families = ('ebmc6e', 'ebmg6e', 'ebmr6e', 'c6e', 'g6e',
-                              'r6e')
-        if family in essd_only_families:
+        # Gen4 and below: cloud_ssd only; Gen6 and above: cloud_essd only
+        family_gen = int(
+            list(filter(str.isdigit, self.vm_params['InstanceType']))[0])
+        if family_gen >= 6:
             self.vm_params['DiskCategory'] = 'cloud_essd'
         else:
-            # AFAIK, gen4 families only support SSD
             self.vm_params['DiskCategory'] = 'cloud_ssd'
+        logging.info('Assigned DiskCategory {} to InstanceType {}.'.format(
+            self.vm_params['DiskCategory'], self.vm_params['InstanceType']))
 
     def _send_request(self, request):
         request.set_accept_format('json')

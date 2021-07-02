@@ -41,6 +41,9 @@
 # v2.23.1  2020-07-30  charles.shih  Bugfix on cloud-init command
 # v2.24    2020-07-30  charles.shih  Add commands for memory
 # v2.25    2020-08-19  charles.shih  Add commands for other Linux distros
+# v2.26    2020-09-23  charles.shih  Add sysctl command
+# v2.27    2021-07-01  charles.shih  Add EFI check command
+# v2.28    2021-07-01  charles.shih  Add Aliyun image-id check command
 
 # Notes:
 # On AWS the default user is ec2-user and it is an sudoer without needing a password;
@@ -144,6 +147,7 @@ run_cmd 'lspci'
 run_cmd 'lspci -v'
 run_cmd 'lspci -vv'
 run_cmd 'lspci -vvv'
+run_cmd 'ls -d /sys/firmware/efi'
 
 ## package
 run_cmd 'rpm -qa'
@@ -153,6 +157,7 @@ run_cmd 'yum repoinfo'
 run_cmd 'yum repoinfo all'
 run_cmd 'subscription-manager list --available'
 run_cmd 'subscription-manager list --consumed'
+run_cmd 'grep ^ /etc/yum.repos.d/*'
 
 ## kernel
 run_cmd 'lsmod'
@@ -219,6 +224,7 @@ run_cmd 'dmesg -f auth'
 run_cmd 'dmesg -f syslog'
 run_cmd 'dmesg -f lpr'
 run_cmd 'dmesg -f news'
+run_cmd 'sysctl -a'
 
 ## block
 run_cmd 'lsblk'
@@ -280,12 +286,17 @@ run_cmd 'service cloud-init status'
 run_cmd 'service cloud-config status'
 run_cmd 'service cloud-final status'
 run_cmd 'systemctl status cloud-{init-local,init,config,final}'
+run_cmd 'cloud-init status'
 run_cmd 'cloud-init analyze show'
 run_cmd 'cloud-init analyze blame'
 run_cmd 'cloud-init analyze dump'
 run_cmd 'cat /var/run/cloud-init/status.json'
 run_cmd 'cat /var/run/cloud-init/instance-data.json'
 run_cmd 'cat /var/run/cloud-init/ds-identify.log'
+run_cmd 'cat /etc/cloud/cloud.cfg'
+run_cmd 'cat /run/cloud-init/cloud-init-generator.log'
+run_cmd 'cat /run/cloud-init/ds-identify.log'
+run_cmd 'cloud-id'
 
 ## selinux
 run_cmd 'getenforce'
@@ -331,6 +342,10 @@ run_cmd 'ls /sys/devices/system/cpu/vulnerabilities/'
 for file in $(ls /sys/devices/system/cpu/vulnerabilities/*); do
 	run_cmd "grep ^ $file"
 done
+
+## specified collection
+# Aliyun RHEL image
+run_cmd 'cat /etc/image-id'
 
 ## boot
 # Waiting for Bootup finished

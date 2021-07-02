@@ -21,6 +21,14 @@ error: kex_exchange_identification:
 failed to assign [io  size 0x
 failed to assign [mem size 0x
 : Failed to check link status
+KD_FONT_OP_GET failed while trying to get the font metadata
 #################### KNOWN ISSUES BELOW ####################
 kernel: GPT: Use GNU Parted to correct GPT errors.
 org.freedesktop.DBus.Error.AccessDenied: Failed to restore old fd limit: Operation not permitted
+FW version command failed -5
+# BZ1958498
+util.py[WARNING]: Running module ssh-authkey-fingerprints
+cc_keys_to_console.py[WARNING]: Writing keys to the system console failed!
+util.py[WARNING]: Running module keys-to-console
+cloud-final.service: Failed with result 'exit-code'.
+Failed to start Execute cloud user/final scripts.

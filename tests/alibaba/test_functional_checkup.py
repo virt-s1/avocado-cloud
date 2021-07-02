@@ -2,6 +2,7 @@ from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
 from avocado_cloud.utils import utils_alibaba
+from avocado_cloud.utils.utils_alibaba import run_cmd
 from avocado.utils import process
 import re
 import os
@@ -713,36 +714,167 @@ will not check kernel-devel package.')
             self.fail('kdump service is not running at last.')
 
     def test_check_image_id(self):
+        """Check the image label in Alibaba private image.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_image_id
+        description:
+            Check the image label in Alibaba private image
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_image_id"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Get the image label from /etc/image-id
+            2. Get the image name from configure
+            3. Remove the extension name and '_copied'
+            4. Compare the processed name and label
+        pass_criteria:
+            The processed name and label are exactly the same.
+        """
         self.log.info("Check the /etc/image-id is correct.")
+
+        image_name = self.image_name
 
         # cat /etc/image-id
         # image_id="redhat_8_3_x64_20G_alibase_20201211.qcow2"
-
         cmd = 'sudo cat /etc/image-id | cut -d\'"\' -f2'
-        inside_name = self.session.cmd_output(cmd)
+        image_label = self.session.cmd_output(cmd)
 
         # Cancel this case if not provided
-        if 'No such file or directory' in inside_name:
+        if 'No such file or directory' in image_label:
             self.cancel('/etc/image-id is not provided, skip checking.')
 
-        # Cancel this case if using official image
-        if self.image_name.startswith('RHEL'):
+        # Cancel this case if not Alibaba private image
+        if not image_name.startswith(('redhat_', 'rhel_')):
             self.cancel(
-                'Won\'t compare for official images.\nInside:%s\nOutside:%s' %
-                (inside_name, self.image_name))
+                'Not Alibaba private image.\nImageName: {}\nImageLable: {}'.
+                format(image_name, image_label))
 
         # copied name: "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
-        idx = inside_name.rfind('.')
-        if idx < 0:
-            copied_name = inside_name + '_copied'
-        else:
-            copied_name = inside_name[:idx] + '_copied' + inside_name[idx:]
+        compare_name = image_name.replace('.qcow2',
+                                          '').replace('.vhd', '').replace(
+                                              '_copied', '')
+        compare_label = image_label.replace('.qcow2', '').replace('.vhd', '')
+
+        var_info = 'ImageName: {}\nImageLabel: {}\nCompareName: {}\n \
+CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
+        self.log.debug(var_info)
 
         # Compare image names
-        if self.image_name != inside_name and self.image_name != copied_name:
-            self.fail(
-                'The image names are mismatched.\nInside:%s\nOutside:%s' %
-                (inside_name, self.image_name))
+        if compare_name != compare_label:
+            self.fail('The image names are mismatched.\n{}'.format(var_info))
+
+    def test_check_yum_repoinfo(test_instance):
+        """Check the yum repoinfo for RHUI repos.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_yum_repoinfo
+        description:
+            Check the yum repoinfo for RHUI repos.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_yum_repoinfo"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. yum repoinfo, Repo-pkgs is not zero.
+        pass_criteria:
+            All commands succeed.
+        """
+        run_cmd(test_instance,
+                'sudo yum repoinfo',
+                expect_ret=0,
+                expect_not_kw='Repo-pkgs          : 0',
+                timeout=1200,
+                msg='try to get repo info')
+
+    def test_yum_package_install(test_instance):
+        """Check the yum package installation.
+
+        case_name:
+            [Aliyun]GeneralTest.test_yum_package_install
+        description:
+            Check the yum package installation.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_yum_package_install"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. yum clean all
+            2. yum repolist
+            3. yum check-update
+            4. yum search zsh
+            5. yum -y install zsh
+            6. sudo rpm -e zsh
+        pass_criteria:
+            All commands succeed.
+        """
+        run_cmd(test_instance, "sudo yum clean all", expect_ret=0, timeout=180)
+        run_cmd(test_instance, "sudo yum repolist", expect_ret=0, timeout=1200)
+        run_cmd(test_instance, "sudo yum check-update", timeout=1200)
+        run_cmd(test_instance,
+                "sudo yum search zsh",
+                expect_ret=0,
+                timeout=180)
+        run_cmd(test_instance,
+                "sudo yum -y install zsh",
+                expect_ret=0,
+                timeout=180)
+        run_cmd(test_instance,
+                r"sudo rpm -q --queryformat '%{NAME}' zsh",
+                expect_ret=0)
+        run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
+
+        # if 'SAP' in test_instance.info['name'].upper(
+        # ) and '6.5' in test_instance.info['name']:
+        #     test_instance.log.info("Below is specified for SAP AMIs")
+        #     run_cmd(test_instance,
+        #             "sudo tuned-profiles-sap-hana",
+        #             expect_ret=0,
+        #             timeout=180)
+        #     run_cmd(
+        #         test_instance,
+        #         r"sudo rpm -q --queryformat '%{NAME}' tuned-profiles-sap-hana",
+        #         expect_ret=0)
+        #     run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
+
+    # def test_yum_group_install(test_instance):
+    #     # Skip this case due to yum server support is needed.
+    #     # Output message: "There is no installed groups file."
+    #     cmd = "sudo yum -y groupinstall 'Development tools'"
+    #     run_cmd(test_instance,
+    #             cmd,
+    #             expect_ret=0,
+    #             timeout=1200,
+    #             msg='try to install Development tools group')
+    #     run_cmd(test_instance,
+    #             'sudo rpm -q glibc-devel',
+    #             expect_ret=0,
+    #             msg='try to check installed pkg')
 
     def tearDown(self):
         self.session.close()

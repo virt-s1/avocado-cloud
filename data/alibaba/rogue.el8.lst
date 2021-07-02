@@ -214,6 +214,15 @@
 /etc/systemd/system/multi-user.target.wants/cups.service
 /etc/systemd/system/sockets.target.wants/avahi-daemon.socket
 /etc/systemd/system/timers.target.wants/dnf-makecache.timer
+/etc/dnf/vars/releasever
+/etc/nsswitch.conf.rpmnew
+/etc/security/limits.d/99-sap.conf
+/etc/sysctl.d/sap.conf
+/etc/systemd/system/sockets.target.wants/uuidd.socket
+/etc/tmpfiles.d/sap.conf
+/usr/share/fonts/liberation/.uuid
+/boot/efi/NvVars
+/etc/systemd/system/graphical.target.wants/udisks2.service
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
