@@ -742,36 +742,38 @@ will not check kernel-devel package.')
         """
         self.log.info("Check the /etc/image-id is correct.")
 
-        image_name = self.image_name
-
+        # Get TargetName
         # cat /etc/image-id
         # image_id="redhat_8_3_x64_20G_alibase_20201211.qcow2"
         cmd = 'sudo cat /etc/image-id | cut -d\'"\' -f2'
-        image_label = self.session.cmd_output(cmd)
+        target_name = self.session.cmd_output(cmd)
 
         # Cancel this case if not provided
-        if 'No such file or directory' in image_label:
-            self.cancel('/etc/image-id is not provided, skip checking.')
+        if 'No such file or directory' in target_name:
+            self.cancel('/etc/image-id is not provided, skip this case.')
+        else:
+            self.log.debug(
+                'Got TargetName "{}" from /etc/image-id'.format(target_name))
+
+        # Get ImageName
+        image_name = self.image_name
+        self.log.debug('Got ImageName "{}"'.format(image_name))
 
         # Cancel this case if not Alibaba private image
         if not image_name.startswith(('redhat_', 'rhel_')):
-            self.cancel(
-                'Not Alibaba private image.\nImageName: {}\nImageLable: {}'.
-                format(image_name, image_label))
+            self.cancel('Not Alibaba private image, skip this case.')
 
-        # copied name: "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
-        compare_name = image_name.replace('.qcow2',
-                                          '').replace('.vhd', '').replace(
-                                              '_copied', '')
-        compare_label = image_label.replace('.qcow2', '').replace('.vhd', '')
+        # Get comparsion labels
+        # Ex. "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
+        inside = target_name.replace('.', '_').split('_')[:7]
+        outside = image_name.replace('.', '_').split('_')[:7]
+        self.log.debug('Inside: {}\nOutside: {}'.format(inside, outside))
 
-        var_info = 'ImageName: {}\nImageLabel: {}\nCompareName: {}\n \
-CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
-        self.log.debug(var_info)
-
-        # Compare image names
-        if compare_name != compare_label:
-            self.fail('The image names are mismatched.\n{}'.format(var_info))
+        # Compare image labels
+        if inside == outside:
+            self.log.info('The image labels are matched.')
+        else:
+            self.fail('The image labels are mismatched.')
 
     def test_check_yum_repoinfo(test_instance):
         """Check the yum repoinfo for RHUI repos.
