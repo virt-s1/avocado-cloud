@@ -859,6 +859,37 @@ bandwidth higher than 40G')
         case_name = "os_tests.tests.test_network_test.TestNetworkTest.test_ethtool_P"
         utils_lib.run_os_tests(self, case_name=case_name)
 
+    def test_persistent_route(self):
+        '''
+        :avocado: tags=test_persistent_route,fast_check
+        description:
+            os-tests check if can add persistent static route.
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]NetworkTest.test_persistent_route"
+        bugzilla_id: 
+            1971527
+        customer_case_id: 
+            BZ1971527
+        maintainer: 
+            xiliang
+        case_priority: 
+            0
+        case_component: 
+            network
+        key_steps:
+            1. # nmcli connection modify 'System eth0' +ipv4.routes "10.8.8.0/24 10.7.9.5"
+            2. # nmcli connection down 'System eth0';nmcli connection up 'System eth0'
+            3. # ip r
+        expected_result:
+            New static route added.
+            eg. 10.8.8.0/24 via 10.7.9.5 dev eth0 proto static metric 100
+        '''
+        self.session1.connect(timeout=self.ssh_wait_timeout)
+        self.session = self.session1
+        aws.check_session(self)
+        case_name = "os_tests.tests.test_network_test.TestNetworkTest.test_persistent_route"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_network_hotplug(self):
         '''
         :avocado: tags=test_network_hotplug,fast_check
