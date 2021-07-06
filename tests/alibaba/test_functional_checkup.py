@@ -1,8 +1,9 @@
 from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
-from avocado_cloud.utils import utils_alibaba
+from avocado_cloud.utils.utils_alibaba import collect_information
 from avocado_cloud.utils.utils_alibaba import run_cmd
+from avocado_cloud.utils.utils_alibaba import is_data_file_exist
 from avocado.utils import process
 import re
 import os
@@ -506,13 +507,13 @@ will not check kernel-devel package.')
         pass_criteria:
             n/a
         """
-        utils_alibaba.collect_information(self, 'create')
+        collect_information(self, 'create')
 
     def test_collect_information_for_reboot(self):
-        utils_alibaba.collect_information(self, 'reboot')
+        collect_information(self, 'reboot')
 
     def test_collect_information_for_restart(self):
-        utils_alibaba.collect_information(self, 'restart')
+        collect_information(self, 'restart')
 
     def test_collect_metadata(self):
         """Test case for avocado framework.
@@ -877,6 +878,53 @@ will not check kernel-devel package.')
     #             'sudo rpm -q glibc-devel',
     #             expect_ret=0,
     #             msg='try to check installed pkg')
+
+    def test_check_vulnerabilities(self):
+        """ Check vulnerabilities for RHEL on Aliyun.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_vulnerabilities
+        description:
+            Check vulnerabilities for RHEL on Aliyun.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_vulnerabilities"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Launch an instance on Aliyun.
+            2. Get microcode version via command "rpm -qa | grep microcode".
+            3. Check the current vulnerabilities via command "grep ^ /sys/devices/system/cpu/vulnerabilities/*".
+        pass_criteria:
+            There is no unexpected Vulnerable in system.
+            Whitelisted all the Vulnerables from RHEL7.9 and RHEL8.3 before July 2021.
+        """
+        # Print microcode version
+        run_cmd(self, 'rpm -qa|grep microcode', msg='Get microcode version')
+
+        # Print vulnerabilities
+        check_cmd = 'grep ^ /sys/devices/system/cpu/vulnerabilities/* | sed "s#^.*vulnerabilities/##"'
+        run_cmd(self, check_cmd, expect_ret=0)
+
+        # Apply whitelist and perform checking
+        data_file = 'vulnerabilities.el{}.lst'.format(self.rhel_ver)
+        if not is_data_file_exist(self.cloud.cloud_provider, data_file):
+            data_file = 'vulnerabilities.el{}.lst'.format(
+                self.rhel_ver.split('.')[0])
+        if not is_data_file_exist(self.cloud.cloud_provider, data_file):
+            self.error('Data file can not be found.')
+        self.session.copy_data_to_guest(self.cloud.cloud_provider, data_file)
+
+        check_cmd += ' | grep -vxFf {}'.format(
+            os.path.join(self.dest_dir, data_file))
+        run_cmd(self, check_cmd, expect_output='')
 
     def tearDown(self):
         self.session.close()
