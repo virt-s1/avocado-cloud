@@ -1,3 +1,4 @@
+from io import TextIOBase
 from avocado.utils import process
 import os
 import time
@@ -209,3 +210,12 @@ def run_cmd(test_instance,
     if ret_status:
         return status
     return output
+
+
+def is_data_file_exist(cloud_provider, data_file):
+    pwd = os.path.abspath(os.path.dirname(__file__))
+    root_path = os.path.dirname(os.path.dirname(pwd))
+    data_path = os.path.join(root_path, "data", cloud_provider, data_file)
+    result = os.path.isfile(data_path)
+    LOG.info('{} exists? {}'.format(data_path, result))
+    return result
