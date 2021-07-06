@@ -81,6 +81,8 @@ cases:
     test_general_verification.py:GeneralVerification.test_subscription_manager_config
     test_general_verification.py:GeneralVerification.test_check_dmidecode_outofspec
     test_general_verification.py:GeneralVerification.test_podman_rm_stopped
+    test_general_verification.py:GeneralVerification.test_check_systemd_analyze_verify_deprecated_unsafe
+    test_general_verification.py:GeneralVerification.test_check_systemd_analyze_verify_obsolete
     test_general_verification.py:GeneralVerification.test_check_systemd_analyze_verify_ordering_cycle
     test_general_verification.py:GeneralVerification.test_podman_build_image
     test_general_verification.py:GeneralVerification.test_podman_leaks_exit
@@ -109,6 +111,7 @@ cases:
     test_functional_network.py:NetworkTest.test_network_hotplug
     test_functional_network.py:NetworkTest.test_second_ip_hotplug
     test_functional_network.py:NetworkTest.test_ethtool_S_xdp
+    test_functional_network.py:NetworkTest.test_persistent_route
     test_functional_storage.py:StorageTest.test_ssd_trim
     test_functional_storage.py:StorageTest.test_nvme_basic
     test_functional_storage.py:StorageTest.test_disk_info

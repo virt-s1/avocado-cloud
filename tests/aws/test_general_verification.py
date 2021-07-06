@@ -676,6 +676,60 @@ content manually!\n %s" % output)
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_release_name"
         utils_lib.run_os_tests(self, case_name=case_name)
 
+    def test_check_systemd_analyze_verify_deprecated_unsafe(self):
+        '''
+        :avocado: tags=test_check_systemd_analyze_verify_deprecated_unsafe,fast_check
+        description:
+            os-tests check service does not use obsolete options in unit file
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_systemd_analyze_verify_deprecated_unsafe"
+        bugzilla_id: 
+            1974184
+        customer_case_id: 
+            
+        maintainer: 
+            xiliang
+        case_priority: 
+            2
+        case_component: 
+            systemd
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. # systemd-analyze verify $service name
+        pass_criteria: 
+            No 'deprecated' or 'unsafe' found in output
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_systemd_analyze_verify_deprecated_unsafe"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_systemd_analyze_verify_obsolete(self):
+        '''
+        :avocado: tags=test_check_systemd_analyze_verify_obsolete,fast_check
+        description:
+            os-tests check service does not use obsolete options in unit file
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_systemd_analyze_verify_obsolete"
+        bugzilla_id: 
+            1974108
+        customer_case_id: 
+            
+        maintainer: 
+            xiliang
+        case_priority: 
+            2
+        case_component: 
+            systemd
+        key_steps:
+            1. Launch an instance on AWS EC2.
+            2. # systemd-analyze verify $service name
+        pass_criteria: 
+            No "is obsolete" found in output
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_systemd_analyze_verify_obsolete"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
     def test_check_systemd_analyze_verify_ordering_cycle(self):
         '''
         :avocado: tags=test_check_systemd_analyze_verify_ordering_cycle,fast_check
