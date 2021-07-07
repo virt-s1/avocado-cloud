@@ -903,8 +903,8 @@ will not check kernel-devel package.')
             2. Get microcode version via command "rpm -qa | grep microcode".
             3. Check the current vulnerabilities via command "grep ^ /sys/devices/system/cpu/vulnerabilities/*".
         pass_criteria:
-            There is no unexpected Vulnerable in system.
-            Whitelisted all the Vulnerables from RHEL7.9 and RHEL8.3 before July 2021.
+            There is no unexpected vulnerabilities in system.
+            Whitelisted all the vulnerabilities from RHEL7.9 and RHEL8.3 before July 2021.
         """
         # Print microcode version
         run_cmd(self, 'rpm -qa|grep microcode', msg='Get microcode version')
@@ -922,7 +922,7 @@ will not check kernel-devel package.')
             self.error('Data file can not be found.')
         self.session.copy_data_to_guest(self.cloud.cloud_provider, data_file)
 
-        check_cmd += ' | grep -vxFf {}'.format(
+        check_cmd += ' | grep -v "Not affected" | grep -vxFf {}'.format(
             os.path.join(self.dest_dir, data_file))
         run_cmd(self, check_cmd, expect_output='')
 
