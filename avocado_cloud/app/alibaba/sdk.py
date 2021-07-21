@@ -60,14 +60,15 @@ class AlibabaVM(VM):
             logging.debug('Target: {0}, Current: {1}'.format(
                 status, current_status))
             if current_status == status:
-                break
+                return True
 
             # Exceptions (detect wrong status to save time)
             if status == 'Running' and current_status not in ('Stopping',
                                                               'Starting'):
-                raise Exception('While waiting for the server to get Running, \
+                logging.error('While waiting for the server to get Running, \
 its status cannot be {0} rather than Stopping or Starting.'.format(
                     current_status))
+                return False
 
     @property
     def id(self):
