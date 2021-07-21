@@ -158,7 +158,7 @@ def run_cmd(test_instance,
     if exception_hit:
         try:
             test_instance.log.info("Try to reconnect")
-            session.connect(timeout=test_instance.ssh_wait_timeout)
+            session.connect(timeout=120)
         except Exception as err:
             test_instance.log.error("")
             handle_ssh_exception(vm, err, is_get_console=is_get_console)
