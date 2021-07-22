@@ -1,0 +1,78 @@
+.M.......  c /etc/machine-id
+S.5....T.  c /etc/systemd/logind.conf
+.M.......  g /var/cache/private
+.M.......  g /var/lib/private
+.M.......  g /var/log/btmp
+.M.......  g /var/log/private
+.M.......  g /etc/udev/hwdb.bin
+.M.......  g /var/lib/systemd/random-seed
+.M.......  d /usr/share/info/dir.old
+.M.......  g /var/lib/dnf
+.M.......  g /var/log/dnf.librepo.log
+.M.......  g /var/log/dnf.rpm.log
+.M.......  g /var/log/hawkey.log
+..5....T.    /var/lib/selinux/targeted/active/commit_num
+.......T.    /var/lib/selinux/targeted/active/file_contexts
+.......T.    /var/lib/selinux/targeted/active/homedir_template
+S.5....T.    /var/lib/selinux/targeted/active/policy.kern
+.......T.    /var/lib/selinux/targeted/active/seusers
+.......T.    /var/lib/selinux/targeted/active/users_extra
+.M.......    /var/lib/nfs/rpc_pipefs
+.M.......  g /run/dbus
+.M....G..  g /var/log/lastlog
+.M....G..  g /var/log/lastlog
+....L....  c /etc/nsswitch.conf
+.......T.  c /etc/openldap/ldap.conf
+.M.......  g /var/cache/dnf/packages.db
+.......T.  c /etc/kdump.conf
+....L....  c /etc/pam.d/fingerprint-auth
+....L....  c /etc/pam.d/password-auth
+....L....  c /etc/pam.d/postlogin
+....L....  c /etc/pam.d/smartcard-auth
+....L....  c /etc/pam.d/system-auth
+S.5....T.  c /etc/sudoers
+.M.......    /var/log/audit
+S.5....T.  c /etc/ssh/sshd_config
+.M.......  c /etc/rc.d/rc.local
+..5....T.  c /etc/dnf/plugins/product-id.conf
+..5....T.  c /etc/dnf/plugins/subscription-manager.conf
+missing   c /etc/systemd/system/dbus-org.freedesktop.resolve1.service
+.M.......  g /var/spool/anacron/cron.daily
+.M.......  g /var/spool/anacron/cron.monthly
+.M.......  g /var/spool/anacron/cron.weekly
+SM5....T.  c /etc/nfs.conf
+S.5....T.  c /etc/sysconfig/nfs
+.....UG..  g /var/lib/sss/mc/group
+.....UG..  g /var/lib/sss/mc/initgroups
+.....UG..  g /var/lib/sss/mc/passwd
+S.5....T.  c /etc/NetworkManager/NetworkManager.conf
+S.5....T.  c /etc/cloud/cloud.cfg
+.M.......  g /var/lib/plymouth/boot-duration
+.M.......  g /etc/crypto-policies/back-ends/nss.config
+S.5....T.  c /etc/sysctl.conf
+S.5....T.    /var/log/README
+.M....G..  g /var/log/journal
+......G..  g /run/lsm
+......G..  g /run/lsm/ipc
+S.5....T.  c /etc/chrony.conf
+.M.......  g /var/log/dnf.log
+.......T.  c /etc/selinux/targeted/contexts/customizable_types
+S.5....T.    /var/lib/selinux/targeted/active/file_contexts
+....L....  c /etc/systemd/system/dbus-org.freedesktop.resolve1.service
+.......T.    /boot/efi/EFI/BOOT/BOOTX64.EFI
+.......T.    /boot/efi/EFI/BOOT/fbx64.efi
+.......T.    /boot/efi/EFI/redhat/BOOTX64.CSV
+.......T.    /boot/efi/EFI/redhat/mmx64.efi
+.......T.    /boot/efi/EFI/redhat/shimx64-redhat.efi
+.......T.    /boot/efi/EFI/redhat/shimx64.efi
+.......T.    /boot/efi/EFI/redhat/grubx64.efi
+.M.......    /boot/efi/EFI
+.......T.  c /etc/dnf/plugins/product-id.conf
+.......T.  c /etc/dnf/plugins/subscription-manager.conf
+.M.......  g /run/cockpit
+SM5....T.  c /boot/grub2/grubenv
+.M.......  c /etc/crypto-policies/back-ends/nss.config
+S.5....T.  c /etc/containers/registries.conf
+.M...UG..    /run/uuidd
+#################### KNOWN ISSUES BELOW ####################
+S.5....T.    /usr/lib/systemd/system/cloud-init.service

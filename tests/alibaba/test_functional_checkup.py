@@ -79,7 +79,9 @@ class GeneralTest(Test):
 
     def test_check_boot_message(self):
         self.log.info("Check the boot messages with no errors")
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "journalctl.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "journalctl.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "var.log.message.el7.lst"
@@ -234,7 +236,9 @@ class GeneralTest(Test):
         self.log.info(
             "Check all files confiled by SELinux has the correct contexts")
         selinux_now = self.dest_dir + "selinux.now"
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "selinux.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "selinux.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "selinux.el7.lst"
@@ -258,7 +262,9 @@ class GeneralTest(Test):
         self.log.info(
             "Check all files on the disk is controlled by rpm packages")
         utils_script = "rogue.sh"
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "rogue.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "rogue.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "rogue.el7.lst"
@@ -280,7 +286,9 @@ class GeneralTest(Test):
 
     def test_check_file_content_integrity_by_rpm(self):
         self.log.info("Check file content integrity by rpm -Va")
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "rpm_va.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "rpm_va.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "rpm_va.el7.lst"
