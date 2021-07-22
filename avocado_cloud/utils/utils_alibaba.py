@@ -87,12 +87,14 @@ def handle_ssh_exception(vm, err, is_get_console=False):
         LOG.info("Console output: %s ", output)
 
     LOG.info("Restart instance as exception hit!")
-    vm.stop()
-    if not vm.start():
-        LOG.info("Cannot start instance, terminate it now!")
-        vm.delete()
-        return False
-        
+    vm.reboot(wait=True, force=True)
+
+    # Skip the termination logic because it is less helpful to Aliyun
+    # if not vm.is_started():
+    #     LOG.info("Cannot start instance, terminate it now!")
+    #     vm.delete(wait=True)
+    #     return False
+
     return True
 
 
