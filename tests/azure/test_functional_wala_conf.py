@@ -136,8 +136,13 @@ sudo chown -R root:root /root/.ssh")
             return (cloud.vm, session)
 
     def _get_temporary_disk(self):
-        boot_dev = self.session.cmd_output("mount|grep 'boot ' | cut -c1-8")
-        return '/dev/sda' if boot_dev == '/dev/sdb' else '/dev/sdb'
+        boot_dev = self.session.cmd_output("mount|grep 'boot'|head -1| cut -c1-8")
+        if boot_dev == '/dev/sda':
+            return '/dev/sdb'
+        elif boot_dev == '/dev/sdb':
+            return '/dev/sda'
+        else:
+            self.error('Cannot get temporary disk name!')
 
     def test_delete_root_passwd(self):
         """
