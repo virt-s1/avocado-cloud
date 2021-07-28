@@ -1,3 +1,4 @@
+import base64
 from ..base import VM
 from .alibaba import AlibabaSDK
 from avocado_cloud.utils import utils_misc
@@ -59,14 +60,15 @@ class AlibabaVM(VM):
             logging.debug('Target: {0}, Current: {1}'.format(
                 status, current_status))
             if current_status == status:
-                break
+                return True
 
             # Exceptions (detect wrong status to save time)
             if status == 'Running' and current_status not in ('Stopping',
                                                               'Starting'):
-                raise Exception('While waiting for the server to get Running, \
+                logging.error('While waiting for the server to get Running, \
 its status cannot be {0} rather than Stopping or Starting.'.format(
                     current_status))
+                return False
 
     @property
     def id(self):
@@ -388,3 +390,15 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
     def modify_instance_type(self, new_type):
         """Modify Instance Type."""
         self.ecs.modify_instance_spec(self.id, new_type)
+
+    def get_console_log(self):
+        """Get console log."""
+        logging.info('Get console log')
+        try:
+            output = self.ecs.get_console_log(self.id)
+            b64code = output.get('ConsoleOutput')
+            console_output = base64.b64decode(b64code)
+            return True, console_output
+        except Exception as err:
+            logging.error("Failed to get console log! %s" % err)
+            return False, err

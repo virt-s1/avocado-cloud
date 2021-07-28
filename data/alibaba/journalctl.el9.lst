@@ -1,0 +1,34 @@
+Failed to init entropy source 0: Hardware RNG Device
+Failed to init entropy source 1: TPM RNG Device
+kernel: NMI watchdog: Perf event create on CPU 0 failed with -2
+Failed to insert module 'ip_tables': Operation not permitted
+stages.py[ERROR]: Unable to render networking. Network config is likely broken: No available network renderers found. Searched through list: ['eni', 'sysconfig', 'netplan']
+cloud-user: Error executing command as another user: Not authorized [USER=root] [TTY=unknown] [CWD=/home/cloud-user] [COMMAND=/usr/sbin/grub2-set-bootflag boot_success]
+Error executing command as another user: Not authorized
+grub-boot-success.service: Failed with result 'exit-code'.
+Failed to start Mark boot as successful.
+Failed determining last makecache time.
+kernel: acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+kernel: acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+systemd[1]: Failed to insert module 'ip_tables': Operation not permitted
+kernel: RAS: Correctable Errors collector initialized.
+augenrules
+Failed to init entropy source hwrng
+failed: Cannot assign requested address
+DEVICESCAN failed: glob(3) aborted matching pattern /dev/discs/disc
+kernel: ERST: Error Record Serialization Table (ERST) support is initialized
+error: kex_exchange_identification:
+failed to assign [io  size 0x
+failed to assign [mem size 0x
+: Failed to check link status
+KD_FONT_OP_GET failed while trying to get the font metadata
+#################### KNOWN ISSUES BELOW ####################
+kernel: GPT: Use GNU Parted to correct GPT errors.
+org.freedesktop.DBus.Error.AccessDenied: Failed to restore old fd limit: Operation not permitted
+FW version command failed -5
+# BZ1958498
+util.py[WARNING]: Running module ssh-authkey-fingerprints
+cc_keys_to_console.py[WARNING]: Writing keys to the system console failed!
+util.py[WARNING]: Running module keys-to-console
+cloud-final.service: Failed with result 'exit-code'.
+Failed to start Execute cloud user/final scripts.

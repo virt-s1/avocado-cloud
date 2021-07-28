@@ -28,6 +28,7 @@ from aliyunsdkecs.request.v20140526 import AttachNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import DescribeNetworkInterfacesRequest
 from aliyunsdkecs.request.v20140526 import DetachNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import DeleteNetworkInterfaceRequest
+from aliyunsdkecs.request.v20140526 import GetInstanceConsoleOutputRequest
 
 
 class AliyunConfig(object):
@@ -393,5 +394,13 @@ class AlibabaSDK(object):
         request = DeleteNetworkInterfaceRequest.DeleteNetworkInterfaceRequest()
         key_list = ["NetworkInterfaceId"]
         self.vm_params["NetworkInterfaceId"] = nic_id
+        request = self._add_params(request, key_list, self.vm_params)
+        return self._send_request(request)
+
+    def get_console_log(self, instance_id):
+        request = GetInstanceConsoleOutputRequest.GetInstanceConsoleOutputRequest(
+        )
+        key_list = ['InstanceId']
+        self.vm_params["InstanceId"] = instance_id
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)

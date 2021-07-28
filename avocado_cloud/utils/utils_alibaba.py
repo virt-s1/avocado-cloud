@@ -1,3 +1,4 @@
+from io import TextIOBase
 from avocado.utils import process
 import os
 import time
@@ -72,6 +73,7 @@ def handle_ssh_exception(vm, err, is_get_console=False):
     you may want save console output if ssh session not work
     '''
     LOG.info("Test exception: %s", err)
+
     if is_get_console:
         LOG.info("Get console log as exception hit!")
         time.sleep(60)
@@ -83,12 +85,16 @@ def handle_ssh_exception(vm, err, is_get_console=False):
             else:
                 LOG.info("No output, try to get log later, max 10min!")
         LOG.info("Console output: %s ", output)
+
     LOG.info("Restart instance as exception hit!")
-    vm.stop()
-    if not vm.start():
-        LOG.info("Cannot start instance, terminate it now!")
-        vm.delete()
-        return False
+    vm.reboot(wait=True, force=True)
+
+    # Skip the termination logic because it is less helpful to Aliyun
+    # if not vm.is_started():
+    #     LOG.info("Cannot start instance, terminate it now!")
+    #     vm.delete(wait=True)
+    #     return False
+
     return True
 
 
@@ -134,26 +140,31 @@ def run_cmd(test_instance,
         check_ret {bool} -- [whether check return] (default: {False})
     """
     test_instance.log.info("CMD: %s", cmd)
+
     status = None
     output = None
     exception_hit = False
+
     if session == None:
         session = test_instance.session
     if vm == None:
         vm = test_instance.vm
+
     try:
         status, output = session.cmd_status_output(cmd, timeout=timeout)
     except Exception as err:
         test_instance.log.error("Run cmd failed as %s" % err)
         status = None
         exception_hit = True
+
     if exception_hit:
         try:
             test_instance.log.info("Try to reconnect")
-            session.connect(timeout=test_instance.ssh_wait_timeout)
+            session.connect(timeout=120)
         except Exception as err:
             test_instance.log.error("")
             handle_ssh_exception(vm, err, is_get_console=is_get_console)
+
         test_instance.log.info(
             "Test connection via uname, if still fail, restart vm")
         try:
@@ -165,47 +176,64 @@ def run_cmd(test_instance,
 
     if msg is not None:
         test_instance.log.info(msg)
+
     if expect_ret is not None:
         test_instance.assertEqual(status,
                                   expect_ret,
                                   msg='ret is %s, expected is %s, output %s' %
                                   (status, expect_ret, output))
+
     if expect_not_ret is not None:
         test_instance.assertNotEqual(
             status,
             expect_not_ret,
             msg='ret is %s, expected not ret is %s, output %s' %
             (status, expect_not_ret, output))
+
     if expect_kw is not None:
         for key_word in expect_kw.split(','):
             test_instance.assertIn(key_word,
                                    output,
                                    msg='expcted %s not found in %s' %
                                    (key_word, output))
+
     if expect_not_kw is not None:
         for key_word in expect_not_kw.split(','):
             test_instance.assertNotIn(key_word,
                                       output,
                                       msg='Unexpcted %s found in %s' %
                                       (key_word, output))
+
     if expect_output is not None:
         test_instance.assertEqual(expect_output,
                                   output,
                                   msg='exactly expected %s, result %s' %
                                   (expect_output, output))
+
     if cancel_kw is not None:
         cancel_yes = True
         for key_word in cancel_kw.split(','):
             if key_word in output:
                 cancel_yes = False
+
         if cancel_yes:
             test_instance.cancel("None of %s found, cancel case" % cancel_kw)
+
     if cancel_not_kw is not None:
         for key_word in cancel_not_kw.split(','):
             if key_word in output:
                 test_instance.cancel("%s found, cancel case %s" %
                                      (key_word, output))
+
     test_instance.log.info("CMD out:%s" % output)
-    if ret_status:
-        return status
-    return output
+
+    return status if ret_status else output
+
+
+def is_data_file_exist(cloud_provider, data_file):
+    pwd = os.path.abspath(os.path.dirname(__file__))
+    root_path = os.path.dirname(os.path.dirname(pwd))
+    data_path = os.path.join(root_path, "data", cloud_provider, data_file)
+    result = os.path.isfile(data_path)
+    LOG.info('{} exists? {}'.format(data_path, result))
+    return result

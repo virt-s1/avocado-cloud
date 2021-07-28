@@ -1,8 +1,9 @@
 from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
-from avocado_cloud.utils import utils_alibaba
+from avocado_cloud.utils.utils_alibaba import collect_information
 from avocado_cloud.utils.utils_alibaba import run_cmd
+from avocado_cloud.utils.utils_alibaba import is_data_file_exist
 from avocado.utils import process
 import re
 import os
@@ -78,7 +79,9 @@ class GeneralTest(Test):
 
     def test_check_boot_message(self):
         self.log.info("Check the boot messages with no errors")
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "journalctl.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "journalctl.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "var.log.message.el7.lst"
@@ -233,7 +236,9 @@ class GeneralTest(Test):
         self.log.info(
             "Check all files confiled by SELinux has the correct contexts")
         selinux_now = self.dest_dir + "selinux.now"
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "selinux.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "selinux.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "selinux.el7.lst"
@@ -257,7 +262,9 @@ class GeneralTest(Test):
         self.log.info(
             "Check all files on the disk is controlled by rpm packages")
         utils_script = "rogue.sh"
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "rogue.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "rogue.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "rogue.el7.lst"
@@ -279,7 +286,9 @@ class GeneralTest(Test):
 
     def test_check_file_content_integrity_by_rpm(self):
         self.log.info("Check file content integrity by rpm -Va")
-        if self.rhel_ver.split('.')[0] == '8':
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "rpm_va.el9.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
             data_file = "rpm_va.el8.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "rpm_va.el7.lst"
@@ -506,13 +515,13 @@ will not check kernel-devel package.')
         pass_criteria:
             n/a
         """
-        utils_alibaba.collect_information(self, 'create')
+        collect_information(self, 'create')
 
     def test_collect_information_for_reboot(self):
-        utils_alibaba.collect_information(self, 'reboot')
+        collect_information(self, 'reboot')
 
     def test_collect_information_for_restart(self):
-        utils_alibaba.collect_information(self, 'restart')
+        collect_information(self, 'restart')
 
     def test_collect_metadata(self):
         """Test case for avocado framework.
@@ -742,36 +751,38 @@ will not check kernel-devel package.')
         """
         self.log.info("Check the /etc/image-id is correct.")
 
-        image_name = self.image_name
-
+        # Get TargetName
         # cat /etc/image-id
         # image_id="redhat_8_3_x64_20G_alibase_20201211.qcow2"
         cmd = 'sudo cat /etc/image-id | cut -d\'"\' -f2'
-        image_label = self.session.cmd_output(cmd)
+        target_name = self.session.cmd_output(cmd)
 
         # Cancel this case if not provided
-        if 'No such file or directory' in image_label:
-            self.cancel('/etc/image-id is not provided, skip checking.')
+        if 'No such file or directory' in target_name:
+            self.cancel('/etc/image-id is not provided, skip this case.')
+        else:
+            self.log.debug(
+                'Got TargetName "{}" from /etc/image-id'.format(target_name))
+
+        # Get ImageName
+        image_name = self.image_name
+        self.log.debug('Got ImageName "{}"'.format(image_name))
 
         # Cancel this case if not Alibaba private image
         if not image_name.startswith(('redhat_', 'rhel_')):
-            self.cancel(
-                'Not Alibaba private image.\nImageName: {}\nImageLable: {}'.
-                format(image_name, image_label))
+            self.cancel('Not Alibaba private image, skip this case.')
 
-        # copied name: "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
-        compare_name = image_name.replace('.qcow2',
-                                          '').replace('.vhd', '').replace(
-                                              '_copied', '')
-        compare_label = image_label.replace('.qcow2', '').replace('.vhd', '')
+        # Get comparsion labels
+        # Ex. "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
+        inside = target_name.replace('.', '_').split('_')[:7]
+        outside = image_name.replace('.', '_').split('_')[:7]
+        self.log.debug('Inside: {}\nOutside: {}'.format(inside, outside))
 
-        var_info = 'ImageName: {}\nImageLabel: {}\nCompareName: {}\n \
-CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
-        self.log.debug(var_info)
-
-        # Compare image names
-        if compare_name != compare_label:
-            self.fail('The image names are mismatched.\n{}'.format(var_info))
+        # Compare image labels
+        if inside == outside:
+            self.log.info('The image labels are matched.')
+        else:
+            self.fail('The image labels are mismatched.')
 
     def test_check_yum_repoinfo(test_instance):
         """Check the yum repoinfo for RHUI repos.
@@ -875,6 +886,53 @@ CompareLabel: {}'.format(image_name, image_label, compare_name, compare_label)
     #             'sudo rpm -q glibc-devel',
     #             expect_ret=0,
     #             msg='try to check installed pkg')
+
+    def test_check_vulnerabilities(self):
+        """ Check vulnerabilities for RHEL on Aliyun.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_vulnerabilities
+        description:
+            Check vulnerabilities for RHEL on Aliyun.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_vulnerabilities"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Launch an instance on Aliyun.
+            2. Get microcode version via command "rpm -qa | grep microcode".
+            3. Check the current vulnerabilities via command "grep ^ /sys/devices/system/cpu/vulnerabilities/*".
+        pass_criteria:
+            There is no unexpected vulnerabilities in system.
+            Whitelisted all the vulnerabilities from RHEL7.9 and RHEL8.3 before July 2021.
+        """
+        # Print microcode version
+        run_cmd(self, 'rpm -qa|grep microcode', msg='Get microcode version')
+
+        # Print vulnerabilities
+        check_cmd = 'grep ^ /sys/devices/system/cpu/vulnerabilities/* | sed "s#^.*vulnerabilities/##"'
+        run_cmd(self, check_cmd, expect_ret=0)
+
+        # Apply whitelist and perform checking
+        data_file = 'vulnerabilities.el{}.lst'.format(self.rhel_ver)
+        if not is_data_file_exist(self.cloud.cloud_provider, data_file):
+            data_file = 'vulnerabilities.el{}.lst'.format(
+                self.rhel_ver.split('.')[0])
+        if not is_data_file_exist(self.cloud.cloud_provider, data_file):
+            self.error('Data file can not be found.')
+        self.session.copy_data_to_guest(self.cloud.cloud_provider, data_file)
+
+        check_cmd += ' | grep -v "Not affected" | grep -vxFf {}'.format(
+            os.path.join(self.dest_dir, data_file))
+        run_cmd(self, check_cmd, expect_output='')
 
     def tearDown(self):
         self.session.close()

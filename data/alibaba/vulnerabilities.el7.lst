@@ -1,0 +1,19 @@
+itlb_multihit:KVM: Mitigation: Split huge pages
+itlb_multihit:Processor vulnerable
+l1tf:Mitigation: PTE Inversion
+l1tf:Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable
+l1tf:Not affected
+mds:Mitigation: Clear CPU buffers; SMT vulnerable
+mds:Not affected
+mds:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown
+meltdown:Mitigation: PTI
+meltdown:Not affected
+spec_store_bypass:Mitigation: Speculative Store Bypass disabled via prctl and seccomp
+spec_store_bypass:Vulnerable
+spectre_v1:Mitigation: Load fences, usercopy/swapgs barriers and __user pointer sanitization
+spectre_v2:Mitigation: Enhanced IBRS, IBPB
+spectre_v2:Mitigation: Full retpoline, IBPB
+spectre_v2:Vulnerable: Retpoline without IBPB
+srbds:Not affected
+tsx_async_abort:Mitigation: Clear CPU buffers; SMT vulnerable
+tsx_async_abort:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown
