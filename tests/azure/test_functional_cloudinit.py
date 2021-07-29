@@ -1582,6 +1582,42 @@ ssh_pwauth: 1
         self.assertIn("active (exited)", self.session.cmd_output("sudo systemctl status cloud-final"),
             "cloud-final.service status is not active (exited)")
 
+    def test_cloudinit_growpart_over_2TB_gpt_disk(self):
+        """
+        :avocado: tags=tier1,cloud_utils_growpart
+        RHEL-276281 CLOUDINIT-TC: Can growpart over 2TB gpt disk	
+        1. Prepare a VM in Azure and install cloud-utils-growpart package
+        2. Attach a 4T data disk to the VM.  Device is /dev/sdc
+        3. # parted /dev/sdc mklabel gpt
+        4. Make 2 partitions: 
+        # parted -s /dev/sdc mkpart xfs 0 1000 
+        # parted -s /dev/sdc mkpart xfs 2000 4096
+        5. # growpart /dev/sdc 2
+        6. # parted /dev/sdc print
+        """
+        self.log.info("RHEL-276281 CLOUDINIT-TC: Can growpart over 2TB gpt disk")
+        self.session.cmd_output("sudo su -")        
+        # Attach data disk
+        self.disk_name = "disk1-{}".format(self._postfix)
+        self.vm.unmanaged_disk_attach(self.disk_name, 4094)
+        self.assertEqual(self.session.cmd_status_output("ls /dev/sdc")[0], 0,
+            "No /dev/sdc device after attach data disk")
+        # Parted 2 gpt partitions
+        self.session.cmd_output("parted /dev/sdc mklabel gpt")
+        self.session.cmd_output("parted -s /dev/sdc mkpart xfs 0 1000")
+        self.session.cmd_output("parted -s /dev/sdc mkpart xfs 2000 4096")
+        self.session.cmd_output("parted -s /dev/sdc print")
+        # Growpart partition 2
+        exit_status, output = self.session.cmd_status_output(
+            "growpart /dev/sdc 2")
+        self.assertEqual(exit_status, 0,
+                         "Run growpart failed: {}".format(output))
+        # Check growpart to disk size
+        self.assertEqual(
+            "4396GB",
+            self.session.cmd_output(
+                "parted -s /dev/sdc print|grep ' 2 '|awk '{print $3}'"),
+            "Fail to resize partition")
 
     def tearDown(self):
         if not self.session.connect(timeout=10):
