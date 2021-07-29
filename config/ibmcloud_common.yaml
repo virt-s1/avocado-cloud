@@ -2,8 +2,8 @@ Cloud:
     provider: ibmcloud
     project_name: xen-jenkins
 Credential:
-    username: xiachen@redhat.com
-    password: Redhat@2020
+    username: 
+    password: 
     endpoint: "https://test.cloud.ibm.com"
 VM:
     rhel_ver: "8.3"
