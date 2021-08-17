@@ -17,7 +17,7 @@ class CloudinitTest(Test):
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         pre_delete = False
         pre_stop = False
-       # if self.name.name.endswith("test_cloudinit_create_vm_login_repeatedly"):
+       
         if self.case_short_name in [
                 "test_cloudinit_create_vm_login_repeatedly",
                 "test_cloudinit_create_vm_config_drive",
@@ -745,6 +745,54 @@ mounts:
                           msg='check if there is ds-identify _RET=found',
                           is_get_console=False)
 
+    def _reboot_inside_vm(self):
+        before = self.session.cmd_output('last reboot')
+        self.session.send_line('sudo reboot')
+        time.sleep(30)
+        self.session.connect(timeout=300)
+        output = self.session.cmd_output('whoami')
+        self.assertEqual(
+            self.vm.vm_username, output,
+            "Reboot VM error: output of cmd `who` unexpected -> %s" % output)
+        after = self.session.cmd_output('last reboot')
+        self.assertNotEqual(
+            before, after,
+            "Reboot VM error: before -> %s; after -> %s" % (before, after))                   
+
+    def test_cloudinit_check_resolv_conf_reboot(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-182309 - CLOUDINIT-TC: /etc/resolv.conf will not lose config after reboot
+        1. check /etc/resolv.conf
+        2. run hostnamectl command and then check resolv.conf again
+        3. reboot
+        4. Check /etc/resolv.conf
+        """
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'cat /etc/resolv.conf'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='nameserver',
+                          msg='check original dns information in /etc/resolv.conf',
+                          is_get_console=False)
+        cmd1 = 'sudo hostnamectl set-hostname host1.test.domain'                  
+        utils_lib.run_cmd(self, cmd1, expect_ret=0, msg='set hostname', is_get_console=False)
+
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='test.domain',
+                          msg='no changes in /etc/resolv.conf',
+                          is_get_console=False)
+
+        self._reboot_inside_vm()
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='nameserver',
+                          msg='no changes in /etc/resolv.conf',
+                          is_get_console=False)
 
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
