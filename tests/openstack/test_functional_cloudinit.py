@@ -33,8 +33,12 @@ class CloudinitTest(Test):
             return
         if self.name.name.endswith("test_cloudinit_login_with_publickey"):
             pre_delete = True
+        #below data is used for the login case and other cases except above specific cases.
         user_data = """\
 #cloud-config
+
+runcmd:
+  - [ sh, -xc, "echo $(date) ': hello today!'" ]
 
 user: {0}
 password: {1}
@@ -257,10 +261,26 @@ ssh_pwauth: 1
         RHEL-189226 - CLOUDINIT-TC: checking random password and its length
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
+        #cmd = 'sudo cat /var/log/messages' # can not get password from here after security bug fix
+        #get openstack console log
+        status, output= self.vm.get_console_log()
+        if status and output is not None:
+            self.assertIn("cloud-user:", output, "Failed to get random password from console log")
+            output = output.split("cloud-user:",1)[1]
+            randompass = output.split("\n",1)[0]
+            self.log.info("Get the random password is:"+randompass)
+            self.assertEqual(len(randompass), 20, "Random password length is not 20")
+        else:
+            self.fail("Failed to get console log")
+           
+    def test_cloudinit_check_runcmd(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo cat /var/log/messages'
-        utils_lib.run_cmd(self, cmd, expect_kw='cloud-user:')
-        output = self.session.cmd_output('sudo cat /var/log/messages|grep "cloud-user:"').split("cloud-user:",1)[1]
-        self.assertEqual(len(output), 20)
+        utils_lib.run_cmd(self, cmd, expect_kw=': hello today!', msg='runcmd executed successfully', is_get_console=False)
 
     def test_cloudinit_create_vm_login_repeatedly(self):
         """

@@ -1,9 +1,12 @@
 from ..base import VM
 from avocado_cloud.utils import utils_misc
 import openstack
+import logging
 
 openstack.enable_logging(debug=True)
 
+LOG = logging.getLogger('avocado.test')
+logging.basicConfig(level=logging.DEBUG)
 
 class OpenstackVM(VM):
     def __init__(self, params, **kwargs):
@@ -182,3 +185,11 @@ class OpenstackVM(VM):
 
     def show(self):
         return self.data
+    
+    def get_console_log(self):
+        try:
+            output = self.conn.compute.get_server_console_output(self.data.id).get('output')
+            return True, output
+        except Exception as err:
+            LOG.error("Failed to get console log! %s" % err)
+            return False, err
