@@ -309,7 +309,7 @@ will not check kernel-devel package.')
 
         output = self.session.cmd_output(cmd.format(
             os.path.join(self.dest_dir, data_file)),
-                                         timeout=240)
+            timeout=240)
         self.assertEqual("", output,
                          "Found extra files has been modified:\n%s" % output)
 
@@ -742,12 +742,12 @@ will not check kernel-devel package.')
         case_component:
             checkup
         key_steps:
-            1. Get the image label from /etc/image-id
-            2. Get the image name from configure
-            3. Remove the extension name and '_copied'
-            4. Compare the processed name and label
+            1. Get the image labels from /etc/image-id
+            2. Get the image labels from configure
+            3. Check each label from /etc/image-id
         pass_criteria:
-            The processed name and label are exactly the same.
+            All the labels from /etc/image-id should exist in the configured
+            image name.
         """
         self.log.info("Check the /etc/image-id is correct.")
 
@@ -774,15 +774,22 @@ will not check kernel-devel package.')
 
         # Get comparsion labels
         # Ex. "redhat_8_3_x64_20G_alibase_20201211_copied.qcow2"
-        inside = target_name.replace('.', '_').split('_')[:7]
-        outside = image_name.replace('.', '_').split('_')[:7]
-        self.log.debug('Inside: {}\nOutside: {}'.format(inside, outside))
+        inside = target_name.replace('.', '_').split('_')
+        outside = image_name.replace('.', '_').split('_')
+        self.log.debug(
+            'Image Labels:\nInside: {}\nOutside: {}'.format(inside, outside))
 
         # Compare image labels
-        if inside == outside:
-            self.log.info('The image labels are matched.')
-        else:
-            self.fail('The image labels are mismatched.')
+        for label in inside:
+            if label in outside:
+                self.log.debug(
+                    'Inside label "{}" exists in outside labels.'.format(label))
+            else:
+                self.log.debug(
+                    'Inside label "{}" doesn\'t exist in outside labels.')
+                self.fail('The image labels are mismatched.')
+
+        self.log.info('The image labels are matched.')
 
     def test_check_yum_repoinfo(test_instance):
         """Check the yum repoinfo for RHUI repos.
