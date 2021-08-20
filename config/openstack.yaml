@@ -12,6 +12,7 @@ Credential:
 Subscription:
   username:
   password:
+  serverurl:
 VM:
   rhel_ver: '8.0'
   username: cloud-user

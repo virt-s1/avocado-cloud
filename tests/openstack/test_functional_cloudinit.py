@@ -31,6 +31,14 @@ class CloudinitTest(Test):
                 self.vm.delete(wait=True)
             self.session = self.cloud.init_session()
             return
+        if self.case_short_name in [
+            "test_cloudinit_auto_install_package_with_subscription_manager"
+        ]:
+            self.cancel("Skip case because of stage account issue.")
+            self.subscription_username = self.params.get("username", "*/Subscription/*")
+            self.subscription_password = self.params.get("password", "*/Subscription/*")
+            self.subscription_serverurl = self.params.get("serverurl", "*/Subscription/*")
+            return
         if self.name.name.endswith("test_cloudinit_login_with_publickey"):
             pre_delete = True
         #below data is used for the login case and other cases except above specific cases.
@@ -86,14 +94,15 @@ ssh_pwauth: 1
         check if four cloud-init services are active
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        utils_lib.run_cmd(self, 'cloud-init -v', msg='Get cloud-init version', is_get_console=False)
-        cmd = "sudo systemctl is-active cloud-init-local.service"
+        cmd = 'cloud-init -v'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, msg='Get cloud-init version', is_get_console=False)
+        cmd = 'sudo systemctl is-active cloud-init-local.service'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='active', is_get_console=False)
-        cmd = "sudo systemctl is-active cloud-init.service"
+        cmd = 'sudo systemctl is-active cloud-init.service'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='active', is_get_console=False)
-        cmd = "sudo systemctl is-active cloud-config.service"
+        cmd = 'sudo systemctl is-active cloud-config.service'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='active', is_get_console=False)
-        cmd = "sudo systemctl is-active cloud-final.service"
+        cmd = 'sudo systemctl is-active cloud-final.service'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='active', is_get_console=False)
 
 
@@ -250,10 +259,10 @@ ssh_pwauth: 1
         self.session.connect(timeout=self.ssh_wait_timeout)
         # change command to ip addr because of no net-tool by default in rhel8.4
         cmd = 'ip addr show eth0'
-        utils_lib.run_cmd(self, cmd, expect_kw='inet6 2620')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='inet6 2620', is_get_console=False)
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth0'
-        utils_lib.run_cmd(self, cmd, expect_kw='IPV6INIT=yes')
-        utils_lib.run_cmd(self, 'uname -r', msg='Get instance kernel version')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='IPV6INIT=yes', is_get_console=False)
+        utils_lib.run_cmd(self, 'uname -r', expect_ret=0, msg='Get instance kernel version', is_get_console=False)
     
     def test_cloudinit_check_random_password_len(self):
         '''
@@ -265,12 +274,27 @@ ssh_pwauth: 1
         #security check: random password only output to openstack console log, 
         #no password output in cloud-init-output.log and /var/log/messages
         cmd = 'sudo cat /var/log/messages'
-        utils_lib.run_cmd(self, cmd, expect_not_kw="the following 'random' passwords", msg='check /var/log/messages')
+        utils_lib.run_cmd(self, 
+                          cmd, 
+                          expect_ret=0,
+                          expect_not_kw="the following 'random' passwords", 
+                          msg='check /var/log/messages',
+                          is_get_console=False)
         cmd = 'cat /var/log/cloud-init-output.log'
-        utils_lib.run_cmd(self, cmd, expect_not_kw="the following 'random' passwords", msg='check /var/log/cloud-init-output.log')
+        utils_lib.run_cmd(self, 
+                          cmd, 
+                          expect_ret=0,
+                          expect_not_kw="the following 'random' passwords", 
+                          msg='check /var/log/cloud-init-output.log',
+                          is_get_console=False)
         #check /var/log/cloud-init-output.log mode is 640 and group is adm
         cmd = 'ls -l /var/log/cloud-init-output.log '
-        utils_lib.run_cmd(self, cmd, expect_kw='-rw-r-----. 1 root adm', msg='cloud-init-output.log mode should be 640 and group adm')
+        utils_lib.run_cmd(self, 
+                          cmd, 
+                          expect_ret=0,
+                          expect_kw='-rw-r-----. 1 root adm', 
+                          msg='cloud-init-output.log mode should be 640 and group adm',
+                          is_get_console=False)
 
         #get openstack console log
         status, output= self.vm.get_console_log()
@@ -291,7 +315,12 @@ ssh_pwauth: 1
         self.log.info("RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands")
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo cat /var/log/messages'
-        utils_lib.run_cmd(self, cmd, expect_kw=': hello today!', msg='runcmd executed successfully', is_get_console=False)
+        utils_lib.run_cmd(self, 
+                          cmd, 
+                          expect_ret=0,
+                          expect_kw=': hello today!', 
+                          msg='runcmd executed successfully', 
+                          is_get_console=False)
 
     def test_cloudinit_show_full_version(self):
         '''
@@ -520,9 +549,9 @@ ssh_pwauth: 1
             "Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
             % output)
         cmd = 'ip addr show eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw=',UP,')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw=',UP,', is_get_console=False)
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw='DEVICE=eth1')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DEVICE=eth1', is_get_console=False)
 
 
     def test_cloudinit_create_vm_stateless_ipv6(self):
@@ -546,9 +575,9 @@ ssh_pwauth: 1
             % output)
         # change command to ip addr because of no net-tool by default in rhel8.4
         cmd = 'ip addr show eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw=',UP,')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw=',UP,', is_get_console=False)
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw='DHCPV6C_OPTIONS=-S,IPV6_AUTOCONF=yes')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DHCPV6C_OPTIONS=-S,IPV6_AUTOCONF=yes', is_get_console=False)
 
 
     def test_cloudinit_create_vm_stateful_ipv6(self):
@@ -571,9 +600,9 @@ ssh_pwauth: 1
             "Login VM with publickey error: output of cmd `whoami` unexpected -> %s"
             % output)
         cmd = 'ip addr show eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw=',UP,')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw=',UP,', is_get_console=False)
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
-        utils_lib.run_cmd(self, cmd, expect_kw='IPV6_FORCE_ACCEPT_RA=yes')
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='IPV6_FORCE_ACCEPT_RA=yes', is_get_console=False)
 
     
     def test_cloudinit_check_ifcfg_no_startmode(self):
@@ -839,7 +868,97 @@ mounts:
                           msg='no changes in /etc/resolv.conf',
                           is_get_console=False)
 
+    def test_cloudinit_auto_install_package_with_subscription_manager(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-186182	CLOUDINIT-TC:auto install package with subscription manager
+        1. Add content to user data config file
+        rh_subscription:
+          username: ******
+          password: ******
+          auto-attach: True
+        packages:
+          - dos2unix
+        2. create VM
+        3. Verify register with subscription-manager and install package by cloud-init successfully
+        """
+        self.log.info("RHEL-186182 CLOUDINIT-TC:auto install package with subscription manager")
+        package = "dos2unix"
+        user_data = """\
+#cloud-config
+
+rh_subscription:
+  username: {0}
+  password: {1}
+  server-hostname: {2}
+  auto-attach: true
+packages:
+  - {3}
+""".format(self.subscription_username, self.subscription_password, self.subscription_serverurl, package)
+        self.vm.user_data = base64.b64encode(
+                user_data.encode('utf-8')).decode('utf-8')
+        self.session = self.cloud.init_vm(pre_delete=True,
+                                          pre_stop=False)
+        # check login
+        output = self.session.cmd_output('whoami')
+        self.assertEqual(
+            self.vm.vm_username, output,
+            "Reboot VM error: output of cmd `who` unexpected -> %s" % output)
+        self.session.cmd_output("sudo su -")
+        # check register
+        self.assertEqual(self.session.cmd_status_output(
+            "grep 'Registered successfully' /var/log/cloud-init.log")[0], 0,
+            "No Registered successfully log in cloud-init.log")
+
+#         cmd = 'cat /var/log/cloud-init.log'
+#         utils_lib.run_cmd(self,
+#                           cmd,
+#                           expect_ret=0,
+#                           expect_kw='Registered successfully',
+#                           msg='Check subscription-manager register result in cloud-init.log',
+#                           is_get_console=False)
+
+        self.assertEqual(self.session.cmd_status_output("subscription-manager identity")[0], 0,
+            "Fail to register with subscription-manager")
+
+        # cmd = 'sudo subscription-manager identity'
+        # utils_lib.run_cmd(self,
+        #                   cmd,
+        #                   expect_ret=0,
+        #                   msg='Check subscription-manager identity',
+        #                   is_get_console=False)
+
+        # check auto-attach
+        self.assertNotEqual("",
+            self.session.cmd_output("subscription-manager list --consumed --pool-only"),
+            "Cannot auto-attach pools")
+
+        # cmd = 'sudo subscription-manager list --consumed --pool-only'
+        # utils_lib.run_cmd(self,
+        #                   cmd,
+        #                   expect_ret=0,
+        #                   msg='Check subscription-manager auto-attached pools',
+        #                   is_get_console=False)
+
+        # check package installed
+        self.assertEqual(0,
+            self.session.cmd_status_output("rpm -q {}".format(package))[0],
+            "Fail to install package {} by cloud-init".format(package))
+
+        # cmd = "rpm -q {}".format(package)
+        # utils_lib.run_cmd(self,
+        #                   cmd,
+        #                   expect_ret=0,
+        #                   msg='Check installed package '+package,
+        #                   is_get_console=False)
+
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
             self.vm.delete(wait=True)
+        elif self.case_short_name in [
+                 "test_cloudinit_auto_install_package_with_subscription_manager"
+         ]:
+            return
+            # unregister after case done
+            #self.session.cmd_output("sudo subscription-manager unregister")
         self.session.close()       
