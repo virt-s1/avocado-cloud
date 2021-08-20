@@ -28,3 +28,4 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_groups_no_wheel
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_ds_identify_found
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_resolv_conf_reboot
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_install_package_with_subscription_manager
