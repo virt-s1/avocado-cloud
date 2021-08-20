@@ -260,12 +260,22 @@ ssh_pwauth: 1
         :avocado: tags=tier2,cloudinit
         RHEL-189226 - CLOUDINIT-TC: checking random password and its length
         '''
+        self.log.info("RHEL-189226 - CLOUDINIT-TC: checking random password and its length")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        #cmd = 'sudo cat /var/log/messages' # can not get password from here after security bug fix
+        #security check: random password only output to openstack console log, 
+        #no password output in cloud-init-output.log and /var/log/messages
+        cmd = 'sudo cat /var/log/messages'
+        utils_lib.run_cmd(self, cmd, expect_not_kw="the following 'random' passwords", msg='check /var/log/messages')
+        cmd = 'cat /var/log/cloud-init-output.log'
+        utils_lib.run_cmd(self, cmd, expect_not_kw="the following 'random' passwords", msg='check /var/log/cloud-init-output.log')
+        #check /var/log/cloud-init-output.log mode is 640 and group is adm
+        cmd = 'ls -l /var/log/cloud-init-output.log '
+        utils_lib.run_cmd(self, cmd, expect_kw='-rw-r-----. 1 root adm', msg='cloud-init-output.log mode should be 640 and group adm')
+
         #get openstack console log
         status, output= self.vm.get_console_log()
         if status and output is not None:
-            self.assertIn("cloud-user:", output, "Failed to get random password from console log")
+            self.assertIn("the following 'random' passwords", output, "Failed to get random password from console log")
             output = output.split("cloud-user:",1)[1]
             randompass = output.split("\n",1)[0]
             self.log.info("Get the random password is:"+randompass)
@@ -278,9 +288,24 @@ ssh_pwauth: 1
         :avocado: tags=tier2,cloudinit
         RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands
         '''
+        self.log.info("RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands")
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'sudo cat /var/log/messages'
         utils_lib.run_cmd(self, cmd, expect_kw=': hello today!', msg='runcmd executed successfully', is_get_console=False)
+
+    def test_cloudinit_show_full_version(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL-196547	- CLOUDINIT-TC: cloud-init version should show full specific version
+        cloud-init --version should show version and release
+        '''
+        self.log.info("RHEL-196547 - CLOUDINIT-TC: cloud-init version should show full specific version")
+        output = self.session.cmd_output("cloud-init --version")
+        package = self.session.cmd_output("rpm -q cloud-init")
+        cloudinit_path = self.session.cmd_output("which cloud-init")
+        expect = package.rsplit(".", 1)[0].replace("cloud-init-", cloudinit_path+' ')
+        self.assertEqual(output, expect, 
+            "cloud-init --version doesn't show full version. Real: {}, Expect: {}".format(output, expect))
 
     def test_cloudinit_create_vm_login_repeatedly(self):
         """
