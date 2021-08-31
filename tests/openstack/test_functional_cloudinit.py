@@ -34,9 +34,10 @@ class CloudinitTest(Test):
         if self.case_short_name in [
             "test_cloudinit_auto_install_package_with_subscription_manager"
         ]:
-            self.cancel("Skip case because of stage account issue.")
+            #self.cancel("Skip case because of stage account issue.")
             self.subscription_username = self.params.get("username", "*/Subscription/*")
             self.subscription_password = self.params.get("password", "*/Subscription/*")
+            self.subscription_baseurl = self.params.get("baseurl", "*/Subscription/*")
             self.subscription_serverurl = self.params.get("serverurl", "*/Subscription/*")
             return
         if self.name.name.endswith("test_cloudinit_login_with_publickey"):
@@ -524,6 +525,8 @@ ssh_pwauth: 1
                           expect_kw='ConfigDrive',
                           msg='check if ConfigDrive in /run/cloud-init/cloud.cfg',
                           is_get_console=False)
+        cmd = 'cloud-init status'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
 
 
     def test_cloudinit_create_vm_two_nics(self):
@@ -890,11 +893,13 @@ mounts:
 rh_subscription:
   username: {0}
   password: {1}
-  server-hostname: {2}
+  rhsm-baseurl: {2}
+  server-hostname: {3}
   auto-attach: true
 packages:
-  - {3}
-""".format(self.subscription_username, self.subscription_password, self.subscription_serverurl, package)
+  - {4}
+""".format(self.subscription_username, self.subscription_password, 
+    self.subscription_baseurl, self.subscription_serverurl, package)
         self.vm.user_data = base64.b64encode(
                 user_data.encode('utf-8')).decode('utf-8')
         self.session = self.cloud.init_vm(pre_delete=True,
@@ -904,6 +909,7 @@ packages:
         self.assertEqual(
             self.vm.vm_username, output,
             "Reboot VM error: output of cmd `who` unexpected -> %s" % output)
+        time.sleep(30) # waiting for subscription-manager register done.
         self.session.cmd_output("sudo su -")
         # check register
         self.assertEqual(self.session.cmd_status_output(
@@ -958,7 +964,6 @@ packages:
         elif self.case_short_name in [
                  "test_cloudinit_auto_install_package_with_subscription_manager"
          ]:
-            return
-            # unregister after case done
-            #self.session.cmd_output("sudo subscription-manager unregister")
+            #unregister after case done
+            self.session.cmd_output("sudo subscription-manager unregister")
         self.session.close()       
