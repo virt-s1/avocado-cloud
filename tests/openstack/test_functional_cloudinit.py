@@ -696,13 +696,10 @@ mounts:
         # 3. Run module ssh
         self.session.cmd_output("cloud-init single -n ssh")
         self.session.cmd_output("systemctl restart sshd")
-        # 4. Verify can login and no unexpected files in ~/.ssh
+        # 4. Verify can login
         self.assertTrue(self.session.connect(timeout=10),
                         "Fail to login after run ssh module")
-        files = self.session.cmd_output(
-            "find /home/{}/.ssh/*|grep -vE '(id_rsa|known_hosts)'".format(self.vm.vm_username))
-        self.assertEqual(len(files.split()), 1,
-                         "There are unexpected files under ~/.ssh: {}".format(files))
+
 
     def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
         """
@@ -713,8 +710,8 @@ mounts:
         2. Remove cc_ssh module flag and authorized_keys
         3. Run module ssh
         # cloud-init single -n ssh
-        4. Verify can login and no unexpected files in ~/.ssh/
-        5. Set customized keyfile a the front:
+        4. Verify can login successful and AuthorizedKeysFile has correct authority
+        5. Set customized keyfile at the front:
         AuthorizedKeysFile /etc/ssh/userkeys/%u.ssh/authorized_keys
         Restart sshd service and rerun step2-4
         """
@@ -726,12 +723,33 @@ mounts:
         # AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
         self._verify_authorizedkeysfile(
             ".ssh/authorized_keys /etc/ssh/userkeys/%u")
+        # Check the AuthorizedKeysFile authority is correct
+        self.assertEqual(
+            "-rw-------.",
+            self.session.cmd_output(
+                "ls -al /home/%s/.ssh/authorized_keys | awk '{print $1}'" %(self.vm.vm_username)),
+            "The authority of the AuthorizedKeysFile is wrong!")
+        self.assertEqual(
+            self.vm.vm_username,
+            self.session.cmd_output(
+                "ls -al /home/%s/.ssh/authorized_keys | awk '{print $3}'" %(self.vm.vm_username)),
+            "The owner of the AuthorizedKeysFile is wrong!")
         # AuthorizedKeysFile /etc/ssh/userkeys/%u .ssh/authorized_keys
         self._verify_authorizedkeysfile(
             "/etc/ssh/userkeys/%u .ssh/authorized_keys")
-        # Recover the config to default: AuthorizedKeysFile .ssh/authorized_keys
-        self._verify_authorizedkeysfile(
-            ".ssh/authorized_keys")
+        # Check the AuthorizedKeysFile authority is correct
+        self.assertEqual(
+            "-rw-------.",
+            self.session.cmd_output(
+                "ls -al /etc/ssh/userkeys/%s | awk '{print $1}'" %(self.vm.vm_username)),
+            "The authority of the AuthorizedKeysFile is wrong!")
+        self.assertEqual(
+            self.vm.vm_username,
+            self.session.cmd_output(
+                "ls -al /etc/ssh/userkeys/%s | awk '{print $3}'" %(self.vm.vm_username)),
+            "The owner of the AuthorizedKeysFile is wrong!")
+        # Recover the config to default: AuthorizedKeysFile .ssh/authorized_keys               
+        self._verify_authorizedkeysfile(".ssh/authorized_keys")
 
 
     def test_cloudinit_verify_customized_file_in_authorizedkeysfile(self):
@@ -743,12 +761,27 @@ mounts:
         2. Remove cc_ssh module flag and authorized_keys
         3. Run module ssh
         # cloud-init single -n ssh
-        4. Verify can login successfully
+        4. Verify can login successfully and AuthorizedKeysFile has correct authority
         """
         # There is bz 1862967, skip the case until the bz is fixed. 2021-5-11
         self.log.info(
             "RHEL-189027 CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile")
         self._verify_authorizedkeysfile(".ssh/authorized_keys2")
+        # Check the AuthorizedKeysFile authority is correct
+        self.assertEqual(
+            "-rw-------.",
+            self.session.cmd_output(
+                "ls -al /home/%s/.ssh/authorized_keys2 | awk '{print $1}'" %(self.vm.vm_username)),
+            "The authority of the AuthorizedKeysFile is wrong!")
+        self.assertEqual(
+            self.vm.vm_username,
+            self.session.cmd_output(
+                "ls -al /home/%s/.ssh/authorized_keys2 | awk '{print $3}'" %(self.vm.vm_username)),
+            "The owner of the AuthorizedKeysFile is wrong!")        
+        # Recover the config to default: AuthorizedKeysFile .ssh/authorized_keys
+        self.session.cmd_output(
+            "rm -f /home/{}/.ssh/authorized_keys2".format(self.vm.vm_username))
+        self._verify_authorizedkeysfile(".ssh/authorized_keys")
 
 
     def test_cloudinit_check_NOZEROCONF(self):
