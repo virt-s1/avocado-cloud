@@ -681,7 +681,7 @@ mounts:
             "The /etc/fstab is not same before and after cloud-init config")
 
 
-    def _verify_authorizedkeysfile(self, keyfiles):
+    def _verify_authorizedkeysfile(self, keyfiles):        
         self.session.cmd_output("sudo su")
         # 1. Modify /etc/ssh/sshd_config
         self.session.cmd_output(
@@ -695,7 +695,6 @@ mounts:
         self.session.cmd_output("rm -rf {}".format(keyfiles))
         # 3. Run module ssh
         self.session.cmd_output("cloud-init single -n ssh")
-        self.session.cmd_output("systemctl restart sshd")
         # 4. Verify can login
         self.assertTrue(self.session.connect(timeout=10),
                         "Fail to login after run ssh module")
@@ -717,9 +716,6 @@ mounts:
         """
         self.log.info(
             "RHEL-189026 CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile")
-        self.session.connect(timeout=self.ssh_wait_timeout)
-        # Backup sshd_config
-        self.session.cmd_output("/usr/bin/cp /etc/ssh/sshd_config /root/")
         # AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
         self._verify_authorizedkeysfile(
             ".ssh/authorized_keys /etc/ssh/userkeys/%u")
