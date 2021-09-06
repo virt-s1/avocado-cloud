@@ -1166,9 +1166,9 @@ in RHEL7|6, bug1625874")
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_service"
         utils_lib.run_os_tests(self, case_name=case_name)
 
-    def test_check_cpupower(self):
+    def test_cpupower_exception(self):
         '''
-        :avocado: tags=test_check_cpupower,fast_check,kernel
+        :avocado: tags=test_cpupower_exception,fast_check,kernel
         description:
             os-tests Check no exception when run cpupower command in RHEL on AWS.
         polarion_id:
@@ -2308,6 +2308,227 @@ master.zip"
             No fips selftest failed.
         '''
         case_name = "os_tests.tests.test_general_test.TestGeneralTest.test_fips_selftest"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_cpuusage_exception(self):
+        '''
+        :avocado: tags=test_check_cpuusage_exception,fulltest,acceptance
+        case_name:
+            test_check_cpuusage_exception
+        case_priority:
+            1
+        component:
+            kernel
+        bugzilla_id:
+            1956248
+        customer_case_id:
+            02929244
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_cpuusage_exception"
+        maintainer:
+            xiliang
+        description:
+            Check if there is a process taking high usage of CPU abnormally.
+            If it shows the high usage of CPU abnormally(higher than 85% over 1min),the case fails.
+        key_steps:
+            1.#ps -eo pcpu,pid,command |sort -k 1 -r -n
+        expected_result:
+            The usage of CPU is normal(slower than 85% once in 1min).
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_cpuusage_exception"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_memusage_exception(self):
+        '''
+        :avocado: tags=test_check_memusage_exception,fulltest,acceptance
+        case_name:
+            test_check_memusage_exception
+        case_priority:
+            1
+        component:
+            kernel
+        bugzilla_id:
+            1956248
+        customer_case_id:
+            02929244
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_memusage_exception"
+        maintainer:
+        
+        description:
+            Check if there is a process taking high usage of Memory abnormally.
+            If it shows the high usage of Memory abnormally(higher than 60% over 1min),the case fails.
+        key_steps:
+            1.#ps -eo pmem,pid,command |sort -k 1 -r -n
+        expected_result:
+            The usage of Memory is normal(slower than 60% once in 1min).
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_memusage_exception"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_dmesg_nmi(self):
+        '''
+        :avocado: tags=test_check_dmesg_nmi,fulltest,acceptance
+        case_name:
+            test_check_dmesg_nmi
+        case_priority:
+            1
+        component:
+            kernel
+        bugzilla_id:
+            1917824
+        customer_case_id:
+            02803548
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_dmesg_nmi"
+        maintainer:
+            xiliang@redhat.com
+        description:
+           Check no "NMI received" before and after run 'perf top' in dmesg.
+        key_steps:
+            1.#dmesg
+            2.#timeout 20 perf top
+            3.#dmesg
+        expected_result:
+            There is no "NMI received" before and after run 'perf top' in dmesg.
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_dmesg_nmi"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_sys_modules_parameters(self):
+        '''
+        :avocado: tags=test_check_sys_modules_parameters,fulltest,acceptance
+        case_name:
+            test_check_sys_modules_parameters_readable
+        case_priority:
+            1
+        component:
+            kernel
+        bugzilla_id:
+            1619602
+        customer_case_id:
+            02232284
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_sys_modules_parameters"
+        maintainer:
+            xiliang@redhat.com
+        description:
+            Check no panic happen when read all files under "/sys/module/*/parameters/".
+        key_steps:
+            1. # cat /sys/module/*/parameters/* 
+        expected_result:
+            No panic happen
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_sys_modules_parameters"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_journalctl_denied(self):
+        '''
+        :avocado: tags=test_check_journalctl_denied,fulltest,acceptance
+        case_name:
+            test_check_journalctl_denied
+        case_priority:
+            2
+        component:
+            journal
+        bugzilla_id:
+            1978507
+        customer_case_id:
+            
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_journalctl_denied"
+        maintainer:
+            xiliang@redhat.com
+        description:
+            check "journalctl |grep -i denied" reported and make sure there is no unknown denied log.
+        key_steps:
+            1.#journalctl |grep -i denied
+        expected_result:
+            No new unknown denied log found.
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_journalctl_denied"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_journalctl_not_found(self):
+        '''
+        :avocado: tags=test_check_journalctl_not_found,fulltest,acceptance
+        case_name:
+            test_check_journalctl_not_found
+        case_priority:
+            2
+        component:
+            journal
+        bugzilla_id:
+            1855252
+        customer_case_id:
+            
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_journalctl_not_found"
+        maintainer:
+            xiliang@redhat.com
+        description:
+            check "journalctl |grep -i 'no such file'" reported and make sure there is file not found in log.
+        key_steps:
+            1.#journalctl |grep -i 'not found'
+            2.#journalctl |grep -i 'no such file'
+        expected_result:
+            No new unknown not file found log found.
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_journalctl_not_found"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_journalctl_cannot(self):
+        '''
+        :avocado: tags=test_check_journalctl_cannot,fulltest,acceptance
+        case_name:
+            test_check_journalctl_cannot
+        case_priority:
+            2
+        component:
+            journal
+        bugzilla_id:
+            
+        customer_case_id:
+            
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_journalctl_cannot"
+        maintainer:
+            xiliang@redhat.com
+        description:
+            check "journalctl |grep -i 'Could not'" reported and make sure there is 'Could not' log.
+        key_steps:
+            1.#journalctl |grep -i 'Could not'
+        expected_result:
+            No new unknown 'Could not' log found.
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_journalctl_cannot"
+        utils_lib.run_os_tests(self, case_name=case_name)
+
+    def test_check_journalctl_unexpected(self):
+        '''
+        :avocado: tags=test_check_journalctl_unexpected,fulltest,acceptance
+        case_name:
+            test_check_journalctl_unexpected
+        case_priority:
+            2
+        component:
+            journal
+        bugzilla_id:
+            1978507
+        customer_case_id:
+            
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_journalctl_unexpected"
+        maintainer:
+            xiliang@redhat.com
+        description:
+            check "journalctl |grep -i unexpected" reported and make sure there is no unknown unexpected log.
+        key_steps:
+            1.#journalctl |grep -i unexpected
+        expected_result:
+            No new unknown unexpected log found.
+        '''
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_journalctl_unexpected"
         utils_lib.run_os_tests(self, case_name=case_name)
 
     def tearDown(self):

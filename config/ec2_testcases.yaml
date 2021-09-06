@@ -55,7 +55,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_secure_ioerror
     test_general_verification.py:GeneralVerification.test_check_rngd
     test_general_verification.py:GeneralVerification.test_check_service
-    test_general_verification.py:GeneralVerification.test_check_cpupower
+    test_general_verification.py:GeneralVerification.test_cpupower_exception
     test_general_verification.py:GeneralVerification.test_check_pkgs_list
     test_general_verification.py:GeneralVerification.test_check_firstlaunch_time
     test_general_verification.py:GeneralVerification.test_check_firstlaunch_compare
@@ -89,6 +89,14 @@ cases:
     test_general_verification.py:GeneralVerification.test_podman_dev_null_permission
     test_general_verification.py:GeneralVerification.test_check_dmidecode_dump_segfault
     test_general_verification.py:GeneralVerification.test_fips_selftest
+    test_general_verification.py:GeneralVerification.test_check_cpuusage_exception
+    test_general_verification.py:GeneralVerification.test_check_memusage_exception
+    test_general_verification.py:GeneralVerification.test_check_dmesg_nmi
+    test_general_verification.py:GeneralVerification.test_check_sys_modules_parameters
+    test_general_verification.py:GeneralVerification.test_check_journalctl_denied
+    test_general_verification.py:GeneralVerification.test_check_journalctl_not_found
+    test_general_verification.py:GeneralVerification.test_check_journalctl_cannot
+    test_general_verification.py:GeneralVerification.test_check_journalctl_unexpected
     test_functional_ltp.py:LTPRun.test_ltp_hugemmap
     test_functional_ltp.py:LTPRun.test_ltp_cpuhotplug
     test_functional_ltp.py:LTPRun.test_ltp_add_key02
