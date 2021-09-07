@@ -1475,6 +1475,9 @@ ssh_pwauth: 1
         '''
         self.log.info("RHEL-196547 - CLOUDINIT-TC: cloud-init version should show full specific version")
         output = self.session.cmd_output("cloud-init --version")
+        # Workaround for cloud-init-21.1-8.el9.noarch.rpm. There are '\n's in output like "/usr/bin/cl\noud-init\n21.1-8.el9"
+        if '\n' in output:
+            output = output.replace('\n', '', 1).replace('\n', ' ', 1)
         package = self.session.cmd_output("rpm -q cloud-init")
         cloudinit_path = self.session.cmd_output("which cloud-init")
         expect = package.rsplit(".", 1)[0].replace("cloud-init-", cloudinit_path+' ')
