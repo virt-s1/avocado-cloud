@@ -396,6 +396,11 @@ echo 'teststring' >> /var/log/test.log\
                 "sudo cat /var/lib/cloud/instance/user-data.txt"),
             "Custom data in ovf-env.xml is not equal to user-data.txt")
         # 3. Check if custom data script is executed
+        for retry in range(1, 11):
+            if utils_azure.file_exists("/var/log/test.log", self.session):
+                break
+            self.log.info("/var/log/test.log doesn't exist. Wait for 10s and retry...({}/10)".format(retry))
+            time.sleep(10)
         self.assertEqual("teststring",
                          self.session.cmd_output("cat /var/log/test.log"),
                          "The custom data script is not executed correctly.")
@@ -1277,6 +1282,9 @@ swap:
         """
         self.log.info("RHEL-172679 CLOUDINIT-TC: chpasswd in cloud-init should support hashed passwords")
         self.session.cmd_output("sudo su -")
+        # Enable boot diagnostic
+        utils_azure.command("az vm boot-diagnostics enable -n {} -g {} --storage https://{}.blob.core.windows.net/"\
+            .format(self.vm.vm_name, self.vm.resource_group, self.vm.storage_account), timeout=120)
         # Add test1..test6 users in the VM
         for i in range(1, 7):
             user = "test{}".format(str(i))
@@ -1311,8 +1319,19 @@ chpasswd:
                 test5_pw = line.split(':')[1]
             elif "test6" in line:
                 test6_pw = line.split(':')[1]
+        # From cloud-init-21.1-3.el8 or cloud-init-21.1-4.el9 the password should not in the output and cloud-init-output.log
+        if "test5_pw" in vars() or "test6_pw" in vars():
+            self.fail("Should not show random passwords in the output")
+        # Verify serial output. Sleep 20s to wait for the serial console log refresh
+        time.sleep(30)
+        serial_output = utils_azure.command("az vm boot-diagnostics get-boot-log -n {} -g {}".format(self.vm.vm_name, self.vm.resource_group), timeout=10, ignore_status=True).stdout
+        for line in serial_output.split('\r\n'):
+            if "test5" in line:
+                test5_pw = line.split(':')[1]
+            elif "test6" in line:
+                test6_pw = line.split(':')[1]
         if "test5_pw" not in vars() or "test6_pw" not in vars():
-            self.fail("Not show random passwords in the output")
+            self.fail("Not show random passwords in the serial console")
         test4_salt = self.session.cmd_output("getent shadow test4").split('$')[2]
         test5_salt = self.session.cmd_output("getent shadow test5").split('$')[2]
         test6_salt = self.session.cmd_output("getent shadow test6").split('$')[2]
