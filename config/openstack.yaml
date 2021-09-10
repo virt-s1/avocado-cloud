@@ -12,6 +12,7 @@ Credential:
 Subscription:
   username:
   password:
+  baseurl:
   serverurl:
 VM:
   rhel_ver: '8.0'
