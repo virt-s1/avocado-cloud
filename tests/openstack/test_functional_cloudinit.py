@@ -7,6 +7,7 @@ import re
 import os
 import time
 import base64 
+import json
 
 
 class CloudinitTest(Test):
@@ -310,7 +311,7 @@ ssh_pwauth: 1
            
     def test_cloudinit_check_runcmd(self):
         '''
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier1,cloudinit
         RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands
         '''
         self.log.info("RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands")
@@ -330,7 +331,9 @@ ssh_pwauth: 1
         cloud-init --version should show version and release
         '''
         self.log.info("RHEL-196547 - CLOUDINIT-TC: cloud-init version should show full specific version")
-        output = self.session.cmd_output("cloud-init --version")
+        # fix the aexpect output issue (0, u'/usr/bin/cl\noud-init\n21.1-8.el9')
+        self.session.cmd_output("cloud-init --version>/tmp/1 2>&1")
+        output = self.session.cmd_output("cat /tmp/1")
         package = self.session.cmd_output("rpm -q cloud-init")
         cloudinit_path = self.session.cmd_output("which cloud-init")
         expect = package.rsplit(".", 1)[0].replace("cloud-init-", cloudinit_path+' ')
@@ -868,11 +871,13 @@ mounts:
     def test_cloudinit_check_resolv_conf_reboot(self):
         """
         :avocado: tags=tier2,cloudinit
+        RHEL-196518 - CLOUDINIT-TC: check dns configuration on openstack instance
         RHEL-182309 - CLOUDINIT-TC: /etc/resolv.conf will not lose config after reboot
-        1. check /etc/resolv.conf
-        2. run hostnamectl command and then check resolv.conf again
-        3. reboot
-        4. Check /etc/resolv.conf
+        1. check dns configuration in /etc/resolv.conf
+        2. check /etc/NetworkManager/conf.d/99-cloud-init.conf
+        3. run hostnamectl command and then check resolv.conf again
+        4. reboot
+        5. Check /etc/resolv.conf
         """
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'cat /etc/resolv.conf'
@@ -880,25 +885,41 @@ mounts:
                           cmd,
                           expect_ret=0,
                           expect_kw='nameserver',
-                          msg='check original dns information in /etc/resolv.conf',
+                          msg='check if there is dns information in /etc/resolv.conf',
                           is_get_console=False)
+        #get network dns information
+        output = self.session.cmd_output('cloud-init query ds.network_json.services')
+        services = json.loads(output)
+        for service in services:
+            expect_dns_addr=service.get("address")
+            utils_lib.run_cmd(self,
+                           cmd,
+                           expect_ret=0,
+                           expect_kw=expect_dns_addr,
+                           msg='check dns configuration %s in /etc/resolv.conf' % expect_dns_addr,
+                           is_get_console=False)
+
+        cmd2 = 'cat /etc/NetworkManager/conf.d/99-cloud-init.conf'
+        utils_lib.run_cmd(self,
+                          cmd2,
+                          expect_ret=0,
+                          expect_kw='dns = none',
+                          msg='check dns configuration of NM',
+                          is_get_console=False)
+
+        self.session.cmd_output('cp /etc/resolv.conf  ~/resolv_bak.conf')
         cmd1 = 'sudo hostnamectl set-hostname host1.test.domain'                  
         utils_lib.run_cmd(self, cmd1, expect_ret=0, msg='set hostname', is_get_console=False)
 
-        utils_lib.run_cmd(self,
-                          cmd,
-                          expect_ret=0,
-                          expect_not_kw='test.domain',
-                          msg='no changes in /etc/resolv.conf',
-                          is_get_console=False)
+        diff = self.session.cmd_output("diff ~/resolv_bak.conf /etc/resolv.conf")
+        self.assertEqual(diff, '', 
+            "After setting hostname, resolv.conf is changed:\n"+diff)
 
         self._reboot_inside_vm()
-        utils_lib.run_cmd(self,
-                          cmd,
-                          expect_ret=0,
-                          expect_kw='nameserver',
-                          msg='no changes in /etc/resolv.conf',
-                          is_get_console=False)
+
+        diff = self.session.cmd_output("diff ~/resolv_bak.conf /etc/resolv.conf")
+        self.assertEqual(diff, '', 
+            "After reboot, resolv.conf is changed:\n"+diff)
 
     def test_cloudinit_auto_install_package_with_subscription_manager(self):
         """
