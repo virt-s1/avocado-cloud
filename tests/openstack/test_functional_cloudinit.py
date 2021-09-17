@@ -3,6 +3,7 @@ from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
 from avocado_cloud.utils import utils_lib
 from avocado.utils import process
+from distutils.version import LooseVersion
 import re
 import os
 import time
@@ -15,6 +16,7 @@ class CloudinitTest(Test):
         self.cloud = Setup(self.params, self.name, create_timeout=300)
         self.vm = self.cloud.vm
         self.ssh_wait_timeout = 600
+        self.project = self.params.get("rhel_ver", "*/VM/*")
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         pre_delete = False
         pre_stop = False
@@ -32,10 +34,20 @@ class CloudinitTest(Test):
                 self.vm.delete(wait=True)
             self.session = self.cloud.init_session()
             return
+
         if self.case_short_name in [
-            "test_cloudinit_auto_install_package_with_subscription_manager"
+            "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo"
         ]:
-            #self.cancel("Skip case because of stage account issue.")
+            if LooseVersion(self.project) < LooseVersion('8.0') or LooseVersion(self.project) >= LooseVersion('9.0'):
+                self.cancel(
+                    "Skip case for the moment because of RHEL-{} different repos name".format(self.project))
+                # test rhel 8 is enough for the moment.
+
+        if self.case_short_name in [
+            "test_cloudinit_auto_install_package_with_subscription_manager",
+            "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo"
+        ]:
+
             self.subscription_username = self.params.get("username", "*/Subscription/*")
             self.subscription_password = self.params.get("password", "*/Subscription/*")
             self.subscription_baseurl = self.params.get("baseurl", "*/Subscription/*")
@@ -494,7 +506,11 @@ ssh_pwauth: 1
             "%s ALL=(ALL) NOPASSWD:ALL" % self.vm.vm_username,
             self.session.cmd_output(
                 "sudo cat /etc/sudoers.d/90-cloud-init-users"),
-            "No sudo privilege")    
+            "No sudo privilege")  
+        # checking cloud-init status
+        cmd = 'cloud-init status'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
+  
 
     def test_cloudinit_create_vm_config_drive(self):
         """
@@ -558,6 +574,10 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw=',UP,', is_get_console=False)
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DEVICE=eth1', is_get_console=False)
+        # checking cloud-init status
+        cmd = 'cloud-init status'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
+
 
 
     def test_cloudinit_create_vm_stateless_ipv6(self):
@@ -584,6 +604,9 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw=',UP,', is_get_console=False)
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DHCPV6C_OPTIONS=-S,IPV6_AUTOCONF=yes', is_get_console=False)
+        # checking cloud-init status
+        cmd = 'cloud-init status'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
 
 
     def test_cloudinit_create_vm_stateful_ipv6(self):
@@ -609,6 +632,9 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw=',UP,', is_get_console=False)
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth1'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='IPV6_FORCE_ACCEPT_RA=yes', is_get_console=False)
+        # checking cloud-init status
+        cmd = 'cloud-init status'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
 
     
     def test_cloudinit_check_ifcfg_no_startmode(self):
@@ -946,6 +972,7 @@ rh_subscription:
   rhsm-baseurl: {2}
   server-hostname: {3}
   auto-attach: true
+  disable-repo: []
 packages:
   - {4}
 """.format(self.subscription_username, self.subscription_password, 
@@ -959,6 +986,7 @@ packages:
         self.assertEqual(
             self.vm.vm_username, output,
             "Reboot VM error: output of cmd `who` unexpected -> %s" % output)
+        self.log.info("Waiting 30s for subscription-manager done...")
         time.sleep(30) # waiting for subscription-manager register done.
         self.session.cmd_output("sudo su -")
         # check register
@@ -996,7 +1024,20 @@ packages:
         #                   msg='Check subscription-manager auto-attached pools',
         #                   is_get_console=False)
 
+        # checking cloud-init status
+        cmd = 'cloud-init status'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
+        # no Traceback in log because of disable-repo null
+        cmd = 'cat /var/log/cloud-init.log'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='Traceback',
+                          msg='check /var/log/cloud-init.log',
+                          is_get_console=False)
+
         # check package installed
+        time.sleep(30) # waiting for package install done.
         self.assertEqual(0,
             self.session.cmd_status_output("rpm -q {}".format(package))[0],
             "Fail to install package {} by cloud-init".format(package))
@@ -1008,11 +1049,78 @@ packages:
         #                   msg='Check installed package '+package,
         #                   is_get_console=False)
 
+    def test_cloudinit_verify_rh_subscription_enablerepo_disablerepo(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-189134 - CLOUDINIT-TC: Verify rh_subscription enable-repo and disable-repo
+        1. Add content to user data config file
+        rh_subscription:
+          username: ******
+          password: ******
+          auto-attach: True
+          enable-repo: ['rhel-*-baseos-*rpms','rhel-*-supplementary-*rpms']
+          disable-repo: ['rhel-*-appstream-*rpms']
+        2. create VM
+        3. Verify register with subscription-manager and enabled repos and disabled repos successfully
+        """
+        self.log.info("RHEL-189134 - CLOUDINIT-TC: Verify rh_subscription enable-repo and disable-repo")
+        user_data = """\
+#cloud-config
+
+rh_subscription:
+  username: {0}
+  password: {1}
+  rhsm-baseurl: {2}
+  server-hostname: {3}
+  auto-attach: true
+  enable-repo: ['rhel-8-for-x86_64-baseos-beta-rpms','rhel-8-for-x86_64-supplementary-beta-rpms']
+  disable-repo: ['rhel-8-for-x86_64-appstream-beta-rpms']
+""".format(self.subscription_username, self.subscription_password, 
+    self.subscription_baseurl, self.subscription_serverurl)
+        self.vm.user_data = base64.b64encode(
+                user_data.encode('utf-8')).decode('utf-8')
+        self.session = self.cloud.init_vm(pre_delete=True,
+                                          pre_stop=False)
+        # check login
+        output = self.session.cmd_output('whoami')
+        self.assertEqual(
+            self.vm.vm_username, output,
+            "Reboot VM error: output of cmd `who` unexpected -> %s" % output)
+        # waiting for subscription-manager register done.
+        # 51.55900s (modules-config/config-rh_subscription)
+        self.log.info("Waiting 60s for subscription-manager done...")
+        time.sleep(60) 
+        self.session.cmd_output("sudo su -")
+        # check register
+        self.assertEqual(self.session.cmd_status_output(
+            "grep 'Registered successfully' /var/log/cloud-init.log")[0], 0,
+            "No Registered successfully log in cloud-init.log")
+
+        self.assertEqual(self.session.cmd_status_output("subscription-manager identity")[0], 0,
+            "Fail to register with subscription-manager")
+
+        self.assertNotEqual("",
+            self.session.cmd_output("subscription-manager list --consumed --pool-only"),
+            "Cannot auto-attach pools")
+        # check enabled/disabled repos
+        enable_repo_1 = 'rhel-8-for-x86_64-baseos-beta-rpms'
+        enable_repo_2 = 'rhel-8-for-x86_64-supplementary-beta-rpms'
+        disable_repo = 'rhel-8-for-x86_64-appstream-beta-rpms'
+        repolist = self.session.cmd_output("yum repolist|awk '{print $1}'").split('\n')
+        self.assertIn(enable_repo_1, repolist,
+            "Repo of {} is not enabled".format(enable_repo_1))
+        self.assertIn(enable_repo_2, repolist,
+            "Repo of {} is not enabled".format(enable_repo_2))
+        self.assertNotIn(disable_repo, repolist,
+            "Repo of {} is not disabled".format(disable_repo))
+  
+
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
             self.vm.delete(wait=True)
         elif self.case_short_name in [
-                 "test_cloudinit_auto_install_package_with_subscription_manager"
+                 "test_cloudinit_auto_install_package_with_subscription_manager",
+                 "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo"
          ]:
             #unregister after case done
             self.session.cmd_output("sudo subscription-manager unregister")
