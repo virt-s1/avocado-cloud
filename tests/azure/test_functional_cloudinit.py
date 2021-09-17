@@ -367,14 +367,13 @@ hostname to DNS server")
     def test_cloudinit_save_and_handle_customdata_script(self):
         """
         :avocado: tags=tier2,cloudinit
-        RHEL7-87464: WALA-TC: [Cloudinit] Save and handle customdata(script)
+        RHEL7-103837 - CLOUDINIT-TC: Save and handle customdata(script)
         1. Create VM with custom data
         2. Get CustomData from ovf-env.xml, decode it and compare with
            original custom data file
         3. Check if custom data script is executed
         """
-        self.log.info("RHEL7-87464: WALA-TC: [Cloudinit] Save and handle \
-customdata(script)")
+        self.log.info("RHEL7-103837 - CLOUDINIT-TC: Save and handle customdata(script)")
         # Prepare custom script
         script = """\
 #!/bin/bash
@@ -408,16 +407,14 @@ echo 'teststring' >> /var/log/test.log\
     def test_cloudinit_save_and_handle_customdata_cloudinit_config(self):
         """
         :avocado: tags=tier2,cloudinit
-        RHEL7-91623: WALA-TC: [Cloudinit] Save and handle customdata
-        (cloud-init configuration)
+        RHEL7-103838 - CLOUDINIT-TC: Save and handle customdata(cloud-init configuration)
         1. Create VM with custom data
         2. Get CustomData from ovf-env.xml, decode it and compare with
            original custom data file
         3. Check if the new cloud-init configuration is handled correctly
         """
         self.log.info(
-            "RHEL7-91623: WALA-TC: [Cloudinit] Save and handle customdata"
-            "(cloud-init configuration)")
+            "RHEL7-103838 - CLOUDINIT-TC: Save and handle customdata(cloud-init configuration)")
         # Prepare custom data
         customdata_ori = """\
 #cloud-config
@@ -455,15 +452,13 @@ cloud_config_modules:
     def test_cloudinit_auto_extend_root_partition_and_filesystem(self):
         """
         :avocado: tags=tier1,cloudinit,cloud_utils_growpart
-        RHEL7-91512: WALA-TC: [Cloudinit] Auto extend root partition and
-        filesystem
+        RHEL7-103839 - CLOUDINIT-TC: Auto extend root partition and filesystem
         1. Install cloud-utils-growpart gdisk if not installed(bug 1447177)
         2. Check os disk and fs capacity
         3. Stop VM. Enlarge os disk
         4. Start VM and login. Check os disk and fs capacity
         """
-        self.log.info("RHEL7-91512: WALA-TC: [Cloudinit] Auto extend root \
-partition and filesystem")
+        self.log.info("RHEL7-103839 - CLOUDINIT-TC: Auto extend root partition and filesystem")
         # 1. Install cloud-utils-growpart gdisk
         if self.session.cmd_status_output(
                 "rpm -q cloud-utils-growpart gdisk")[0] != 0:
@@ -1102,7 +1097,7 @@ packages:
     def test_cloudinit_verify_rh_subscription_enablerepo_disablerepo(self):
         """
         :avocado: tags=tier2,cloudinit
-        RHEL-189134	CLOUDINIT-TC: Verify rh_subscription module if disable-repo is null or empty
+        RHEL-189134 - CLOUDINIT-TC: Verify rh_subscription enable-repo and disable-repo
         1. rh_subscription config is:
         rh_subscription:
           username: ******
