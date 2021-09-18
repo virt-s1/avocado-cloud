@@ -52,8 +52,11 @@ class CloudinitTest(Test):
             self.subscription_password = self.params.get("password", "*/Subscription/*")
             self.subscription_baseurl = self.params.get("baseurl", "*/Subscription/*")
             self.subscription_serverurl = self.params.get("serverurl", "*/Subscription/*")
-            return
-        if self.name.name.endswith("test_cloudinit_login_with_publickey"):
+            return        
+        if self.name.name.endswith(
+                "test_cloudinit_login_with_publickey"
+        ) or self.name.name.endswith(
+                "test_cloudinit_boot_time"):
             pre_delete = True
         #below data is used for the login case and other cases except above specific cases.
         user_data = """\
@@ -1168,7 +1171,101 @@ rh_subscription:
             "Repo of {} is not enabled".format(enable_repo_2))
         self.assertNotIn(disable_repo, repolist,
             "Repo of {} is not disabled".format(disable_repo))
-  
+
+
+    def _get_service_startup_time(self, servicename):
+        output = self.session.cmd_output("sudo systemd-analyze blame | grep %s | awk '{print $1}'" % servicename)
+        if 'ms' in output:
+            return 1
+        if 'min' in output:
+            boot_time_min = re.findall('[0-9]+min', output)[0]
+            boot_time_min = boot_time_min.strip('min')
+            boot_time_sec = int(boot_time_min) * 60
+            return boot_time_sec
+        service_time_sec = output.strip('s')
+        return service_time_sec
+
+    def test_cloudinit_boot_time(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-189580 - CLOUDINIT-TC: Check VM first launch boot time and cloud-init startup time
+        1. Launch a VM with cloud-init installed
+        2. Login VM on the VM first boot
+        3. Check boot time and cloud-init services startup time
+           # systemd-analyze
+           # systemd-analyze blame
+        4. The boot time should be less than 45s, cloud-init services startup time should less than 10s
+        """
+        self.log.info(
+            "RHEL-189580 - CLOUDINIT-TC: Check VM first launch boot time and cloud-init startup time")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        max_boot_time = 45
+        cloud_init_startup_time = 10
+        # Check boot time
+        boot_time_sec = utils_lib.getboottime(self)
+        self.assertLess(
+            float(boot_time_sec), float(max_boot_time), 
+            "First boot time is greater than {}".format(max_boot_time))
+        # Check cloud-init services time
+        init_time_sec = self._get_service_startup_time("cloud-init-local.service")
+        self.assertLess(
+            float(init_time_sec), float(cloud_init_startup_time), 
+            "cloud-init-local startup time is greater than {}".format(cloud_init_startup_time))
+        network_time_sec = self._get_service_startup_time("cloud-init.service")
+        self.assertLess(
+            float(network_time_sec), float(cloud_init_startup_time), 
+            "cloud-init startup time is greater than {}".format(cloud_init_startup_time))
+        config_time_sec = self._get_service_startup_time("cloud-config.service")
+        self.assertLess(
+            float(config_time_sec), float(cloud_init_startup_time), 
+            "cloud-config startup time is greater than {}".format(cloud_init_startup_time))
+        final_time_sec = self._get_service_startup_time("cloud-final.service")
+        self.assertLess(
+            float(final_time_sec), float(cloud_init_startup_time), 
+            "cloud-final startup time is greater than {}".format(cloud_init_startup_time))
+
+
+    def test_cloudinit_reboot_time(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-282359 - CLOUDINIT-TC: Check VM subsequent boot time and cloud-init startup time
+        1. Launch a VM with cloud-init installed
+        2. Login VM and reboot VM
+        3. Check reboot time and cloud-init services startup time
+           # systemd-analyze
+           # systemd-analyze blame
+        4. The reboot time should be less than 30s, cloud-init services startup time should less than 5s
+        """
+        self.log.info(
+            "RHEL-282359 - CLOUDINIT-TC: Check VM subsequent boot time and cloud-init startup time")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        max_boot_time = 30
+        cloud_init_startup_time = 5
+        # Reboot VM
+        self._reboot_inside_vm()
+        # Check boot time
+        boot_time_sec = utils_lib.getboottime(self)
+        self.assertLess(
+            float(boot_time_sec), float(max_boot_time), 
+            "First boot time is greater than {}".format(max_boot_time))
+        # Check cloud-init services time
+        init_time_sec = self._get_service_startup_time("cloud-init-local.service")
+        self.assertLess(
+            float(init_time_sec), float(cloud_init_startup_time), 
+            "cloud-init-local startup time is greater than {}".format(cloud_init_startup_time))
+        network_time_sec = self._get_service_startup_time("cloud-init.service")
+        self.assertLess(
+            float(network_time_sec), float(cloud_init_startup_time), 
+            "cloud-init startup time is greater than {}".format(cloud_init_startup_time))
+        config_time_sec = self._get_service_startup_time("cloud-config.service")
+        self.assertLess(
+            float(config_time_sec), float(cloud_init_startup_time), 
+            "cloud-config startup time is greater than {}".format(cloud_init_startup_time))
+        final_time_sec = self._get_service_startup_time("cloud-final.service")
+        self.assertLess(
+            float(final_time_sec), float(cloud_init_startup_time), 
+            "cloud-final startup time is greater than {}".format(cloud_init_startup_time))
+
 
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
