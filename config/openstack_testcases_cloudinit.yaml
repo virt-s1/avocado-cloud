@@ -33,3 +33,5 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_install_package_with_subscription_manager
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_rh_subscription_enablerepo_disablerepo
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_customized_file_in_authorizedkeysfile
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_boot_time
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_reboot_time
