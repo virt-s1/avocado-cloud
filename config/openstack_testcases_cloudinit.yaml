@@ -12,10 +12,12 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_random_password_len
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_runcmd
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_show_full_version
+    test_functional_cloudinit.py:CloudinitTest.test_check_cloudinit_fingerprints
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_login_repeatedly
     test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_resize_partition_first_boot
     test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_gpt
     test_functional_cloudinit.py:CloudinitTest.test_cloudutils_growpart_auto_resize_partition_in_mbr
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_lang_is_not_en_us_utf8
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_password
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_config_drive
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_create_vm_two_nics

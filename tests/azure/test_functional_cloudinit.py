@@ -277,11 +277,10 @@ class CloudinitTest(Test):
     def test_cloudinit_create_ovfenv_under_waagent_folder(self):
         """
         :avocado: tags=tier1,cloudinit
-        RHEL7-87367: WALA-TC: [Cloudinit] Create ovf-env.xml under
-        /var/lib/waagent folder
+        RHEL7-103834 - CLOUDINIT-TC: [Azure]Create ovf-env.xml under /var/lib/waagent folder
         Check if file "/var/lib/waagent/ovf-env.xml" exists
         """
-        self.log.info("RHEL7-87367: WALA-TC: [Cloudinit] Create ovf-env.xml "
+        self.log.info("RHEL7-103834 - CLOUDINIT-TC: [Azure]Create ovf-env.xml "
                       "under /var/lib/waagent folder")
         self.assertEqual(
             self.session.cmd_status_output(
@@ -291,12 +290,11 @@ class CloudinitTest(Test):
     def test_cloudinit_publish_hostname_to_dns(self):
         """
         :avocado: tags=tier1,cloudinit
-        RHEL7-87459: WALA-TC: [Cloudinit] Publish VM hostname to DNS server
+        RHEL7-103835 - CLOUDINIT-TC: [Azure]Publish VM hostname to DNS server
         1. Get FQDN hostname(RHEL-9+ not support)
         2. Check FQDN name can be resolved by DNS server
         """
-        self.log.info("RHEL7-87459: WALA-TC: [Cloudinit] Publish VM \
-hostname to DNS server")
+        self.log.info("RHEL7-103835 - CLOUDINIT-TC: [Azure]Publish VM hostname to DNS server")
         if self.project.split('.')[0] < 9:
             self.assertIn(".internal.cloudapp.net",
                         self.session.cmd_output("hostname -f"),
@@ -311,14 +309,14 @@ hostname to DNS server")
     def test_cloudinit_regenerate_sshd_keypairs(self):
         """
         :avocado: tags=tier2,cloudinit
-        RHEL7-87462: WALA-TC: [Cloudinit] Regenerate sshd keypairs
+        RHEL7-103836 - CLOUDINIT-TC: Default configuration can regenerate sshd keypairs
         1. Verify cloud.cfg: ssh_deletekeys:   1
         2. Deprovision image. Create a new VM base on this image
         3. Login and compare the md5 of the new and old sshd_host* files.
            Should regenerate them.
         """
         self.log.info(
-            "RHEL7-87462: WALA-TC: [Cloudinit] Regenerate sshd keypairs")
+            "RHEL7-103836 - CLOUDINIT-TC: Default configuration can regenerate sshd keypairs")
         # Login with root
         self.session.cmd_output("sudo /usr/bin/cp -a /home/{0}/.ssh /root/;"
                                 "sudo chown -R root:root /root/.ssh".format(
@@ -617,11 +615,11 @@ disk mount point")
     def test_cloudinit_check_networkmanager_dispatcher(self):
         """
         :avocado: tags=tier2,cloudinit
-        RHEL-170749: WALA-TC: [Cloudinit] Check NetworkManager dispatcher
+        RHEL-170749 - CLOUDINIT-TC: [Azure]Check NetworkManager dispatcher
         BZ#1707725
         """
         self.log.info(
-            "RHEL-170749: WALA-TC: [Cloudinit] Check NetworkManager dispatcher"
+            "RHEL-170749 - CLOUDINIT-TC: [Azure]Check NetworkManager dispatcher"
         )
         self.session.cmd_output("sudo su -")
         # 1. cloud-init is enabled
@@ -785,13 +783,13 @@ EOF""".format(device, size))
     def test_cloudinit_provision_vm_with_ipv6(self):
         """
         :avocado: tags=tier2,cloudinit
-        RHEL-176199	WALA-TC: [Network] Provision VM with IPv6 address
+        RHEL-176198 - CLOUDINIT-TC: [Azure]Provision VM with IPv6 address
         1. Create a VM with NIC in IPv6 subnet
         2. Check if can provision and connect to the VM successfully
         3. Restart the VM. Check if this NIC is up and can get ip address
         """
         self.log.info(
-            "RHEL-176199 WALA-TC: [Network] Provision VM with IPv6 address")
+            "RHEL-176198 - CLOUDINIT-TC: [Azure]Provision VM with IPv6 address")
         # 1. Create a VM with NIC in IPv6 subnet
         self.vm.create()
         self.session.connect(timeout=60)

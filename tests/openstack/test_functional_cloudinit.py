@@ -352,6 +352,27 @@ ssh_pwauth: 1
         self.assertEqual(output, expect, 
             "cloud-init --version doesn't show full version. Real: {}, Expect: {}".format(output, expect))
 
+    def test_check_cloudinit_fingerprints(self):
+        '''
+        :avocado: tags=tier2,cloudinit
+        RHEL7-103836 - CLOUDINIT-TC: Default configuration can regenerate sshd keypairs
+        bz: 1957532
+        This auto case only check fingerprints is saved in /var/log/messages.
+        expected:  
+            # awk '/BEGIN/,/END/' /var/log/messages
+            Sep 17 10:39:26 xiachen-testvm-rhel8 ec2[5447]: -----BEGIN SSH HOST KEY FINGERPRINTS-----
+            Sep 17 10:39:26 xiachen-testvm-rhel8 ec2[5447]: 256 SHA256:USGMs+eQW403mILvsE5deVxZ2TC7IdQnUySEZFszlK4 root@xiachen-testvm-rhel8 (ECDSA)
+            Sep 17 10:39:26 xiachen-testvm-rhel8 ec2[5447]: 256 SHA256:B/drC+5wa6xDhPaKwBNWj2Jw+lUsjpr8pEm67PG8HtM root@xiachen-testvm-rhel8 (ED25519)
+            Sep 17 10:39:26 xiachen-testvm-rhel8 ec2[5447]: 3072 SHA256:6sCV1CusDhQzuoTO2FQFyyf9PmsclAd38zhkGs3HaUk root@xiachen-testvm-rhel8 (RSA)
+            Sep 17 10:39:26 xiachen-testvm-rhel8 ec2[5447]: -----END SSH HOST KEY FINGERPRINTS-----
+        '''
+        cmd = "sudo awk '/BEGIN/,/END/' /var/log/messages"
+        out = utils_lib.run_cmd(self, cmd, msg='get fingerprints in /var/log/messages')
+        # change 'SHA256' to ' SHA256' for exact match
+        # change != to > for fault tolerance
+        if out.count('BEGIN') > out.count(' SHA256')/3:
+            self.fail('fingerprints count {} does not match expected {}'.format(out.count(' SHA256')/3,out.count('BEGIN')))
+
     def test_cloudinit_create_vm_login_repeatedly(self):
         """
         :avocado: tags=tier3,cloudinit,test_cloudinit_create_vm_login_repeatedly
@@ -471,6 +492,40 @@ Auto resize partition in gpt")
         self.log.info("RHEL-188633: CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
                      partition in MBR")
         self._growpart_auto_resize_partition("msdos")
+
+    def test_cloudinit_lang_is_not_en_us_utf8(self):
+        '''
+        :avocado: tags=tier2,cloud-utils-growpart
+        RHEL-189273 CLOUDINIT-TC: [cloud-utils-growpart] growpart works when LANG is not en_US.UTF-8
+        Verify cloud-utils-growpart works well when LANG is not en_US.UTF-8
+        '''
+        self.log.info("RHEL-189273 CLOUDINIT-TC: [cloud-utils-growpart] growpart works when LANG is not en_US.UTF-8")
+        self.session.cmd_output("sudo su -")
+        self.assertEqual(
+            self.session.cmd_status_output("which growpart")[0], 0,
+            "No growpart command.")
+        # prepare 'disk'
+        device = "/tmp/testdisk"
+        if os.path.exists(device):
+            self.session.cmd_output("rm -f {}".format(device))
+        self.session.cmd_output("truncate -s 2G {}".format(device))
+        self.session.cmd_output(
+            "parted -s {} mklabel msdos".format(device))
+        # 1 partition
+        self.session.cmd_output(
+            "parted -s {} mkpart primary xfs 0 1000".format(device))
+        cmd = 'LANG=cs_CZ.UTF-8 growpart {} 1 -v -N'.format(device)
+        utils_lib.run_cmd(self,
+                        cmd,
+                        expect_ret=0,
+                        msg='Check growpart when LANG=cs_CZ.UTF-8',
+                        is_get_console=False)
+        cmd = 'LANG=fr_FR.UTF-8 growpart {} 1 -v -N'.format(device)
+        utils_lib.run_cmd(self,
+                        cmd,
+                        expect_ret=0,
+                        msg='Check growpart when LANG=fr_FR.UTF-8',
+                        is_get_console=False)
 
 
     def test_cloudinit_login_with_password(self):
