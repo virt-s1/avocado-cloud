@@ -2,6 +2,7 @@ cases:
   test_functional_lifecycle.py:LifeCycleTest.test_create_vm_password
   test_functional_lifecycle.py:LifeCycleTest.test_create_vm_sshkey
   test_functional_checkup.py:GeneralTest.test_collect_information_for_create
+  test_functional_checkup.py:GeneralTest.test_check_boot_time_create
   test_functional_checkup.py:GeneralTest.test_collect_metadata
   test_functional_checkup.py:GeneralTest.test_check_cpu_count
   test_functional_checkup.py:GeneralTest.test_check_mem_size
@@ -34,6 +35,7 @@ cases:
   test_functional_checkup.py:GeneralTest.test_collect_information_for_restart
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_vm
   test_functional_checkup.py:GeneralTest.test_collect_information_for_reboot
+  test_functional_checkup.py:GeneralTest.test_check_boot_time_reboot
   test_functional_lifecycle.py:LifeCycleTest.test_reboot_inside_vm
   test_functional_checkup.py:GeneralTest.test_check_yum_repoinfo
   test_functional_checkup.py:GeneralTest.test_yum_package_install
