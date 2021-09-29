@@ -3,6 +3,8 @@ from avocado.utils import process
 import os
 import time
 import logging
+import re
+import decimal
 
 LOG = logging.getLogger('avocado.test')
 logging.basicConfig(level=logging.DEBUG)
@@ -34,7 +36,7 @@ def collect_information(test_instance, label='general'):
                                                   label, timestamp)
     test_instance.session.cmd_output('bash {0}/vm_check.sh {1}'.format(
         guest_path, logpath),
-                                     timeout=1200)
+        timeout=1200)
 
     # Create tarball
     # test_instance.session.cmd_output(
@@ -237,3 +239,79 @@ def is_data_file_exist(cloud_provider, data_file):
     result = os.path.isfile(data_path)
     LOG.info('{} exists? {}'.format(data_path, result))
     return result
+
+
+def getboottime(test_instance,
+                session=None,
+                vm=None):
+    '''
+    Get system boot time via "systemd-analyze"
+    Arguments:
+        test_instance {avocado Test instance} -- avocado test instance
+        session {string} -- you can specify which session to use
+        vm {string} -- you can specify which vm to use
+    '''
+    if session == None:
+        session = test_instance.session
+    if vm == None:
+        vm = test_instance.vm
+    run_cmd(test_instance, "sudo which systemd-analyze",
+            expect_ret=0, session=session, vm=vm)
+    time_start = int(time.time())
+    while True:
+        output = run_cmd(test_instance, "sudo systemd-analyze",
+                         session=session, vm=vm)
+        if 'Bootup is not yet finished' not in output:
+            break
+        time_end = int(time.time())
+        run_cmd(test_instance, 'sudo systemctl list-jobs',
+                session=session, vm=vm)
+        if time_end - time_start > 60:
+            test_instance.fail("Bootup is not yet finished after 60s")
+        test_instance.log.info("Wait for bootup finish......")
+        time.sleep(1)
+    cmd = "sudo systemd-analyze blame > /tmp/blame.log"
+    run_cmd(test_instance, cmd, expect_ret=0, session=session, vm=vm)
+    run_cmd(test_instance, "cat /tmp/blame.log",
+            expect_ret=0, session=session, vm=vm)
+    output = run_cmd(test_instance, "sudo systemd-analyze",
+                     expect_ret=0, session=session, vm=vm)
+    boot_time = re.findall("=.*s", output)[0]
+    boot_time = boot_time.strip("=\n")
+    boot_time_sec = re.findall('[0-9.]+s', boot_time)[0]
+    boot_time_sec = boot_time_sec.strip('= s')
+    if 'min' in boot_time:
+        boot_time_min = re.findall('[0-9]+min', boot_time)[0]
+        boot_time_min = boot_time_min.strip('min')
+        boot_time_sec = int(boot_time_min) * 60 + \
+            decimal.Decimal(boot_time_sec).to_integral()
+    test_instance.log.info(
+        "Boot time is {}(s)".format(boot_time_sec))
+    return boot_time_sec
+
+
+def compare_nums(test_instance, num1=None, num2=None, ratio=0, msg='Compare 2 nums'):
+    '''
+    Compare num1 and num2.
+    Arguments:
+        test_instance {avocado Test instance} -- avocado test instance
+        num1 {int} -- num1
+        num2 {int} -- num2
+        ratio {int} -- allow ratio
+    Return:
+        num1 < num2: return True
+        (num1 - num2)/num2*100 > ratio: return False
+        (num1 - num2)/num2*100 < ratio: return True
+    '''
+    num1 = float(num1)
+    num2 = float(num2)
+    ratio = float(ratio)
+    test_instance.log.info(msg)
+    if num1 < num2:
+        test_instance.log.info("{} less than {}".format(num1, num2))
+        return True
+    if (num1 - num2)/num2*100 > ratio:
+        test_instance.fail("{} vs {} over {}%".format(num1, num2, ratio))
+    else:
+        test_instance.log.info(
+            "{} vs {} less {}%, pass".format(num1, num2, ratio))

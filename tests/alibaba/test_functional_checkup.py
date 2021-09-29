@@ -1,9 +1,7 @@
 from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.utils import utils_misc
-from avocado_cloud.utils.utils_alibaba import collect_information
-from avocado_cloud.utils.utils_alibaba import run_cmd
-from avocado_cloud.utils.utils_alibaba import is_data_file_exist
+from avocado_cloud.utils import utils_alibaba
 from avocado.utils import process
 import re
 import os
@@ -483,7 +481,7 @@ will not check kernel-devel package.')
     def test_check_subscription_manager(self):
         pass
 
-    def test_collect_information_for_create(self):
+    def collect_information_for_create(self):
         """Test case for avocado framework.
 
         case_name:
@@ -515,13 +513,13 @@ will not check kernel-devel package.')
         pass_criteria:
             n/a
         """
-        collect_information(self, 'create')
+        utils_alibaba.collect_information(self, 'create')
 
-    def test_collect_information_for_reboot(self):
-        collect_information(self, 'reboot')
+    def collect_information_for_reboot(self):
+        utils_alibaba.collect_information(self, 'reboot')
 
-    def test_collect_information_for_restart(self):
-        collect_information(self, 'restart')
+    def collect_information_for_restart(self):
+        utils_alibaba.collect_information(self, 'restart')
 
     def test_collect_metadata(self):
         """Test case for avocado framework.
@@ -815,12 +813,12 @@ will not check kernel-devel package.')
         pass_criteria:
             All commands succeed.
         """
-        run_cmd(test_instance,
-                'sudo yum repoinfo',
-                expect_ret=0,
-                expect_not_kw='Repo-pkgs          : 0',
-                timeout=1200,
-                msg='try to get repo info')
+        utils_alibaba.run_cmd(test_instance,
+                              'sudo yum repoinfo',
+                              expect_ret=0,
+                              expect_not_kw='Repo-pkgs          : 0',
+                              timeout=1200,
+                              msg='try to get repo info')
 
     def test_yum_package_install(test_instance):
         """Check the yum package installation.
@@ -851,45 +849,48 @@ will not check kernel-devel package.')
         pass_criteria:
             All commands succeed.
         """
-        run_cmd(test_instance, "sudo yum clean all", expect_ret=0, timeout=180)
-        run_cmd(test_instance, "sudo yum repolist", expect_ret=0, timeout=1200)
-        run_cmd(test_instance, "sudo yum check-update", timeout=1200)
-        run_cmd(test_instance,
-                "sudo yum search zsh",
-                expect_ret=0,
-                timeout=180)
-        run_cmd(test_instance,
-                "sudo yum -y install zsh",
-                expect_ret=0,
-                timeout=180)
-        run_cmd(test_instance,
-                r"sudo rpm -q --queryformat '%{NAME}' zsh",
-                expect_ret=0)
-        run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
+        utils_alibaba.run_cmd(
+            test_instance, "sudo yum clean all", expect_ret=0, timeout=180)
+        utils_alibaba.run_cmd(
+            test_instance, "sudo yum repolist", expect_ret=0, timeout=1200)
+        utils_alibaba.run_cmd(
+            test_instance, "sudo yum check-update", timeout=1200)
+        utils_alibaba.run_cmd(test_instance,
+                              "sudo yum search zsh",
+                              expect_ret=0,
+                              timeout=180)
+        utils_alibaba.run_cmd(test_instance,
+                              "sudo yum -y install zsh",
+                              expect_ret=0,
+                              timeout=180)
+        utils_alibaba.run_cmd(test_instance,
+                              r"sudo rpm -q --queryformat '%{NAME}' zsh",
+                              expect_ret=0)
+        utils_alibaba.run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
 
         # if 'SAP' in test_instance.info['name'].upper(
         # ) and '6.5' in test_instance.info['name']:
         #     test_instance.log.info("Below is specified for SAP AMIs")
-        #     run_cmd(test_instance,
+        #     utils_alibaba.run_cmd(test_instance,
         #             "sudo tuned-profiles-sap-hana",
         #             expect_ret=0,
         #             timeout=180)
-        #     run_cmd(
+        #     utils_alibaba.run_cmd(
         #         test_instance,
         #         r"sudo rpm -q --queryformat '%{NAME}' tuned-profiles-sap-hana",
         #         expect_ret=0)
-        #     run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
+        #     utils_alibaba.run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
 
     # def test_yum_group_install(test_instance):
     #     # Skip this case due to yum server support is needed.
     #     # Output message: "There is no installed groups file."
     #     cmd = "sudo yum -y groupinstall 'Development tools'"
-    #     run_cmd(test_instance,
+    #     utils_alibaba.run_cmd(test_instance,
     #             cmd,
     #             expect_ret=0,
     #             timeout=1200,
     #             msg='try to install Development tools group')
-    #     run_cmd(test_instance,
+    #     utils_alibaba.run_cmd(test_instance,
     #             'sudo rpm -q glibc-devel',
     #             expect_ret=0,
     #             msg='try to check installed pkg')
@@ -922,24 +923,97 @@ will not check kernel-devel package.')
             Whitelisted all the vulnerabilities from RHEL7.9 and RHEL8.3 before July 2021.
         """
         # Print microcode version
-        run_cmd(self, 'rpm -qa|grep microcode', msg='Get microcode version')
+        utils_alibaba.run_cmd(self, 'rpm -qa|grep microcode',
+                              msg='Get microcode version')
 
         # Print vulnerabilities
         check_cmd = 'grep ^ /sys/devices/system/cpu/vulnerabilities/* | sed "s#^.*vulnerabilities/##"'
-        run_cmd(self, check_cmd, expect_ret=0)
+        utils_alibaba.run_cmd(self, check_cmd, expect_ret=0)
 
         # Apply whitelist and perform checking
         data_file = 'vulnerabilities.el{}.lst'.format(self.rhel_ver)
-        if not is_data_file_exist(self.cloud.cloud_provider, data_file):
+        if not utils_alibaba.is_data_file_exist(self.cloud.cloud_provider, data_file):
             data_file = 'vulnerabilities.el{}.lst'.format(
                 self.rhel_ver.split('.')[0])
-        if not is_data_file_exist(self.cloud.cloud_provider, data_file):
+        if not utils_alibaba.is_data_file_exist(self.cloud.cloud_provider, data_file):
             self.error('Data file can not be found.')
         self.session.copy_data_to_guest(self.cloud.cloud_provider, data_file)
 
         check_cmd += ' | grep -v "Not affected" | grep -vxFf {}'.format(
             os.path.join(self.dest_dir, data_file))
-        run_cmd(self, check_cmd, expect_output='')
+        utils_alibaba.run_cmd(self, check_cmd, expect_output='')
+
+    def test_check_boot_time_create(self):
+        """ Check the boot time after instance first launch.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_boot_time_create
+        description:
+            Check the boot time after instance first launch (create instance).
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_boot_time_create"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Launch an instance on Aliyun.
+            2. Get boot time by 'systemd-analyze'
+            3. Compare the time with experienced max time
+        pass_criteria:
+            The actual boot time is no more than the experienced max time.
+        """
+        if 'ecs.ebm' in self.vm.flavor:
+            max_boot_time = 40
+        else:
+            # kvm-based VMs
+            max_boot_time = 20
+
+        boot_time_sec = utils_alibaba.getboottime(self)
+        utils_alibaba.compare_nums(self, num1=boot_time_sec, num2=max_boot_time,
+                                   ratio=0, msg="Compare with experienced max_boot_time")
+
+    def test_check_boot_time_reboot(self):
+        """ Check the boot time after instance reboot.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_boot_time_reboot
+        description:
+            Check the boot time after instance reboot.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_boot_time_reboot"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Reboot an instance on Aliyun.
+            2. Get boot time by 'systemd-analyze'
+            3. Compare the time with experienced max time
+        pass_criteria:
+            The actual boot time is no more than the experienced max time.
+        """
+        if 'ecs.ebm' in self.vm.flavor:
+            max_boot_time = 40
+        else:
+            # kvm-based VMs
+            max_boot_time = 20
+
+        boot_time_sec = utils_alibaba.getboottime(self)
+        utils_alibaba.compare_nums(self, num1=boot_time_sec, num2=max_boot_time,
+                                   ratio=0, msg="Compare with experienced max_boot_time")
 
     def tearDown(self):
         self.session.close()
