@@ -223,6 +223,11 @@
 /usr/share/fonts/liberation/.uuid
 /boot/efi/NvVars
 /etc/systemd/system/graphical.target.wants/udisks2.service
+/etc/cloud/cloud.cfg.bak
+/etc/systemd/system/ctrl-alt-del.target
+/etc/systemd/system/multi-user.target.wants/insights-client-boot.service
+/etc/yum.repos.d/rhel.repo
+/initrd.root.sqsh
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id

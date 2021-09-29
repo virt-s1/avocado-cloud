@@ -48,3 +48,4 @@ Running module keys-to-console
 Failed to start Execute cloud user/final scripts.
 Unit cloud-final.service entered failed state.
 cloud-final.service failed.
+kernel: GPT: Use GNU Parted to correct GPT errors.

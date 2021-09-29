@@ -170,7 +170,7 @@ echo test_content > /mnt/{0}/test_file"
                 idx = chr(97 + delta)
             else:
                 idx = 'a' + chr(97 - 1 + delta % 25)
-            cmd = "fdisk -l | grep /dev/%s%s"
+            cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
             output = self.session.cmd_output(cmd % (self.dev_name, idx))
             self.assertEqual(output, "",
                              "Disk not detached.\n {0}".format(output))
@@ -222,7 +222,7 @@ echo test_content > /mnt/{0}/test_file"
                 idx = chr(97 + delta)
             else:
                 idx = 'a' + chr(97 - 1 + delta % 25)
-            cmd = "fdisk -l | grep /dev/%s%s"
+            cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
             output = self.session.cmd_output(cmd % (self.dev_name, idx))
             self.assertEqual(output, "",
                              "Disk not detached.\n {0}".format(output))
@@ -295,7 +295,7 @@ echo test_content > /mnt/{0}/test_file"
                 idx = chr(97 + delta)
             else:
                 idx = 'a' + chr(97 - 1 + delta % 25)
-            cmd = "fdisk -l | grep /dev/%s%s"
+            cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
             output = self.session.cmd_output(cmd % (self.dev_name, idx))
             self.assertEqual(output, "",
                              "Disk not detached.\n {0}".format(output))
@@ -369,7 +369,7 @@ echo test_content > /mnt/{0}/test_file"
                 idx = chr(97 + delta)
             else:
                 idx = 'a' + chr(97 - 1 + delta % 25)
-            cmd = "fdisk -l | grep /dev/%s%s"
+            cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
             output = self.session.cmd_output(cmd % (self.dev_name, idx))
             self.assertEqual(output, "",
                              "Disk not detached.\n {0}".format(output))

@@ -74,5 +74,6 @@ SM5....T.  c /boot/grub2/grubenv
 .M.......  c /etc/crypto-policies/back-ends/nss.config
 S.5....T.  c /etc/containers/registries.conf
 .M...UG..    /run/uuidd
+SM5..UGT.  c /etc/cloud/cloud.cfg
 #################### KNOWN ISSUES BELOW ####################
 S.5....T.    /usr/lib/systemd/system/cloud-init.service
