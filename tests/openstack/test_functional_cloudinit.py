@@ -1194,13 +1194,13 @@ rh_subscription:
         3. Check boot time and cloud-init services startup time
            # systemd-analyze
            # systemd-analyze blame
-        4. The boot time should be less than 45s, cloud-init services startup time should less than 10s
+        4. The boot time should be less than 50s, cloud-init services startup time should less than 18s
         """
         self.log.info(
             "RHEL-189580 - CLOUDINIT-TC: Check VM first launch boot time and cloud-init startup time")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        max_boot_time = 45
-        cloud_init_startup_time = 10
+        max_boot_time = 50
+        cloud_init_startup_time = 18
         # Check boot time
         boot_time_sec = utils_lib.getboottime(self)
         self.assertLess(
