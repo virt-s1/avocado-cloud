@@ -122,6 +122,22 @@ ssh_pwauth: 1
         cmd = 'sudo systemctl is-active cloud-final.service'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='active', is_get_console=False)
 
+    def test_cloudinit_verify_services(self):
+        '''
+        :avocado: tags=tier1,cloudinit
+        RHEL-284657 - CLOUDINIT-TC: Verify cloud-init services
+        verify all cloud-init services with systemd-analyze command
+        '''
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = "systemctl list-unit-files|grep cloud |awk -F' ' '{print $1}'"
+        all_services = utils_lib.run_cmd(self, cmd, msg='Get all cloud-init services').split('\n')
+
+        for service in all_services:
+            if len(service) == 0:
+                continue
+            cmd = "sudo systemd-analyze verify {}".format(service)
+            utils_lib.run_cmd(self, cmd, expect_not_kw='Unknown lvalue', msg='Check there is no Unknown lvalue in {}'.format(service))
+
 
     def test_cloudinit_check_log_no_traceback(self):
         '''
