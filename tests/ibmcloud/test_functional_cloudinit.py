@@ -31,8 +31,8 @@ class CloudinitTest(Test):
         self.ssh_wait_timeout = 600
         pre_delete = False
         pre_stop = False
- #       if self.name.name.endswith("test_cloudinit_login_with_publickey"):
-  #          pre_delete = True
+        if self.name.name.endswith("test_cloudinit_login_with_publickey"):
+            pre_delete = True
 
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
                                          pre_stop=pre_stop)    

@@ -30,10 +30,11 @@ class IbmcloudAccount(object):
         self.username = params.get('username', '*/Credential/*')
         self.password = params.get('password', '*/Credential/*')
         self.api_endpoint = params.get('endpoint', '*/Credential/*')
+        self.account_id = params.get('account_id', '*/Credential/*')
 
     def login(self):
-        cmd = 'ibmcloud login -a "{}" -u "{}" -p "{}" --no-region'.format(
-            self.api_endpoint, self.username, self.password)
+        cmd = 'ibmcloud login -a "{}" -u "{}" -p "{}" -c "{}" --no-region'.format(
+            self.api_endpoint, self.username, self.password, self.account_id)
         command(cmd)
 
     def logout(self):
@@ -280,14 +281,16 @@ class PowerVM(VM):
         except:
             return False
         # waiting for VM is active
-
+        LOG.info("Waiting for the health status of VM to be OK in 8 minutes...")
+        time.sleep(480)
         if len(ret.stdout):
             info = json.loads(ret.stdout)
             self.properties = info[0]
             self.id = self.properties.get("pvmInstanceID")
             if wait:
                 error_message = "Timed out waiting for server to be active."
-                time.sleep(60)
+                LOG.info("Waiting for the health status of VM to be OK in another 2 minutes...")
+                time.sleep(120)
                 for count in utils_misc.iterate_timeout(100,
                                                         error_message,
                                                         wait=10):
@@ -307,7 +310,8 @@ class PowerVM(VM):
         except:
             return False
         # Sometimes VM still exists for a while after cli finished
-        time.sleep(30)
+        LOG.info("Waiting for the VM to be cleaned in 5 minutes...")
+        time.sleep(300)
         if wait:
             error_message = "Timed out waiting for server to get deleted."
             for count in utils_misc.iterate_timeout(100,
@@ -423,7 +427,8 @@ class PowerVM(VM):
         return self.show()
 
     def is_started(self):
-        return self.properties.get("status") == "ACTIVE"
+        #return self.properties.get("status") == "ACTIVE"
+        return self.properties.get("health").get("status") == "OK"
 
     def is_stopped(self):
         return self.properties.get("status") == "SHUTOFF"

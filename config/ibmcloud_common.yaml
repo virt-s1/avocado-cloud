@@ -5,6 +5,7 @@ Credential:
     username: 
     password: 
     endpoint: "https://test.cloud.ibm.com"
+    account_id:
 VM:
     rhel_ver: "8.3"
     username: cloud-user
