@@ -52,12 +52,8 @@ function deprovision_cloudinit_wala() {
     systemctl stop waagent
     systemctl enable waagent > /dev/null 2>&1
     systemctl enable cloud-{init-local,init,config,final} > /dev/null 2>&1
-    sed -i -e 's/^ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' \
-        -e 's/^ResourceDisk.SwapSizeMB=.*/ResourceDisk.SwapSizeMB=2048/g' \
-        -e 's/^Provisioning.Enabled=y/Provisioning.Enabled=n/g' \
-        -e 's/Provisioning.UseCloudInit=n/Provisioning.UseCloudInit=y/g' \
-        -e 's/ResourceDisk.MountPoint=.*/ResourceDisk.MountPoint=\/mnt/g' \
-        /etc/waagent.conf
+#    sed -i 's/ResourceDisk.MountPoint=.*/ResourceDisk.MountPoint=\/mnt/g' \
+#        /etc/waagent.conf
     swapoff -a
     for i in "${delete_arr[@]}";
     do
@@ -65,7 +61,8 @@ function deprovision_cloudinit_wala() {
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+#    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    rm -f /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
@@ -89,7 +86,8 @@ function deprovision_cloudinit() {
     done
     sed -i '/azure_resource-part1/d' /etc/fstab
     userdel -rf $username
-    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+#    sed -i -e '/DHCP_HOSTNAME/d' -e '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    rm -f /etc/sysconfig/network-scripts/ifcfg-eth0
     hostnamectl set-hostname localhost.localdomain
     if [ ! -f /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg ];then
         echo "datasource_list: [ Azure ]" > /etc/cloud/cloud.cfg.d/91-azure_datasource.cfg
