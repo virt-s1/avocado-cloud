@@ -371,6 +371,44 @@ ssh_pwauth: 1
         self.assertEqual(output, expect, 
             "cloud-init --version doesn't show full version. Real: {}, Expect: {}".format(output, expect))
 
+    def test_check_hostkey_permissions(self):
+        '''
+        :avocado: tags=tier1,cloudinit
+        RHEL7-103836 - CLOUDINIT-TC: Default configuration can regenerate sshd keypairs
+        bz: 2013644
+        This auto case only check host key permissions
+        expected:  
+        $ ls -l /etc/ssh/ssh_host*.pub | awk '{print $1,$3,$4,$9}'
+        -rw-r--r--. root root /etc/ssh/ssh_host_ecdsa_key.pub
+        -rw-r--r--. root root /etc/ssh/ssh_host_ed25519_key.pub
+        -rw-r--r--. root root /etc/ssh/ssh_host_rsa_key.pub
+        $ ls -l /etc/ssh/ssh_host*key| awk '{print $1,$3,$4,$9}'
+        -rw-r-----. root ssh_keys /etc/ssh/ssh_host_ecdsa_key
+        -rw-r-----. root ssh_keys /etc/ssh/ssh_host_ed25519_key
+        -rw-r-----. root ssh_keys /etc/ssh/ssh_host_rsa_key
+        '''
+        self.log.info("check host key permissions")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+
+        self.log.info("Public host key permissions should be 644 and owner/group should be root.")
+        cmd = "ls -l /etc/ssh/ssh_host*.pub | awk '{print $1,$3,$4,$9}'"
+        public_keys = utils_lib.run_cmd(self, cmd, msg='Get all public host keys').split('\n')
+        for key in public_keys:
+            if len(key) == 0:
+                continue
+            self.assertIn('-rw-r--r--. root root', key,
+                    msg=" Unexpected permissions -> %s" % key)
+
+        self.log.info("Private host key permissions should be 640 and owner/group should be root/ssh_keys.")
+        cmd = "ls -l /etc/ssh/ssh_host*key | awk '{print $1,$3,$4,$9}'"
+        private_keys = utils_lib.run_cmd(self, cmd, msg='Get all private host keys').split('\n')  
+        for key in private_keys:
+            if len(key) == 0:
+                continue
+            self.assertIn('-rw-r-----. root ssh_keys', key,
+                    msg=" Unexpected permissions -> %s" % key)
+
+
     def test_check_cloudinit_fingerprints(self):
         '''
         :avocado: tags=tier2,cloudinit
@@ -385,6 +423,7 @@ ssh_pwauth: 1
             Sep 17 10:39:26 xiachen-testvm-rhel8 ec2[5447]: 3072 SHA256:6sCV1CusDhQzuoTO2FQFyyf9PmsclAd38zhkGs3HaUk root@xiachen-testvm-rhel8 (RSA)
             Sep 17 10:39:26 xiachen-testvm-rhel8 ec2[5447]: -----END SSH HOST KEY FINGERPRINTS-----
         '''
+        self.log.info("check fingerprints is saved in /var/log/messages")
         cmd = "sudo awk '/BEGIN/,/END/' /var/log/messages"
         out = utils_lib.run_cmd(self, cmd, msg='get fingerprints in /var/log/messages')
         # change 'SHA256' to ' SHA256' for exact match
