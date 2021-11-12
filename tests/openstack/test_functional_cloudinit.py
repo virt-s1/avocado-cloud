@@ -917,9 +917,16 @@ mounts:
                 "ls -al /home/%s/.ssh/authorized_keys2 | awk '{print $3}'" %(self.vm.vm_username)),
             "The owner of the AuthorizedKeysFile is wrong!")        
         # Recover the config to default: AuthorizedKeysFile .ssh/authorized_keys
+        # Remove ~/.ssh and check the permissions of the directory
         self.session.cmd_output(
-            "rm -f /home/{}/.ssh/authorized_keys2".format(self.vm.vm_username))
+            "rm -rf /home/{}/.ssh".format(self.vm.vm_username))
         self._verify_authorizedkeysfile(".ssh/authorized_keys")
+        # Check ~/.ssh authority is correct, bug 1995840
+        self.assertEqual(
+            "drwx------. cloud-user cloud-user",
+            self.session.cmd_output(
+                "ls -ld /home/%s/.ssh | awk '{print $1,$3,$4}'" %(self.vm.vm_username)),
+            "The authority .ssh is wrong!")
 
 
     def test_cloudinit_check_NOZEROCONF(self):
