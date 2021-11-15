@@ -28,10 +28,16 @@ class Setup(object):
         elif self.cloud_provider == "libvirt":
             from .libvirt import LibvirtVM
             self.vm = LibvirtVM(params)
+        elif self.cloud_provider == "nutanix":
+            from .nutanix import NutanixVM
+            self.vm = NutanixVM(params)
         else:
             raise TestError()
 
-    def init_vm(self, pre_delete=False, pre_stop=False, authentication="publickey"):
+    def init_vm(self,
+                pre_delete=False,
+                pre_stop=False,
+                authentication="publickey"):
         if pre_delete and self.vm.exists():
             self.vm.delete(wait=True)
         if not self.vm.exists():

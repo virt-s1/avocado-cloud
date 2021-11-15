@@ -1,0 +1,15 @@
+Cloud:
+  provider: nutanix
+  cvm_ip: 192.168.122.3
+Credential:
+  username: admin
+  password: 
+VM:
+  rhel_ver: '8.5'
+  username: root
+  password: redhat
+  keypair: xen-jenkins
+  vm_name: avocado_cloud
+  image_name: rhel-guest-image-8.5-1248
+  storage_container_uuid: 44aca942-c238-4347-a0b2-0e6cf9a0169a
+  network_uuid: a8540001-cc4f-442e-a79c-f6dbe8395f4d
