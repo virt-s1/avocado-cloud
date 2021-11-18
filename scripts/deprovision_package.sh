@@ -31,6 +31,7 @@ function deprovision_wala() {
     rpm -e cloud-init > /dev/null 2>&1
     sed -i -e 's/^ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' \
         -e 's/^ResourceDisk.SwapSizeMB=.*/ResourceDisk.SwapSizeMB=2048/g' \
+        -e 's/^ResourceDisk.Format=.*/ResourceDisk.Format=y/g' \
         /etc/waagent.conf
     swapoff -a
     for i in "${delete_arr[@]}";
@@ -52,8 +53,10 @@ function deprovision_cloudinit_wala() {
     systemctl stop waagent
     systemctl enable waagent > /dev/null 2>&1
     systemctl enable cloud-{init-local,init,config,final} > /dev/null 2>&1
-#    sed -i 's/ResourceDisk.MountPoint=.*/ResourceDisk.MountPoint=\/mnt/g' \
-#        /etc/waagent.conf
+    # Disable WALA swap and resource disk format because will conflict with cloud-init
+    sed -i -e 's/^ResourceDisk.Format=.*/ResourceDisk.Format=n/g' \
+           -e 's/^ResourceDisk.EnableSwap=.*/ResourceDisk.EnableSwap=n/g' \
+        /etc/waagent.conf
     swapoff -a
     for i in "${delete_arr[@]}";
     do
@@ -177,6 +180,19 @@ function verify_wala_conf() {
     return $wala_conf_ret
 }
 
+function verify_wala_resourcedisk_disableformat() {
+    grep ^ResourceDisk.Format=n /etc/waagent.conf > /dev/null
+    if [[ $? == 0 ]];then
+        format_echo "Verify ResourceDisk.Format=n: PASS"
+        ret=0
+    else
+        format_echo "Verify ResourceDisk.Format=n: FAIL"
+        echo $output
+        ret=1
+    fi
+    return $ret
+}
+
 function verify_wala_resourcedisk_enableswap() {
     grep ^ResourceDisk.EnableSwap=y /etc/waagent.conf > /dev/null
     if [[ $? == 0 ]];then
@@ -184,6 +200,19 @@ function verify_wala_resourcedisk_enableswap() {
         ret=0
     else
         format_echo "Verify ResourceDisk.EnableSwap=y: FAIL"
+        echo $output
+        ret=1
+    fi
+    return $ret
+}
+
+function verify_wala_resourcedisk_disableswap() {
+    grep ^ResourceDisk.EnableSwap=n /etc/waagent.conf > /dev/null
+    if [[ $? == 0 ]];then
+        format_echo "Verify ResourceDisk.EnableSwap=n: PASS"
+        ret=0
+    else
+        format_echo "Verify ResourceDisk.EnableSwap=n: FAIL"
         echo $output
         ret=1
     fi
@@ -393,12 +422,10 @@ function verify_cloudinit_wala() {
     verify_files_removed||((rflag=rflag+1))
     # Verify WALA conf
     verify_wala_conf||((rflag=rflag+1))
-    # Verify ResourceDisk.EnableSwap=y
-    verify_wala_resourcedisk_enableswap||((rflag=rflag+1))
-    # Verify ResourceDisk.SwapSizeMB=2048
-    verify_wala_resourcedisk_swapsize||((rflag=rflag+1))
-    # Verify ResourceDisk.MountPoint=/mnt
-    verify_wala_resourcedisk_mountpoint||((rflag=rflag+1))
+    # Verify ResourceDisk.EnableSwap=n
+    verify_wala_resourcedisk_disableswap||((rflag=rflag+1))
+    # Verify ResourceDisk.Format=n
+    verify_wala_resourcedisk_disableformat||((rflag=rflag+1))
     # Verify cloud-init is enabled
     verify_cloudinit_enabled||((rflag=rflag+1))
     # Verify waagent is enabled
