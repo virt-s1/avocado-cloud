@@ -37,3 +37,4 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_customized_file_in_authorizedkeysfile
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_boot_time
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_reboot_time
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_datasource_openstack

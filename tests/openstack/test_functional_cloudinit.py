@@ -1328,6 +1328,33 @@ rh_subscription:
             float(final_time_sec), float(cloud_init_startup_time), 
             "cloud-final startup time is greater than {}".format(cloud_init_startup_time))
 
+    def test_cloudinit_datasource_openstack(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-286739 - CLOUDINIT-TC: Check the datasource on OpenStack PSI
+        1. Launch instance with cloud-init installed on OpenStack PSI
+        2. Check the datasource is openstack
+        # cat /run/cloud-init/cloud.cfg 
+        # cat /run/cloud-init/ds-identify.log
+        """
+        self.log.info(
+            "RHEL-286739 - CLOUDINIT-TC: Check the datasource on OpenStack PSI")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'cat /run/cloud-init/cloud.cfg'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='datasource_list: [ OpenStack, None ]',
+                          msg='check if the datasource is OpenStack',
+                          is_get_console=False)
+        cmd = 'cat /run/cloud-init/ds-identify.log | grep datasource'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='Found single datasource: OpenStack',
+                          msg='check there is Found single datasource: OpenStack',
+                          is_get_console=False)
+
 
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):
