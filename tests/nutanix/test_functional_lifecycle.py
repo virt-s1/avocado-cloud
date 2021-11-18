@@ -22,6 +22,7 @@ class LifeCycleTest(Test):
                                           pre_stop=pre_stop)
 
     def test_create_vm_password(self):
+        self.vm.ssh_pubkey = None
         self.vm.create(wait=True)
         if self.vm.is_stopped():
             self.vm.start(wait=True)

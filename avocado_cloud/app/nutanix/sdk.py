@@ -1,6 +1,7 @@
 from ..base import VM
 from .nutanix import PrismApi
 from avocado_cloud.utils import utils_misc
+from avocado_cloud.utils import ssh_key
 import logging
 
 
@@ -15,7 +16,7 @@ class NutanixVM(VM):
         # VM access parameters
         self.vm_username = params.get('username', '*/VM/*')
         self.vm_password = params.get('password', '*/VM/*')
-
+        self.ssh_pubkey = ssh_key.get_public_key()
         self.arch = 'x86_64'
 
         self.prism = PrismApi(params)
@@ -45,7 +46,7 @@ class NutanixVM(VM):
 
     def create(self, wait=False):
         logging.info("Create VM")
-        res = self.prism.create_vm()
+        res = self.prism.create_vm(self.ssh_pubkey)
         if wait:
             self.wait_for_status(
                 res['task_uuid'], 60,

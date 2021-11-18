@@ -110,7 +110,7 @@ class PrismApi(PrismSession):
             exit(self.r.status_code)
         return json_obj
 
-    def create_vm(self):
+    def create_vm(self, ssh_pubkey=None):
         logging.debug("Create VM")
         endpoint = urljoin(self.base_url, "vms")
         images = self.list_images()
@@ -121,6 +121,14 @@ class PrismApi(PrismSession):
         if vmdisk_uuid == "":
             logging.error("Image %s not found." % self.image_name)
             exit(1)
+        ssh_key = ''
+        ssh_pwauth = '\nchpasswd:\n  list: |\n    %s:%s\n  expire: false\nssh_pwauth: yes' % (
+            self.vm_username, self.vm_password)
+        if (ssh_pubkey):
+            ssh_key = '\nssh_authorized_keys:\n- %s' % ssh_pubkey
+            ssh_pwauth = ''
+        user_data = '#cloud-config\ndisable_root: false\nlock_passwd: false%s%s' % (
+            ssh_pwauth, ssh_key)
         data = {
             'boot': {
                 'uefi_boot': False
@@ -136,11 +144,8 @@ class PrismApi(PrismSession):
             'timezone':
             'UTC',
             'vm_customization_config': {
-                'datasource_type':
-                'CONFIG_DRIVE_V2',
-                'userdata':
-                '#cloud-config\ndisable_root: false\nlock_passwd: false\nchpasswd:\n  list: |\n    %s:%s\n  expire: false\nssh_pwauth: yes\nssh_authorized_keys:\n- ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCwHpsVy4G9QRu7yznBe2Y4oD1GyhXM7RfAMNv22ladhR+shzG76wFecfFq5iUAG6CQl9EzCYVlFEOm8Uf4hcCdNYMy7TYU0JluXxwAahP/z8L9quQoOkrweYaCBgW/jBkuZp0gB8rULcxWyfzHMqV/iLI8dPOizXK2WPSedxrtR57rjT2LRRbKmn0OllROmMQgEBZCorsCoMGeuE71JVnYmDt6rq3XhEm673QmTSk0HItqii8PoDi0oXU84ZyUlIrO9IRkF4OZDCxnu4EAf2EyePrT+TBkc61W/eVPNmG//AP2jOjlm7vs4HH6vHDTsuGozVAjckj/rQWATPGX1Kdt wshi@wshi-desktop'
-                % (self.vm_username, self.vm_password)
+                'datasource_type': 'CONFIG_DRIVE_V2',
+                'userdata': user_data
             },
             'vm_disks': [{
                 'is_cdrom': False,
