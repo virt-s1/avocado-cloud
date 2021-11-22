@@ -955,10 +955,9 @@ EOF""".format(device, size))
         # 4. Verify can login and no unexpected files in ~/.ssh
         self.assertTrue(self.session.connect(timeout=10),
                         "Fail to login after run ssh module")
-        files = self.session.cmd_output(
-            "find /home/{}/.ssh/*|grep -vE '(id_rsa|known_hosts)'".format(self.vm.vm_username))
-        self.assertEqual(len(files.split()), 1,
-                         "There are unexpected files under ~/.ssh: {}".format(files))
+        find_result = self.session.cmd_output("{{ ls {} 2> /dev/null; ls /home/{}/{} 2> /dev/null; }} | cat".format(keyfiles.split()[0].replace("/%u","",1), self.vm.vm_username, keyfiles.split()[0]))
+        if keyfiles.split()[0] not in find_result and self.vm.vm_username not in find_result:
+            self.fail("Cannot find expected key file {}.".format(keyfiles.split()[0]))
 
     def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
         """
