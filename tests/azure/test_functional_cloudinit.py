@@ -955,9 +955,12 @@ EOF""".format(device, size))
         # 4. Verify can login and no unexpected files in ~/.ssh
         self.assertTrue(self.session.connect(timeout=10),
                         "Fail to login after run ssh module")
-        find_result = self.session.cmd_output("{{ ls {} 2> /dev/null; ls /home/{}/{} 2> /dev/null; }} | cat".format(keyfiles.split()[0].replace("/%u","",1), self.vm.vm_username, keyfiles.split()[0]))
-        if keyfiles.split()[0] not in find_result and self.vm.vm_username not in find_result:
+        find_result = self.session.cmd_output("{{ ls /{} 2> /dev/null; ls /home/{}/{} 2> /dev/null|grep -vE id_rsa; }} | cat".format(keyfiles.split()[0].replace("/%u","",1), self.vm.vm_username, keyfiles.split()[0]))
+        if keyfiles.split()[0] in find_result and self.vm.vm_username not in find_result:
             self.fail("Cannot find expected key file {}.".format(keyfiles.split()[0]))
+        elif ("root" in find_result and len(find_result.split('\n')) > 2) or (".ssh" in find_result and len(find_result.split('\n')) > 1):
+            # Found more than <user> and root under /etc/ssh/userkeys/; or more than id_rsa and authorized_keys under .ssh/.
+            self.fail("Unexpected files found {}.".format(find_result))
 
     def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
         """
