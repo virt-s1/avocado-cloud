@@ -1,0 +1,4 @@
+test:
+    !include : nutanix_flavors.yaml
+    !include : nutanix_testcases.yaml
+    !include : nutanix.yaml

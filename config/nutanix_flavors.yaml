@@ -1,0 +1,7 @@
+Flavor: !mux
+    m1.medium:
+        name: m1.medium
+        cpu: 2
+        memory: 4
+        size: 10G
+        virt: kvm
