@@ -955,10 +955,12 @@ EOF""".format(device, size))
         # 4. Verify can login and no unexpected files in ~/.ssh
         self.assertTrue(self.session.connect(timeout=10),
                         "Fail to login after run ssh module")
-        files = self.session.cmd_output(
-            "find /home/{}/.ssh/*|grep -vE '(id_rsa|known_hosts)'".format(self.vm.vm_username))
-        self.assertEqual(len(files.split()), 1,
-                         "There are unexpected files under ~/.ssh: {}".format(files))
+        find_result = self.session.cmd_output("{{ ls /{} 2> /dev/null; ls /home/{}/{} 2> /dev/null|grep -vE id_rsa; }} | cat".format(keyfiles.split()[0].replace("/%u","",1), self.vm.vm_username, keyfiles.split()[0]))
+        if keyfiles.split()[0] in find_result and self.vm.vm_username not in find_result:
+            self.fail("Cannot find expected key file {}.".format(keyfiles.split()[0]))
+        elif ("root" in find_result and len(find_result.split('\n')) > 2) or (".ssh" in find_result and len(find_result.split('\n')) > 1):
+            # Found more than <user> and root under /etc/ssh/userkeys/; or more than id_rsa and authorized_keys under .ssh/.
+            self.fail("Unexpected files found {}.".format(find_result))
 
     def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
         """
@@ -1445,8 +1447,10 @@ swap:
         Verify the random password length is 20
         '''
         self.log.info("RHEL-189226 - CLOUDINIT-TC: checking random password and its length")
+        utils_azure.command("az vm boot-diagnostics enable -n {} -g {} --storage https://{}.blob.core.windows.net/"\
+            .format(self.vm.vm_name, self.vm.resource_group, self.vm.storage_account), timeout=120)
         self.session.cmd_output("sudo su -")
-        self.session.cmd_output("rm -f /var/log/cloud-init-output.log /var/lib/cloud/instance/sem/config_set_passwords")
+        self.session.cmd_output("rm -f /var/log/cloud-init*.log /var/lib/cloud/instance/sem/config_set_passwords")
         # Add user for test
         testuser = "test1"
         self.session.cmd_output("useradd {}".format(testuser))
@@ -1459,11 +1463,14 @@ ssh_pwauth: 1
 """.format(testuser)
         self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_random_pw_len.cfg".format(CONFIG))
         self.session.cmd_output("cloud-init single -n set_passwords", timeout=30)
-        self.assertIn(testuser, self.session.cmd_output("cat /var/log/cloud-init-output.log"),
-            "Cannot find {} in cloud-init-output.log".format(testuser))
-        output = self.session.cmd_output('cat /var/log/cloud-init-output.log|grep "{}:"'.format(testuser)).split(":",1)[1]
-        self.assertEqual(len(output), 20,
-            "Random password length is not 20")
+        # Wait for serial log to refresh
+        time.sleep(30)
+        serial_output = str(utils_azure.acommand("az vm boot-diagnostics get-boot-log -n {} -g {}".format(self.vm.vm_name, self.vm.resource_group), timeout=10, ignore_status=True).stdout, 'utf-8')
+        for line in serial_output.split('\r\n'):
+            if "test1" in line:
+                test1_pw = line.split(':')[1]
+        self.assertEqual(len(test1_pw), 20,
+            "Random password length is {} not 20".format(len(test1_pw)))
 
     def test_cloudinit_man_page(self):
         '''
