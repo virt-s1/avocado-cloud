@@ -481,7 +481,7 @@ will not check kernel-devel package.')
     def test_check_subscription_manager(self):
         pass
 
-    def collect_information_for_create(self):
+    def test_collect_information_for_create(self):
         """Test case for avocado framework.
 
         case_name:
@@ -515,10 +515,10 @@ will not check kernel-devel package.')
         """
         utils_alibaba.collect_information(self, 'create')
 
-    def collect_information_for_reboot(self):
+    def test_collect_information_for_reboot(self):
         utils_alibaba.collect_information(self, 'reboot')
 
-    def collect_information_for_restart(self):
+    def test_collect_information_for_restart(self):
         utils_alibaba.collect_information(self, 'restart')
 
     def test_collect_metadata(self):
