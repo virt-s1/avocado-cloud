@@ -1,4 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
+# Description: Run containerized avocado-cloud testing.
+# Maintainer: Charles Shih <schrht@gmail.com>
+
 import argparse
 import yaml
 import subprocess
@@ -54,12 +58,12 @@ for case in case_list:
 
 # Execute the test
 cmd = 'export PYTHONPATH={0}; \
-/usr/bin/avocado run {1} --mux-yaml {0}/test_{2}.yaml \
---execution-order=tests-per-variant'.format(DATAPATH,
-                                            ' '.join(expanded_case_list),
-                                            ARGS.platform)
+/usr/bin/avocado run {2} --mux-yaml {1}/test_{3}.yaml \
+--execution-order=tests-per-variant'.format(
+    CODEPATH, DATAPATH, ' '.join(expanded_case_list), ARGS.platform)
 
-print(cmd)
+print('Run command: \n{}'.format(cmd))
+
 p = subprocess.Popen(cmd,
                      shell=True,
                      stdout=subprocess.PIPE,
