@@ -5,10 +5,12 @@
 
 set -e
 
-# Run general setup
-./general_setup.sh
+CODEPATH=$(dirname $0)
 
-# run tests
-/app/run.py --platform alibaba
+# Run general setup
+$CODEPATH/general_setup.sh
+
+# Run tests
+$CODEPATH/run_tests.py --platform alibaba
 
 exit 0
