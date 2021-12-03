@@ -1,11 +1,12 @@
 #/bin/bash
 
-# Run Alibaba testing.
+# Description: Run containerized avocado-cloud testing on Alibaba Cloud.
+# Maintainer: Charles Shih <schrht@gmail.com>
 
 set -e
 
-# init Alibaba testing
-/app/container/bin/setup_alibaba.sh
+# Run general setup
+./general_setup.sh
 
 # run tests
 /app/run.py --platform alibaba
