@@ -1355,6 +1355,24 @@ rh_subscription:
                           msg='check there is Found single datasource: OpenStack',
                           is_get_console=False)
 
+    def test_cloudinit_root_exit_code(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-287348 - CLOUDINIT-TC: Using root user error should cause a non-zero exit code
+        1. Launch instance with cloud-init installed
+        2. Check the /root/.ssh/authorized_keys, the exit code is 142
+        # cat /root/.ssh/authorized_keys" 
+        """
+        self.log.info(
+            "RHEL-287348 - CLOUDINIT-TC: Using root user error should cause a non-zero exit code")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'sudo cat /root/.ssh/authorized_keys'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='echo;sleep 10;exit 142',
+                          msg='check if the exit code correct',
+                          is_get_console=False)
 
     def tearDown(self):
         if self.name.name.endswith("test_cloudinit_login_with_password"):

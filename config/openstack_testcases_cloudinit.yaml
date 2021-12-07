@@ -38,3 +38,4 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_boot_time
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_reboot_time
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_datasource_openstack
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_root_exit_code
