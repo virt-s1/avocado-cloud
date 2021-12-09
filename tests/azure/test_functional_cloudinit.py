@@ -1641,6 +1641,50 @@ ssh_pwauth: 1
                 "parted -s /dev/sdc print|grep ' 2 '|awk '{print $3}'"),
             "Fail to resize partition")
 
+    def test_cloudinit_dhclient_hook_disable_cloudinit(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-287483: CLOUDINIT-TC: cloud-init dhclient-hook script shoud exit
+                     while cloud-init services are disabled
+        1. Install cloud-init package in VM on Azure, disable cloud-init and related services:
+           # systemctl disable cloud-{init-local,init,config,final}
+           # touch /etc/cloud/cloud-init.disabled
+        2. Deprovision the VM and use this os disk to create a new VM
+        3. Check the new VM status
+           The cloud-init should not run , and the related services are disabled
+        """
+        self.log.info("RHEL-287483: CLOUDINIT-TC: cloud-init dhclient-hook script shoud exit\
+             while cloud-init services are disabled.")
+        # Disable cloud-init
+        self.session.cmd_output("sudo systemctl disable cloud-{init-local,init,config,final}")
+        time.sleep(1)
+        self.assertNotIn("enabled",
+                    self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
+                    "Fail to disable cloud-init related services")
+        self.session.cmd_output("sudo touch /etc/cloud/cloud-init.disabled")
+        # Deprovision the VM
+        self.session.cmd_output("sudo rm -rf /var/lib/cloud /var/log/cloud-init* \
+            /var/log/messages /mnt/swapfile /var/lib/NetworkManager/dhclient-* \
+                 /etc/resolv.conf /run/cloud-init")      
+        self.session.close()
+        # Create new VM with this os disk
+        osdisk = self.vm.properties["storageProfile"]["osDisk"]["vhd"]["uri"]
+        self.vm.delete()
+        self.vm.image = osdisk        
+        self.vm.os_disk_name += "-new"
+        self.vm.create()
+        self.session.connect()
+        # Check the new VM status
+        self.assertNotIn("enabled",
+                    self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
+                    "Fail to disable cloud-init related services!")
+        self.assertIn("status: disabled",
+                    self.session.cmd_output("sudo cloud-init status"),
+                    "cloud-init status is wrong!")
+        self.assertIn("Active: inactive",
+                    self.session.cmd_output("sudo systemctl status cloud-init-local.service"),
+                    "cloud-init-local service status is wrong!")
+
     def tearDown(self):
         if not self.session.connect(timeout=10):
             self.vm.delete()
