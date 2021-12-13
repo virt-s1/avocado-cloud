@@ -13,4 +13,5 @@ $CODEPATH/general_setup.sh
 # Run tests
 $CODEPATH/run_tests.py --platform alibaba
 
-exit 0
+exit $?
+
