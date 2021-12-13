@@ -103,7 +103,7 @@ Keep this terminal being opened, you will be able to interact with your containe
 
 If there is nothing under `$CONTAINER_NAME/data` of your host. You will need to init the environment before running tests, do the following steps:
 1. Put your ssh credential (the `.pem` file) under `$CONTAINER_NAME/data`;
-2. Run script `/app/container/bin/setup_alibaba.sh`. It will init the environment for testing Alibaba Cloud.
+2. Run script `/app/container/bin/general_setup.sh`. It will init the environment for the cloud.
 3. Update the `.yaml` files under `$CONTAINER_NAME/data` to customize your testing;
 
 Now, you can run `/app/container/bin/test_alibaba.sh` to start your tests for Alibaba Cloud, you will be able to get all the test results and logs from `$CONTAINER_NAME/job-results`.
