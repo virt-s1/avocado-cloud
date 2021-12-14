@@ -116,16 +116,16 @@ class KdumpTest(Test):
         output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
         if 'aarch64' in output and 'metal' not in self.vm.instance_type:
             self.log.info("arm instance")
-            cmd = "sed -i 's/KDUMP_COMMANDLINE_REMOVE=\"/KDUMP_COMMANDLINE_REMOVE=\"irqpoll /' /etc/sysconfig/kdump"
+            cmd = "sudo sed -i 's/KDUMP_COMMANDLINE_REMOVE=\"/KDUMP_COMMANDLINE_REMOVE=\"irqpoll /' /etc/sysconfig/kdump"
             utils_lib.run_cmd(self, cmd, 
                         expect_ret=0, 
                         msg='Append irqpoll to KDUMP_COMMANDLINE_REMOVE')
-            cmd = "sed -i 's/KDUMP_COMMANDLINE_APPEND=\"irqpoll /KDUMP_COMMANDLINE_APPEND=\"/' /etc/sysconfig/kdump"
+            cmd = "sudo sed -i 's/KDUMP_COMMANDLINE_APPEND=\"irqpoll /KDUMP_COMMANDLINE_APPEND=\"/' /etc/sysconfig/kdump"
             utils_lib.run_cmd(self, cmd, 
                         expect_ret=0, 
                         msg='Remove irqpoll from KDUMP_COMMANDLINE_APPEND')
             utils_lib.run_cmd(self, 
-                        r'systemctl restart kdump', 
+                        r'sudo systemctl restart kdump', 
                         expect_ret=0, msg='Restart kdump service to workaround bug 1654962 in arm instances.')
 
         utils_lib.run_cmd(self,
