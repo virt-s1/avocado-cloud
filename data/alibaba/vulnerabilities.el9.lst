@@ -20,5 +20,5 @@ tsx_async_abort:Mitigation: Clear CPU buffers; SMT vulnerable
 tsx_async_abort:Mitigation: TSX disabled
 tsx_async_abort:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown
 itlb_multihit:KVM: Mitigation: VMX unsupported
-Mitigation: Enhanced IBRS, RSB filling
+spectre_v2:Mitigation: Enhanced IBRS, RSB filling
 KVM: Mitigation: VMX disabled
