@@ -1465,7 +1465,7 @@ ssh_pwauth: 1
         self.session.cmd_output("cloud-init single -n set_passwords", timeout=30)
         # Wait for serial log to refresh
         time.sleep(30)
-        serial_output = str(utils_azure.acommand("az vm boot-diagnostics get-boot-log -n {} -g {}".format(self.vm.vm_name, self.vm.resource_group), timeout=10, ignore_status=True).stdout, 'utf-8')
+        serial_output = str(utils_azure.acommand("az vm boot-diagnostics get-boot-log -n {} -g {}".format(self.vm.vm_name, self.vm.resource_group), timeout=10, ignore_status=True).stdout)
         for line in serial_output.split('\r\n'):
             if "test1" in line:
                 test1_pw = line.split(':')[1]
