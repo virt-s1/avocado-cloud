@@ -143,6 +143,7 @@ class PrismApi(PrismSession):
         if self.vm_user_data:
             user_data += self.vm_user_data
         # Attach user script.
+	user_script=[]
         if self.vm_custom_file:
             user_script = [{'source_path': 'adsf:///{}/{}'.format(self.get_container()['name'], self.vm_custom_file),
                       'destination_path': '/tmp/{}'.format(self.vm_custom_file)}]
