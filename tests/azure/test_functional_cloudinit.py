@@ -1646,9 +1646,8 @@ ssh_pwauth: 1
         :avocado: tags=tier2,cloudinit
         RHEL-287483: CLOUDINIT-TC: cloud-init dhclient-hook script shoud exit
                      while cloud-init services are disabled
-        1. Install cloud-init package in VM on Azure, disable cloud-init and related services:
+        1. Install cloud-init package in VM on Azure, disable cloud-init related services:
            # systemctl disable cloud-{init-local,init,config,final}
-           # touch /etc/cloud/cloud-init.disabled
         2. Deprovision the VM and use this os disk to create a new VM
         3. Check the new VM status
            The cloud-init should not run , and the related services are disabled
@@ -1661,7 +1660,7 @@ ssh_pwauth: 1
         self.assertNotIn("enabled",
                     self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
                     "Fail to disable cloud-init related services")
-        self.session.cmd_output("sudo touch /etc/cloud/cloud-init.disabled")
+        #self.session.cmd_output("sudo touch /etc/cloud/cloud-init.disabled")
         # Deprovision the VM
         self.session.cmd_output("sudo rm -rf /var/lib/cloud /var/log/cloud-init* \
             /var/log/messages /mnt/swapfile /var/lib/NetworkManager/dhclient-* \
@@ -1678,11 +1677,11 @@ ssh_pwauth: 1
         self.assertNotIn("enabled",
                     self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
                     "Fail to disable cloud-init related services!")
-        self.assertIn("status: disabled",
+        self.assertIn("status: not run",
                     self.session.cmd_output("sudo cloud-init status"),
-                    "cloud-init status is wrong!")
-        self.assertIn("Active: inactive",
-                    self.session.cmd_output("sudo systemctl status cloud-init-local.service"),
+                    "Cloud-init status is wrong! Maybe BZ2031574")
+        self.assertIn("inactive",
+                    self.session.cmd_output("sudo systemctl is-active cloud-init-local"),
                     "cloud-init-local service status is wrong!")
 
     def tearDown(self):
@@ -1743,7 +1742,8 @@ ssh_pwauth: 1
                 "test_cloudinit_upgrade_downgrade_package",
                 "test_cloudinit_remove_cache_and_reboot_password",
                 "test_cloudinit_mount_with_noexec_option",
-                "test_cloudinit_no_networkmanager"
+                "test_cloudinit_no_networkmanager",
+                "test_cloudinit_dhclient_hook_disable_cloudinit"
         ]:
             self.vm.delete(wait=False)
 
