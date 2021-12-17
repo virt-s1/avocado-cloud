@@ -1374,13 +1374,67 @@ rh_subscription:
                           msg='check if the exit code correct',
                           is_get_console=False)
 
+
+    def test_cloudinit_disable_cloudinit(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-287483: CLOUDINIT-TC: cloud-init dhclient-hook script shoud exit
+                     while cloud-init services are disabled
+        1. Install cloud-init package in VM, disable cloud-init and related services:
+           # systemctl disable cloud-{init-local,init,config,final}
+        2. Clean the VM and reboot VM
+        3. Check the VM status after reboot
+           The cloud-init should not run , and the related services are disabled
+        4. Recover the VM config(enable cloud-init), reboot VM, check the cloud-init is enabled
+        """
+        self.log.info("RHEL-287483: CLOUDINIT-TC: cloud-init dhclient-hook script shoud exit\
+             while cloud-init services are disabled.")
+        # Disable cloud-init
+        self.session.cmd_output("sudo systemctl disable cloud-{init-local,init,config,final}")
+        time.sleep(1)
+        self.assertNotIn("enabled",
+                    self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
+                    "Fail to disable cloud-init related services")
+        # Clean the VM
+        self.session.cmd_output("sudo rm -rf /var/lib/cloud /var/log/cloud-init* \
+            /var/log/messages /run/cloud-init")    
+        # Reboot VM
+        self._reboot_inside_vm()        
+        # Check the new VM status
+        self.assertNotIn("enabled",
+                    self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
+                    "Fail to disable cloud-init related services!")
+        self.assertIn("status: not run",
+                    self.session.cmd_output("sudo cloud-init status"),
+                    "cloud-init status is wrong!")
+        self.assertIn("inactive",
+                    self.session.cmd_output("sudo systemctl is-active cloud-init-local"),
+                    "cloud-init-local service status is wrong!")
+        # Recover the VM config
+        self.session.cmd_output("sudo systemctl enable cloud-{init-local,init,config,final}")
+        time.sleep(1)
+        # Reboot VM
+        self._reboot_inside_vm()
+        # Check the VM status
+        self.assertNotIn("disabled",
+                    self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
+                    "Fail to disable cloud-init related services!")
+        self.assertIn("status: done",
+                    self.session.cmd_output("sudo cloud-init status"),
+                    "cloud-init status is wrong!")
+
+
     def tearDown(self):
-        if self.name.name.endswith("test_cloudinit_login_with_password"):
+        if self.case_short_name in [
+                 "test_cloudinit_login_with_password",
+                 "test_cloudinit_disable_cloudinit"
+         ]:
+            # Delete VM
             self.vm.delete(wait=True)
         elif self.case_short_name in [
                  "test_cloudinit_auto_install_package_with_subscription_manager",
                  "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo"
          ]:
             #unregister after case done
-            self.session.cmd_output("sudo subscription-manager unregister")
-        self.session.close()       
+            self.session.cmd_output("sudo subscription-manager unregister")       
+        self.session.close()     
