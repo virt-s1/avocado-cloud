@@ -1424,6 +1424,26 @@ rh_subscription:
                     "cloud-init status is wrong!")
 
 
+    def test_cloudinit_ip_route_append(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-288020 - CLOUDINIT-TC: Using "ip route append" when config static ip route via cloud-init
+        1. Launch instance with cloud-init installed on OpenStack PSI
+        2. Check /var/log/cloud-init.log
+        cloud-init should config static ip route via "ip route append"
+        """
+        self.log.info(
+            "RHEL-288020 - CLOUDINIT-TC: Check ip route append when config static ip route")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'cat /var/log/cloud-init.log | grep append'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw="Running command ['ip', '-4', 'route', 'append',",
+                          msg="check if using ip route append",
+                          is_get_console=False)
+
+
     def tearDown(self):
         if self.case_short_name in [
                  "test_cloudinit_login_with_password",
