@@ -1648,6 +1648,7 @@ ssh_pwauth: 1
                      while cloud-init services are disabled
         1. Install cloud-init package in VM on Azure, disable cloud-init related services:
            # systemctl disable cloud-{init-local,init,config,final}
+           # touch /etc/cloud/cloud-init.disabled
         2. Deprovision the VM and use this os disk to create a new VM
         3. Check the new VM status
            The cloud-init should not run , and the related services are disabled
@@ -1660,10 +1661,10 @@ ssh_pwauth: 1
         self.assertNotIn("enabled",
                     self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
                     "Fail to disable cloud-init related services")
-        #self.session.cmd_output("sudo touch /etc/cloud/cloud-init.disabled")
+        self.session.cmd_output("sudo touch /etc/cloud/cloud-init.disabled")
         # Deprovision the VM
         self.session.cmd_output("sudo rm -rf /var/lib/cloud /var/log/cloud-init* \
-            /var/log/messages /mnt/swapfile /var/lib/NetworkManager/dhclient-* \
+            /var/log/messages /var/lib/NetworkManager/dhclient-* \
                  /etc/resolv.conf /run/cloud-init")      
         self.session.close()
         # Create new VM with this os disk
@@ -1677,9 +1678,9 @@ ssh_pwauth: 1
         self.assertNotIn("enabled",
                     self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
                     "Fail to disable cloud-init related services!")
-        self.assertIn("status: not run",
+        self.assertIn("status: disabled",
                     self.session.cmd_output("sudo cloud-init status"),
-                    "Cloud-init status is wrong! Maybe BZ2031574")
+                    "Cloud-init status is wrong!")
         self.assertIn("inactive",
                     self.session.cmd_output("sudo systemctl is-active cloud-init-local"),
                     "cloud-init-local service status is wrong!")
