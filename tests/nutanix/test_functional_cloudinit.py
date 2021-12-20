@@ -408,9 +408,28 @@ rh_subscription:
             msg="Device size is incorrect. Raw disk: %s, real: %s" %
             (dev_size, os_disk_size))
         # 3. Enlarge os disk size
-        #self.vm.stop()
-        new_os_disk_size = os_disk_size + 2
-        self.vm.cvm_cmd("echo hello")
+        os_disk_uuid = self.vm.show()['vm_disk_info'][0]['uuid']
+        self.prism.expand_disk(disk_uuid=disk_uuid, disk_size=os_disk_size+2)
+        self.vm.reboot(wait=True)
+        self.session.connect()
+        boot_dev = self._get_boot_temp_devices()[0].split('/')[-1]
+        partition = self.session.cmd_output(
+            "find /dev/ -name {}[0-9]|sort|tail -n 1".format(boot_dev))
+        new_dev_size = self.session.cmd_output(
+            "lsblk /dev/{0} --output NAME,SIZE -r"
+            "|grep -o -P '(?<={0} ).*(?=G)'".format(boot_dev))
+        new_fs_size = self.session.cmd_output(
+            "df {} --output=size -h|grep -o '[0-9]\+'".format(partition))
+        self.assertEqual(
+            int(new_dev_size), int(new_os_disk_size),
+            "New device size is incorrect. "
+            "Device: %s, real: %s" % (new_dev_size, new_os_disk_size))
+        self.assertAlmostEqual(first=float(new_fs_size),
+                               second=float(new_os_disk_size),
+                               delta=1.5,
+                               msg="New filesystem size is incorrect. "
+                               "FS: %s, real: %s" %
+                               (new_fs_size, new_os_disk_size))
 
     def test_cloudinit_regenerate_sshd_keypairs(self):
         """

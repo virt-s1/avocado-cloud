@@ -293,3 +293,27 @@ class PrismApi(PrismSession):
     def get_container(self):
         endpoint = urljoin(self.base_url, "storage_containers/%s" % self.storage_container_uuid)
         return self.make_request(endpoint, 'get')
+        
+    def get_disk(self, disk_uuid):
+        endpoint = urljoin(self.base_url, "virtual_disks/%s" % disk_uuid)
+        return self.make_request(endpoint, 'get')
+        
+    def expand_disk(self, disk_uuid, disk_size):
+        # Shrinking disk is not available in Nutanix.
+        logging.debug("Expanding designated disk.")
+        disk = get_disk(disk_uuid)
+        endpoint = urljoin(self.base_url, "vms/%s/disks/update" % disk['attached_vm_uuod']）
+        data = {"vm_disks": [{
+                    "disk_address": {
+                         "vmdisk_uuid": disk_uuid,
+                         "device_uuid": disk['device_uuid'],
+                         "device_index": 0,
+                         "device_bus": "scsi"},
+                    "flash_mode_enabled": False,
+                    "is_cdrom": False,
+                    "is_empty": False,
+                    "vm_disk_create": {
+                         "storage_container_uuid": disk['container_uuid'],
+                         "size": disk_size*1024*1024*1024}
+                    }]}
+        return self.make_request(endpoint, 'put', data=data)
