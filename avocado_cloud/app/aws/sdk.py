@@ -237,11 +237,22 @@ class EC2VM(VM):
         return 'instance'
 
     def start(self, wait=True):
-        try:
-            self.__ec2_instance.start()
-        except Exception as err:
-            LOG.error(err)
-            return False
+        start_ok = False
+        if self.additionalinfo != None and self.additionalinfo != '':
+            for additionalinfo in self.additionalinfo.split(';'):
+                try:
+                    LOG.error("Start instance using addtionalinfo: {}".format(additionalinfo))
+                    self.__ec2_instance.start(AdditionalInfo=additionalinfo)
+                    start_ok = True
+                    break
+                except Exception as err:
+                    LOG.error("Failed to start instance, try another addtionalinfo {}".format(err))
+        if not start_ok:
+            try:
+                self.__ec2_instance.start()
+            except Exception as err:
+                LOG.error(err)
+                return False
 
         if wait:
             self.__ec2_instance.wait_until_running()
@@ -397,10 +408,11 @@ class EC2VM(VM):
     @property
     @utils_lib.wait_for(not_ret=None, ck_not_ret=True, timeout=120)
     def floating_ip(self):
-        if self.ipv4 is None:
-            LOG.info("No public ip available! Try to reload it!")
         self.__ec2_instance.reload()
         self.ipv4 = self.__ec2_instance.public_dns_name
+        if self.ipv4 is None or self.ipv4 == '':
+            LOG.info("No public ip available! Try to reload it!")
+            return None
         LOG.info("Public ip is: %s" % self.ipv4)
         return self.ipv4
 
@@ -1076,6 +1088,7 @@ class NetworkInterface(Base):
         try:
             LOG.info("Try to dettach %s from %s" %
                      (self.__network_interface.id, instance_id))
+            self.__network_interface.reload()
             self.__network_interface.detach(Force=force)
             if wait:
                 start_time = time.time()
@@ -1092,6 +1105,7 @@ class NetworkInterface(Base):
                                 self.__network_interface.status)
                             return False
                     time.sleep(10)
+            return True
         except Exception as err:
             LOG.error("NIC cannot detach from %s error %s" %
                       (instance_id, err))
