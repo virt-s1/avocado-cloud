@@ -1671,25 +1671,8 @@ in RHEL7|6, bug1625874")
             For virtualized instances, the output is null since microcode should not be loaded in VM.
             For bare metal instances, microcode is loaded.
         '''
-        lscpu_output = utils_lib.run_cmd(self, 'lscpu', expect_ret=0)
-        utils_lib.run_cmd(self,
-                    'lscpu',
-                    expect_ret=0,
-                    cancel_not_kw="aarch64,AMD",
-                    msg="Only run in intel platform")
-        cmd = 'rpm -qa|grep microcode'
-        utils_lib.run_cmd(self, cmd)
-        cmd = 'dmesg|grep microcode|grep -v "no microcode"'
-        if 'Xen' in lscpu_output or 'KVM' in lscpu_output:
-            utils_lib.run_cmd(self,
-                        cmd,
-                        expect_not_ret=0,
-                        msg='microcode should not load in VMs')
-        else:
-            utils_lib.run_cmd(self,
-                        cmd,
-                        expect_ret=0,
-                        msg='microcode should load in bare metals')
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_microcode_load"
+        utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_cpu_count(self):
         '''
@@ -2395,9 +2378,9 @@ master.zip"
         case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_dmesg_nmi"
         utils_lib.run_os_tests(self, case_name=case_name)
 
-    def test_check_sys_modules_parameters(self):
+    def test_check_sys_modules_parameters_readable(self):
         '''
-        :avocado: tags=test_check_sys_modules_parameters,fulltest,acceptance
+        :avocado: tags=test_check_sys_modules_parameters_readable,fulltest,acceptance
         case_name:
             test_check_sys_modules_parameters_readable
         case_priority:
@@ -2409,7 +2392,7 @@ master.zip"
         customer_case_id:
             02232284
         polarion_id:
-            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_sys_modules_parameters"
+            https://polarion.engineering.redhat.com/polarion/#/project/RedHatEnterpriseLinux7/workitems?query=title:"[AWS]GeneralVerification.test_check_sys_modules_parameters_readable"
         maintainer:
             xiliang@redhat.com
         description:
@@ -2419,7 +2402,7 @@ master.zip"
         expected_result:
             No panic happen
         '''
-        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_sys_modules_parameters"
+        case_name = "os_tests.tests.test_general_check.TestGeneralCheck.test_check_sys_modules_parameters_readable"
         utils_lib.run_os_tests(self, case_name=case_name)
 
     def test_check_journalctl_denied(self):

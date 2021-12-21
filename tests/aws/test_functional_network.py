@@ -933,7 +933,18 @@ bandwidth higher than 40G')
             output1 = utils_lib.run_cmd(self, cmd)
             if 'eth%s' % netdev_index not in output1:
                 self.log.info("Added nic not found")
-        self.network.detach_from_instance(self.vm1.instance_id)
+        timeout = 120
+        interval = 5
+        time_start = int(time.time())
+        while True:
+           if self.network.detach_from_instance(self.vm1.instance_id):
+               break
+           time_end = int(time.time())
+           if time_end - time_start > timeout:
+              self.log.info('timeout ended: {}'.format(timeout))
+              break
+           self.log.info('retry after {}s'.format(interval))
+           time.sleep(interval)
         time.sleep(5)
         cmd = "ip addr show"
         utils_lib.run_cmd(self, cmd)

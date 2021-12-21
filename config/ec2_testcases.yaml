@@ -92,7 +92,7 @@ cases:
     test_general_verification.py:GeneralVerification.test_check_cpuusage_exception
     test_general_verification.py:GeneralVerification.test_check_memusage_exception
     test_general_verification.py:GeneralVerification.test_check_dmesg_nmi
-    test_general_verification.py:GeneralVerification.test_check_sys_modules_parameters
+    test_general_verification.py:GeneralVerification.test_check_sys_modules_parameters_readable
     test_general_verification.py:GeneralVerification.test_check_journalctl_denied
     test_general_verification.py:GeneralVerification.test_check_journalctl_not_found
     test_general_verification.py:GeneralVerification.test_check_journalctl_cannot
@@ -100,7 +100,7 @@ cases:
     test_functional_ltp.py:LTPRun.test_ltp_hugemmap
     test_functional_ltp.py:LTPRun.test_ltp_cpuhotplug
     test_functional_ltp.py:LTPRun.test_ltp_add_key02
-    test_functional_ltp.py:LTPRun.test_ltp_quickhit
+    test_functional_ltp.py:LTPRun.test_ltp_smoketest
     test_functional_ltp.py:LTPRun.test_ltp_ipsec_icmp
     test_functional_network.py:NetworkTest.test_mtu_min_set
     test_functional_network.py:NetworkTest.test_iperf_ipv4
