@@ -1,11 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
+# Description: Run containerized avocado-cloud testing.
+# Maintainer: Charles Shih <schrht@gmail.com>
+
 import argparse
-import os
 import yaml
 import subprocess
 
 # Parse params
-ARG_PARSER = argparse.ArgumentParser(description='Run tests in avocado-cloud.')
+ARG_PARSER = argparse.ArgumentParser(
+    description='Run tests in containerized avocado-cloud.')
 
 ARG_PARSER.add_argument('--platform',
                         dest='platform',
@@ -24,37 +28,42 @@ or "" (run all test cases of the platform)',
                         required=False)
 
 ARGS = ARG_PARSER.parse_args()
-REALPATH = os.path.split(os.path.realpath(__file__))[0]
+
+CODEPATH = '/app'
+DATAPATH = '/data'
 
 # Get all test cases
-with open('{0}/config/{1}_testcases.yaml'.format(REALPATH, ARGS.platform),
+with open('{0}/{1}_testcases.yaml'.format(DATAPATH, ARGS.platform),
           'r') as f:
     case_list = yaml.safe_load(f).get('cases').split(' ')
 
 # Expand the real path for test cases
 expanded_case_list = []
 for case in case_list:
+    # Add speicified test suites or all of them
     if 'test_functional_' + ARGS.testsuite in case:
         expanded_case_list.append(
             case.replace(
                 'test_functional_', '{0}/tests/{1}/test_functional_'.format(
-                    REALPATH, ARGS.platform)))
+                    CODEPATH, ARGS.platform)))
         continue
+
+    # Always add clean up test suite if possible
     if 'test_zcleanup' in case:
         expanded_case_list.append(
             case.replace(
                 'test_zcleanup',
-                '{0}/tests/{1}/test_zcleanup'.format(REALPATH, ARGS.platform)))
+                '{0}/tests/{1}/test_zcleanup'.format(CODEPATH, ARGS.platform)))
         continue
 
 # Execute the test
 cmd = 'export PYTHONPATH={0}; \
-/usr/bin/avocado run {1} --mux-yaml {0}/config/test_{2}.yaml \
---execution-order=tests-per-variant'.format(REALPATH,
-                                            ' '.join(expanded_case_list),
-                                            ARGS.platform)
+/usr/bin/avocado run {2} --mux-yaml {1}/test_{3}.yaml \
+--execution-order=tests-per-variant'.format(
+    CODEPATH, DATAPATH, ' '.join(expanded_case_list), ARGS.platform)
 
-print(cmd)
+print('Run command: \n{}'.format(cmd))
+
 p = subprocess.Popen(cmd,
                      shell=True,
                      stdout=subprocess.PIPE,
