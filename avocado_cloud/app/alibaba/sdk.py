@@ -24,6 +24,7 @@ class AlibabaVM(VM):
         self.disk_size = params.get('disk_size', '*/Flavor/*', 0)
         self.disk_type = params.get('disk_type', '*/Flavor/*', '')
         self.nic_count = params.get('nic_count', '*/Flavor/*', 1)
+        self.disk_quantity = params.get('disk_quantity', '*/Flavor/*', 0)
 
         # VM access parameters
         self.vm_username = params.get('username', '*/VM/*')

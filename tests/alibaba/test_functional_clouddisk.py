@@ -16,7 +16,13 @@ class CloudDiskTest(Test):
             pre_stop = True
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
                                           pre_stop=pre_stop)
-        self.cloud_disk_count = self.params.get('cloud_disk_count', '*/Disk/*')
+
+        if self.vm.disk_quantity:
+            self.cloud_disk_count = self.vm.disk_quantity - 1
+        else:
+            self.cloud_disk_count = self.params.get(
+                'cloud_disk_count', '*/Disk/*')
+
         self.cloud_disk_size = self.params.get('cloud_disk_size', '*/Disk/*')
         self.local_disk_count = self.vm.disk_count
         self.local_disk_size = self.vm.disk_size
