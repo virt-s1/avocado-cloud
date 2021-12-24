@@ -22,3 +22,5 @@ tsx_async_abort:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host 
 itlb_multihit:KVM: Mitigation: VMX unsupported
 spectre_v2:Mitigation: Enhanced IBRS, RSB filling
 KVM: Mitigation: VMX disabled
+spectre_v2:Mitigation: Full AMD retpoline, STIBP: disabled, RSB filling
+spectre_v2:Mitigation: Full AMD retpoline, IBPB: conditional, STIBP: conditional, RSB filling
