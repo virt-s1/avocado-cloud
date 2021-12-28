@@ -3,6 +3,7 @@ import base64
 import logging
 from requests.compat import urljoin
 import requests
+import subprocess
 
 # Disable HTTPS verification warnings.
 try:
@@ -14,7 +15,6 @@ else:
 
 logger = logging.getLogger('urllib3')
 logger.setLevel(logging.DEBUG)
-
 
 class PrismSession(object):
     def __init__(self, cvmIP, username, password):
@@ -68,9 +68,11 @@ class PrismSession(object):
             json_obj = json.loads(self.r.text)
             return json_obj
         except ValueError:
-            logging.error("Unable to convert string to json\n %s" %
+            if self.r.text:
+                logging.error("Unable to convert string to json\n %s" %
                           self.r.text)
-
+            else:
+                logging.debug("Response has no content.")
 
 class PrismApi(PrismSession):
     def __init__(self, params):
@@ -87,9 +89,14 @@ class PrismApi(PrismSession):
         self.image_name = params.get('image_name', '*/VM/*')
         self.storage_container_uuid = params.get('storage_container_uuid',
                                                  '*/VM/*')
+        self.disk = params.get('size', '*/Flavor/*')
         self.network_uuid = params.get('network_uuid', '*/VM/*')
         self.cpu = params.get('cpu', '*/Flavor/*')
         self.memory = params.get('memory', '*/Flavor/*')
+        self.vm_user_data = params.get('custom_data', '*/VM/*')
+        self.vm_custom_file = None
+
+        self.base_cmd = ["ssh", username+"@"+self.cvmIP]
 
         super(PrismApi, self).__init__(self.cvmIP, username, password)
 
@@ -105,7 +112,8 @@ class PrismApi(PrismSession):
             json_obj = func(endpoint, data=data)
         else:
             json_obj = func(endpoint)
-        if self.r.status_code not in (200, 201):
+        if self.r.status_code not in (200, 201) and not \
+          (self.r.status_code == 204 and action == "delete"):
             logging.error("%s %s." % (self.r.status_code, self.r.text))
             exit(self.r.status_code)
         return json_obj
@@ -113,6 +121,7 @@ class PrismApi(PrismSession):
     def create_vm(self, ssh_pubkey=None):
         logging.debug("Create VM")
         endpoint = urljoin(self.base_url, "vms")
+	# Attach image.
         images = self.list_images()
         vmdisk_uuid = ""
         for image in images['entities']:
@@ -121,14 +130,27 @@ class PrismApi(PrismSession):
         if vmdisk_uuid == "":
             logging.error("Image %s not found." % self.image_name)
             exit(1)
+        # Attach ssh keys.
         ssh_key = ''
         ssh_pwauth = '\nchpasswd:\n  list: |\n    %s:%s\n  expire: false\nssh_pwauth: yes' % (
             self.vm_username, self.vm_password)
         if (ssh_pubkey):
             ssh_key = '\nssh_authorized_keys:\n- %s' % ssh_pubkey
             ssh_pwauth = ''
-        user_data = '#cloud-config\ndisable_root: false\nlock_passwd: false%s%s' % (
+        # Attach user_data.
+        user_data = '#cloud-config\ndisable_root: false\nlock_passwd: false%s%s\n' % (
             ssh_pwauth, ssh_key)
+        if self.vm_user_data:
+            user_data += self.vm_user_data
+        # Attach user script.
+        user_script=[]
+        if self.vm_custom_file:
+            user_script = [{'source_path': 'adsf:///{}/{}'.format(self.get_container()['name'], self.vm_custom_file),
+                      'destination_path': '/tmp/{}'.format(self.vm_custom_file)}]
+        # Attach NICs (all).
+        network_uuids = []
+        for network in self.list_networks_detail()["entities"]:
+            network_uuids.append({"network_uuid": network["uuid"]})
         data = {
             'boot': {
                 'uefi_boot': False
@@ -145,7 +167,8 @@ class PrismApi(PrismSession):
             'UTC',
             'vm_customization_config': {
                 'datasource_type': 'CONFIG_DRIVE_V2',
-                'userdata': user_data
+                'userdata': user_data,
+                'files_to_inject_list': user_script
             },
             'vm_disks': [{
                 'is_cdrom': False,
@@ -158,12 +181,11 @@ class PrismApi(PrismSession):
                         'device_index': 0,
                         'vmdisk_uuid': vmdisk_uuid
                     },
+                    'minimum_size': self.disk*1024*1024*1024,
                     'storage_container_uuid': self.storage_container_uuid
                 }
             }],
-            'vm_nics': [{
-                'network_uuid': self.network_uuid
-            }]
+            'vm_nics': network_uuids
         }
 
         return self.make_request(endpoint, 'post', data=data)
@@ -195,7 +217,7 @@ class PrismApi(PrismSession):
         logging.debug("Query details about VM")
         endpoint = urljoin(
             self.base_url,
-            "vms?include_vm_nic_config=True&include_vm_disk_config=True&filter=vm_name==%s"
+            "vms/?include_vm_nic_config=True&include_vm_disk_config=True&filter=vm_name==%s"
             % self.vm_name)
         return self.make_request(endpoint, 'get')
 
@@ -208,3 +230,90 @@ class PrismApi(PrismSession):
         logging.debug("Getting list of images")
         endpoint = urljoin(self.base_url, "images")
         return self.make_request(endpoint, 'get')
+
+    def cvm_cmd(self, command):
+        cmd = self.base_cmd
+        cmd.append(command)
+        return subprocess.check_output(cmd)
+
+    def list_networks_detail(self):
+        logging.debug("Query details about netowrks")
+        endpoint = urljoin(
+            self.base_url,
+            "networks/")
+        return self.make_request(endpoint, 'get')
+
+    def create_network(self):
+        logging.debug("Creating virtual network")
+        networks = self.list_networks_detail()
+        exst_IPs = []
+        for network in networks["entities"]:
+            exst_IPs.append(network["ip_config"]["network_address"])
+        for dig in range(2, 254):
+            if "192.168."+str(dig)+".0" not in exst_IPs:
+                new_prefix = "192.168."+str(dig)
+                break
+        endpoint = urljoin(self.base_url, "networks/")
+        data = {
+                "vlan_id": dig,
+                "name": "nic%s" % str(dig),
+                "ip_config": {
+                  "default_gateway": "%s.1" % new_prefix,
+                  "network_address": "%s.0" % new_prefix,
+                  "pool": [{
+                  "range": "%s.2 %s.253" % (new_prefix, new_prefix)
+                }],
+                "prefix_length": 24
+               }}
+        return self.make_request(endpoint, 'post', data=data)
+
+    def delete_networks(self):
+        # We delete all NICs leaving the one in .yaml.
+        logging.debug("Deleting virtual networks")
+        networks = self.list_networks_detail()
+        for network in networks["entities"]:
+            if not network["uuid"] == self.network_uuid:
+                endpoint = urljoin(self.base_url, "networks/%s" % network["uuid"])
+                self.make_request(endpoint, 'delete')
+
+    def attach_disk(self, vm_uuid, disk_size):
+        logging.debug("Creating a disk and attach to VM")
+        endpoint = urljoin(self.base_url, "vms/%s/disks/attach" % vm_uuid)
+        data = {"vm_disks": [{
+                    "is_cdrom": False,
+                    "is_empty": True,
+                    "is_scsi_pass_through": True,
+                    "is_thin_provisioned": False,
+                    "vm_disk_create": {
+                        "size": disk_size*1024*1024*1024,
+                         "storage_container_uuid": self.storage_container_uuid
+               }}]}
+        return self.make_request(endpoint, 'post', data=data)
+
+    def get_container(self):
+        endpoint = urljoin(self.base_url, "storage_containers/%s" % self.storage_container_uuid)
+        return self.make_request(endpoint, 'get')
+        
+    def get_disk(self, disk_uuid):
+        endpoint = urljoin(self.base_url, "virtual_disks/%s" % disk_uuid)
+        return self.make_request(endpoint, 'get')
+        
+    def expand_disk(self, disk_uuid, disk_size):
+        # Shrinking disk is not available in Nutanix.
+        logging.debug("Expanding designated disk.")
+        disk = get_disk(disk_uuid)
+        endpoint = urljoin(self.base_url, "vms/%s/disks/update" % disk['attached_vm_uuod']）
+        data = {"vm_disks": [{
+                    "disk_address": {
+                         "vmdisk_uuid": disk_uuid,
+                         "device_uuid": disk['device_uuid'],
+                         "device_index": 0,
+                         "device_bus": "scsi"},
+                    "flash_mode_enabled": False,
+                    "is_cdrom": False,
+                    "is_empty": False,
+                    "vm_disk_create": {
+                         "storage_container_uuid": disk['container_uuid'],
+                         "size": disk_size*1024*1024*1024}
+                    }]}
+        return self.make_request(endpoint, 'put', data=data)
