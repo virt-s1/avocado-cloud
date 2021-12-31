@@ -119,6 +119,7 @@ class PrismApi(PrismSession):
         return json_obj
 
     def create_vm(self, ssh_pubkey=None):
+        logging.debug("=========Now we getinto create_vm procedure=========")
         logging.debug("Create VM")
         endpoint = urljoin(self.base_url, "vms")
 	# Attach image.
@@ -147,6 +148,7 @@ class PrismApi(PrismSession):
         if self.vm_custom_file:
             user_script = [{'source_path': 'adsf:///{}/{}'.format(self.get_container()['name'], self.vm_custom_file),
                       'destination_path': '/tmp/{}'.format(self.vm_custom_file)}]
+        print(user_script)
         # Attach NICs (all).
         network_uuids = []
         for network in self.list_networks_detail()["entities"]:
@@ -269,12 +271,13 @@ class PrismApi(PrismSession):
 
     def delete_networks(self):
         # We delete all NICs leaving the one in .yaml.
-        logging.debug("Deleting virtual networks")
+        logging.debug("==========Deleting virtual networks==========")
         networks = self.list_networks_detail()
         for network in networks["entities"]:
             if not network["uuid"] == self.network_uuid:
                 endpoint = urljoin(self.base_url, "networks/%s" % network["uuid"])
                 self.make_request(endpoint, 'delete')
+        logging.debug("==========Deleting virtual networks Finished==========")
 
     def attach_disk(self, vm_uuid, disk_size):
         logging.debug("Creating a disk and attach to VM")
@@ -301,19 +304,22 @@ class PrismApi(PrismSession):
     def expand_disk(self, disk_uuid, disk_size):
         # Shrinking disk is not available in Nutanix.
         logging.debug("Expanding designated disk.")
-        disk = get_disk(disk_uuid)
-        endpoint = urljoin(self.base_url, "vms/%s/disks/update" % disk['attached_vm_uuod']）
+        disk = self.get_disk(disk_uuid)
+        logging.debug("================print disk to debug============================")
+        logging.debug(disk)
+        logging.debug("============================================================")
+        endpoint = urljoin(self.base_url, "vms/%s/disks/update" % disk['attached_vm_uuid'])
         data = {"vm_disks": [{
                     "disk_address": {
                          "vmdisk_uuid": disk_uuid,
-                         "device_uuid": disk['device_uuid'],
+                         "device_uuid": disk['uuid'],
                          "device_index": 0,
                          "device_bus": "scsi"},
                     "flash_mode_enabled": False,
                     "is_cdrom": False,
                     "is_empty": False,
                     "vm_disk_create": {
-                         "storage_container_uuid": disk['container_uuid'],
+                         "storage_container_uuid": disk['storage_container_uuid'],
                          "size": disk_size*1024*1024*1024}
                     }]}
         return self.make_request(endpoint, 'put', data=data)

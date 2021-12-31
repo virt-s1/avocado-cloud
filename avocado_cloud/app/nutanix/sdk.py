@@ -3,6 +3,7 @@ from .nutanix import PrismApi
 from avocado_cloud.utils import utils_misc
 from avocado_cloud.utils import ssh_key
 import logging
+import time
 
 
 class NutanixVM(VM):
@@ -68,11 +69,10 @@ class NutanixVM(VM):
                 "Timed out waiting for server to get deleted.")
 
     def start(self, wait=False):
-        logging.info("Start VM")
         res = self.prism.start_vm(self.data.get('uuid'))
         if wait:
             self.wait_for_status(
-                res['task_uuid'], 60,
+                res['task_uuid'], 120,
                 "Timed out waiting for server to get started.")
             for count in utils_misc.iterate_timeout(
                     120, "Timed out waiting for getting IP address."):

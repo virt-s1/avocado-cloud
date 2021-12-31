@@ -12,6 +12,7 @@ from avocado_cloud.app.nutanix.nutanix import PrismApi
 #from avocado_cloud.app.azure import AzureImage
 from distutils.version import LooseVersion
 from avocado_cloud.utils import utils_nutanix
+import logging
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
@@ -219,38 +220,6 @@ class CloudinitTest(Test):
             self.assertEqual(output, 'active',
                              "{} status is not correct: {}".format(service, output))
 
-    def test_cloudinit_check_networkmanager_dispatcher(self):
-        """
-        :avocado: tags=tier2,cloudinit
-        RHEL-170749 - CLOUDINIT-TC: [Azure]Check NetworkManager dispatcher
-        BZ#1707725
-        """
-        self.log.info(
-            "RHEL-170749 - CLOUDINIT-TC: [Azure]Check NetworkManager dispatcher"
-        )
-        self.session.cmd_output("sudo su -")
-        # 1. cloud-init is enabled
-        self.assertEqual(
-            self.session.cmd_status_output("ls /run/cloud-init/enabled")[0], 0,
-            "No /run/cloud-init/enabled when cloud-init is enabled")
-        self.session.cmd_output("rm -rf /run/cloud-init/dhclient.hooks/*.json")
-        self.session.cmd_output("systemctl restart NetworkManager")
-        time.sleep(3)
-        self.assertEqual(
-            self.session.cmd_status_output(
-                "ls /run/cloud-init/dhclient.hooks/*.json")[0], 0,
-            "Cannot run cloud-init if it is enabled")
-        # 2. cloud-init is disabled
-        self.session.cmd_output("mv /run/cloud-init/enabled /tmp/")
-        self.session.cmd_output("rm -f /run/cloud-init/dhclient.hooks/*.json")
-        self.session.cmd_output("systemctl restart NetworkManager")
-        time.sleep(3)
-        self.assertNotEqual(
-            self.session.cmd_status_output(
-                "sudo ls /run/cloud-init/dhclient.hooks/*.json")[0], 0,
-            "Should not run cloud-init if it is not enabled")
-        self.session.cmd_output("sudo mv /tmp/enabled /run/cloud-init/")
-        self.session.cmd_output("sudo systemctl restart NetworkManager")
 
     def _verify_rh_subscription(self, config):
         # self.session.copy_files_to(
@@ -388,7 +357,7 @@ rh_subscription:
             self.session.cmd_output("sudo subscription-manager register --username {}\
                                       --password {}".format(self.subscription_username, \
                                       self.subscription_password), timeout=600)
-            self.session.cmd_output("sudo yum install -y cloud-utils-growpart gdisk")
+            self.session.cmd_output("sudo yum install -y cloud-utils-growpart gdisk", timeout=600)
             if self.session.cmd_status_output("rpm -q cloud-utils-growpart gdisk")[0] != 0:
                 self.fail("Cannot install cloud-utils-growpart gdisk packages")
         # 2. Check os disk and fs capacity
@@ -408,8 +377,11 @@ rh_subscription:
             msg="Device size is incorrect. Raw disk: %s, real: %s" %
             (dev_size, os_disk_size))
         # 3. Enlarge os disk size
-        os_disk_uuid = self.vm.show()['vm_disk_info'][0]['uuid']
-        self.prism.expand_disk(disk_uuid=disk_uuid, disk_size=os_disk_size+2)
+        logging.debug("================print vm_disk_info to debug============================")
+        logging.debug(self.vm.show()['vm_disk_info'])
+        logging.debug("===================================================================")
+        os_disk_uuid = self.vm.show()['vm_disk_info'][0]['disk_address']['vmdisk_uuid']
+        self.prism.expand_disk(disk_uuid=os_disk_uuid, disk_size=os_disk_size+2)
         self.vm.reboot(wait=True)
         self.session.connect()
         boot_dev = self._get_boot_temp_devices()[0].split('/')[-1]
@@ -420,6 +392,7 @@ rh_subscription:
             "|grep -o -P '(?<={0} ).*(?=G)'".format(boot_dev))
         new_fs_size = self.session.cmd_output(
             "df {} --output=size -h|grep -o '[0-9]\+'".format(partition))
+        new_os_disk_size=os_disk_size+2
         self.assertEqual(
             int(new_dev_size), int(new_os_disk_size),
             "New device size is incorrect. "
@@ -581,68 +554,6 @@ EOF""".format(device, size))
         self.assertEqual(start, size + 's', "Start size is not correct")
         self.assertEqual(end, '4194270s', "End size is not correct")
 
-    def test_cloudinit_upgrade_downgrade_package(self):
-        """
-        :avocado: tags=tier2,cloudinit
-        RHEL7-95122	WALA-TC: [Cloudinit] Upgrade cloud-init
-        1. Downgrade through rpm
-        2. Upgrade through rpm
-        3. (if have repo)Downgrade through yum
-        4. (if have repo)Upgrade through yum
-        """
-        self.log.info(
-            "RHEL7-95122 WALA-TC: [Cloudinit] Upgrade cloud-init")
-        rhel7_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-7/packages/cloud-init/18.2/1.el7/x86_64/cloud-init-18.2-1.el7.x86_64.rpm"
-        rhel8_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/cloud-init/18.2/1.el8/noarch/cloud-init-18.2-1.el8.noarch.rpm"
-        try:
-            self.assertEqual(0, self.session.cmd_status_output("ls /tmp/{}".format(self.package))[0],
-                                 "No new pakcage in guest VM")
-            import requests
-            if str(self.project).startswith('7'):
-                old_pkg_url = rhel7_old_pkg_url
-            elif str(self.project).startswith('8'):
-                old_pkg_url = rhel8_old_pkg_url
-            self.old_pkg = old_pkg_url.split('/')[-1]
-            if not os.path.exists("/tmp/{}".format(self.old_pkg)):
-                r = requests.get(old_pkg_url, allow_redirects=True)
-                open("/tmp/{}".format(self.old_pkg), 'wb').write(r.content)
-            self.session.copy_files_to(
-                local_path="/tmp/{}".format(self.old_pkg),
-                remote_path="/tmp/{}".format(self.old_pkg))
-            self.assertEqual(0, self.session.cmd_status_output("ls /tmp/{}".format(self.old_pkg))[0],
-                                 "No old pakcage in guest VM")
-        except:
-            self.cancel("No old or new package in guest VM. Skip this case.")
-        self.session.cmd_output("sudo su -")
-        self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -Uvh --oldpackage /tmp/{}".format(self.old_pkg))[0],
-            "Fail to downgrade package through rpm")
-        self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -Uvh /tmp/{}".format(self.package))[0],
-            "Fail to upgrade package through rpm")
-        self.assertNotIn("disabled", self.session.cmd_output("systemctl is-enabled cloud-init-local cloud-init cloud-config cloud-final"),
-                         "After upgrade through rpm, the cloud-init services are not enabled")
-        self.assertNotIn("inactive", self.session.cmd_output("systemctl is-active cloud-init-local cloud-init cloud-config cloud-final"),
-                         "After upgrade through rpm, the cloud-init services are not active")
-        self.assertEqual(0, self.session.cmd_status_output(
-            "yum downgrade /tmp/{} -y --disablerepo=*".format(self.old_pkg))[0],
-            "Fail to downgrade package through yum")
-        self.assertEqual(0, self.session.cmd_status_output(
-            "yum upgrade /tmp/{} -y --disablerepo=*".format(self.package))[0],
-            "Fail to upgrade package through yum")
-        self.assertNotIn("disabled", self.session.cmd_output("systemctl is-enabled cloud-init-local cloud-init cloud-config cloud-final"),
-                         "After upgrade through yum, the cloud-init services are not enabled")
-        self.assertNotIn("inactive", self.session.cmd_output("systemctl is-active cloud-init-local cloud-init cloud-config cloud-final"),
-                         "After upgrade through yum, the cloud-init services are not active")
-        self.session.cmd_output("rm -f /var/log/cloud-init*")
-        self.session.close()
-        self.vm.reboot(wait=True)
-        self.session.connect()
-        try:
-            self.test_cloudinit_check_cloudinit_log()
-        except:
-            self.log.warn("There are error/fail logs")
-
     def test_cloudinit_provision_vm_with_multiple_nics(self):
         """
         :avocado: tags=tier2,cloudinit
@@ -667,6 +578,7 @@ EOF""".format(device, size))
             "Expect: {}\nReal: {}".format(ip_list_host, ip_list_vm))
         self.vm.delete(wait=True)
         self.prism.delete_networks()
+        logging.debug('procedure test_cloudinit_provision_vm_with_multiple_nics finished')
 
     def _verify_authorizedkeysfile(self, keyfiles):
         self.session.cmd_output("sudo su")
@@ -781,25 +693,6 @@ EOF""".format(device, size))
         self._check_cloudinit_log(additional_ignore_msg=["WARNING"])
         self.session.cmd_output("sudo subscription-manager unregister")
 
-    def test_cloudinit_auto_register_with_subscription_manager(self):
-        """
-        :avocado: tags=tier2,cloudinit
-        RHEL-181761 CLOUDINIT-TC: auto register by cloud-init
-        1. Add content to /etc/cloud/cloud.cfg.d/test_rh_subscription.cfg
-'       rh_subscription:
-          username: ******
-          password: ******
-        2. Run rh_subscription module
-        3. Verify can register with subscription-manager
-        4. Verify can auto-attach manually
-        """
-        self.log.info("RHEL-181761 CLOUDINIT-TC: auto register by cloud-init")
-        CONFIG='''\
-rh_subscription:
-  username: {}
-  password: {}'''.format(self.subscription_username, self.subscription_password)
-        self._verify_rh_subscription(CONFIG)
-
     def test_cloudinit_swapon_with_xfs_filesystem(self):
         """
         :avocado: tags=tier2,cloudinit
@@ -824,6 +717,7 @@ rh_subscription:
         old_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
         # Attach data disk
         self.vm.attach_disk(size=5, wait=True)
+        time.sleep(10) #Add 10 seconds casue sometimes following command could not get exit status
         self.assertEqual(self.session.cmd_status_output("ls /dev/sdb")[0], 0,
             "No /dev/sdb device after attach data disk")
         self.session.cmd_output("parted /dev/sdb rm 1 -s")
@@ -1019,20 +913,20 @@ runcmd:
         self.session.cmd_output("sudo subscription-manager unregister")
 
     def tearDown(self):
+        logging.debug("=========Now we getinto tearDown procedure=========")
         if not self.session.connect(timeout=10) and self.vm.exists():
             self.vm.delete()
             return
         if self.case_short_name in [
                 "test_cloudinit_swapon_with_xfs_filesystem",
-                "test_cloudinit_provision_vm_with_multiple_nics",
+                #"test_cloudinit_provision_vm_with_multiple_nics", #comment this line cause vm already be deleted in case excecution then will cause 500 error here
                 "test_cloudinit_upgrade_downgrade_package",
-                "test_cloudinit_remove_cache_and_reboot_password",
                 "test_cloudinit_mount_with_noexec_option",
                 "test_cloudinit_no_networkmanager"
         ]:
             self.vm.delete(wait=False)
+        time.sleep(10) #Add 10 seconds casue sometimes some case can query the VM but canno login after deleting in above case in full run
         self.session.close()
-
-
+        
 if __name__ == "__main__":
     main()
