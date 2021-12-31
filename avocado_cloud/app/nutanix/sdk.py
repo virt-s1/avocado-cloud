@@ -3,6 +3,7 @@ from .nutanix import PrismApi
 from avocado_cloud.utils import utils_misc
 from avocado_cloud.utils import ssh_key
 import logging
+import time
 
 
 class NutanixVM(VM):
@@ -16,8 +17,11 @@ class NutanixVM(VM):
         # VM access parameters
         self.vm_username = params.get('username', '*/VM/*')
         self.vm_password = params.get('password', '*/VM/*')
+        self.vm_user_data = params.get('custom_data', '*/VM/*')
+        self.network_uuid = params.get('network_uuid', '*/VM/*')
         self.ssh_pubkey = ssh_key.get_public_key()
         self.arch = 'x86_64'
+        self.vm_custom_file = None
 
         self.prism = PrismApi(params)
 
@@ -34,8 +38,9 @@ class NutanixVM(VM):
     @property
     def floating_ip(self):
         f_ip = None
-        if "ip_address" in self.data.get('vm_nics')[0]:
-            f_ip = self.data.get('vm_nics')[0]['ip_address']
+        for nic in self.data.get('vm_nics'):
+            if nic['network_uuid'] == self.network_uuid:
+                f_ip = nic['ip_address']
         return f_ip
 
     def wait_for_status(self, task_uuid, timeout, error_message):
@@ -46,6 +51,8 @@ class NutanixVM(VM):
 
     def create(self, wait=False):
         logging.info("Create VM")
+        self.prism.vm_user_data = self.vm_user_data
+        self.prism.vm_custom_file = self.vm_custom_file
         res = self.prism.create_vm(self.ssh_pubkey)
         if wait:
             self.wait_for_status(
@@ -62,11 +69,10 @@ class NutanixVM(VM):
                 "Timed out waiting for server to get deleted.")
 
     def start(self, wait=False):
-        logging.info("Start VM")
         res = self.prism.start_vm(self.data.get('uuid'))
         if wait:
             self.wait_for_status(
-                res['task_uuid'], 60,
+                res['task_uuid'], 120,
                 "Timed out waiting for server to get started.")
             for count in utils_misc.iterate_timeout(
                     120, "Timed out waiting for getting IP address."):
@@ -117,3 +123,14 @@ class NutanixVM(VM):
 
     def show(self):
         return self.data
+
+    def cvm_cmd(self, command):
+        return self.prism.cvm_cmd(command)
+
+    def attach_disk(self, size, wait=False):
+        logging.info("Creating and attaching disk")
+        res = self.prism.attach_disk(self.data.get('uuid'), size)
+        if wait:
+            self.wait_for_status(
+                res['task_uuid'], 30,
+                "Timed out attaching disk.")
