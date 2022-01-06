@@ -29,6 +29,7 @@ from aliyunsdkecs.request.v20140526 import DescribeNetworkInterfacesRequest
 from aliyunsdkecs.request.v20140526 import DetachNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import DeleteNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import GetInstanceConsoleOutputRequest
+from aliyunsdkecs.request.v20140526 import DescribeAvailableResourceRequest
 
 
 class AliyunConfig(object):
@@ -114,16 +115,13 @@ class AlibabaSDK(object):
         self.vm_params["NetworkInterfaceName"] = params.get(
             'nic_name', '*/NIC/*')
 
-        # Assign DiskCategory
-        # Gen4 and below: cloud_ssd only; Gen6 and above: cloud_essd only
-        family_gen = int(
-            list(filter(str.isdigit, self.vm_params['InstanceType']))[0])
-        if family_gen >= 6:
-            self.vm_params['DiskCategory'] = 'cloud_essd'
-        else:
-            self.vm_params['DiskCategory'] = 'cloud_ssd'
-        logging.info('Assigned DiskCategory {} to InstanceType {}.'.format(
-            self.vm_params['DiskCategory'], self.vm_params['InstanceType']))
+        # Assign SystemDiskCategory and DiskCategory
+        self.vm_params["SystemDiskCategory"] = self.select_disk_category(
+            'SystemDisk')
+        self.vm_params["DiskCategory"] = self.select_disk_category('DataDisk')
+
+        logging.info('Assigned. SystemDiskCategory="{}"; DiskCategory="{}".'.format(
+            self.vm_params['SystemDiskCategory'], self.vm_params['DiskCategory']))
 
     def _send_request(self, request):
         request.set_accept_format('json')
@@ -245,6 +243,61 @@ class AlibabaSDK(object):
         self.vm_params["InstanceType"] = new_type
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
+
+    # Resource
+    def describe_available_resource(self, destination_resource):
+        # destination_resource: ['Zone', 'IoOptimized', 'InstanceType',
+        #                        'SystemDisk', 'DataDisk', 'Network', 'ddh']
+        request = DescribeAvailableResourceRequest.DescribeAvailableResourceRequest()
+        key_list = ["DestinationResource", "ZoneId", "InstanceType"]
+        self.vm_params["DestinationResource"] = destination_resource
+        request = self._add_params(request, key_list, self.vm_params)
+        return self._send_request(request)
+
+    def select_disk_category(self, category):
+        """Select Available Disk Category by ZoneId and InstanceType."""
+
+        if category not in ('SystemDisk', 'DataDisk'):
+            logging.error(
+                'Unsupported category! category = {}'.format(category))
+            return 'cloud_efficiency'
+
+        _data = self.describe_available_resource(category)
+
+        _azone = _data.get('AvailableZones', {}).get('AvailableZone', [])
+        if len(_azone) != 1 or _azone[0].get('Status') != 'Available':
+            logging.error('Resource unavailable! _azone = {}'.format(_azone))
+            return 'cloud_efficiency'
+
+        _resource = _azone[0].get(
+            'AvailableResources', {}).get('AvailableResource', [])
+        if len(_resource) != 1 or _resource[0].get('Type') != category:
+            logging.error(
+                'Resource unavailable! _resource = {}'.format(_resource))
+            return 'cloud_efficiency'
+
+        _disk = _resource[0].get(
+            'SupportedResources', {}).get('SupportedResource', [])
+        _disk_categories = [
+            x.get('Value') for x in _disk if x.get('Status') == 'Available']
+
+        if len(_disk_categories) == 0:
+            logging.error('Resource unavailable! _disk_categories = []')
+            return 'cloud_efficiency'
+
+        if 'cloud_essd' in _disk_categories:
+            disk_category = 'cloud_essd'
+        elif 'cloud_ssd' in _disk_categories:
+            disk_category = 'cloud_ssd'
+        elif 'cloud_efficiency' in _disk_categories:
+            disk_category = 'cloud_efficiency'
+        else:
+            disk_category = _disk_categories[0]
+
+        logging.info('Selected {} Category "{}" from {}'.format(
+            category, disk_category, _disk_categories))
+
+        return disk_category
 
     # Public IP
     def allocate_public_ip_address(self, instance_id):
