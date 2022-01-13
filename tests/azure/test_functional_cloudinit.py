@@ -819,11 +819,10 @@ EOF""".format(device, size))
     def test_cloudinit_provision_gen2_vm(self):
         """
         :avocado: tags=tier2,cloudinit
-        RHEL-178728	WALA-TC: [General] Verify provision Gen2 VM
-        BZ#1714167
+        RHEL-176836 CLOUDINIT-TC: [Azure]Provision UEFI VM
         """
         self.log.info(
-            "RHEL-178728	WALA-TC: [General] Verify provision Gen2 VM")
+            "RHEL-176836 CLOUDINIT-TC: [Azure]Provision UEFI VM")
         error_msg = ""
         # Verify hostname is correct
         try:
