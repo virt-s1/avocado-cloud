@@ -621,7 +621,7 @@ ssh_pwauth: 1
                 "sudo cat /etc/sudoers.d/90-cloud-init-users"),
             "No sudo privilege")  
         # checking cloud-init status
-        cmd = 'cloud-init status'
+        cmd = 'sudo cloud-init status'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
   
 
@@ -657,7 +657,7 @@ ssh_pwauth: 1
                           expect_kw='ConfigDrive',
                           msg='check if ConfigDrive in /run/cloud-init/cloud.cfg',
                           is_get_console=False)
-        cmd = 'cloud-init status'
+        cmd = 'sudo cloud-init status'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
 
 
