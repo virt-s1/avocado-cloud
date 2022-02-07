@@ -87,6 +87,8 @@ class PrismApi(PrismSession):
         self.vm_username = params.get('username', '*/VM/*')
         self.vm_password = params.get('password', '*/VM/*')
         self.image_name = params.get('image_name', '*/VM/*')
+        self.image_name_iso = params.get('image_name_iso','*/VM/*')
+        self.image_name_kickstart_iso = params.get('image_name_kickstart_iso','*/VM/*')
         self.storage_container_uuid = params.get('storage_container_uuid',
                                                  '*/VM/*')
         self.disk = params.get('size', '*/Flavor/*')
@@ -119,7 +121,6 @@ class PrismApi(PrismSession):
         return json_obj
 
     def create_vm(self, ssh_pubkey=None):
-        logging.debug("=========Now we getinto create_vm procedure=========")
         logging.debug("Create VM")
         endpoint = urljoin(self.base_url, "vms")
 	# Attach image.
@@ -191,7 +192,82 @@ class PrismApi(PrismSession):
         }
 
         return self.make_request(endpoint, 'post', data=data)
-
+       
+    def create_vm_ISO_kickstart(self):
+        logging.debug("Create VM by ISO kickstart")
+        endpoint = urljoin(self.base_url, "vms")
+	# Attach image.
+        images = self.list_images()
+        vmdisk_uuid = []
+        for image in images['entities']:
+            if self.image_name_iso == image['name']:
+                vmdisk_uuid.append(image['vm_disk_id'])
+            if self.image_name_kickstart_iso == image['name']:
+                vmdisk_uuid.append(image['vm_disk_id'])
+        logging.debug("vmdisk_uuid is "+str(vmdisk_uuid))
+        if vmdisk_uuid == "":
+            logging.error("Image %s not found." % self.image_name)
+            exit(1)
+        # Attach NICs (all).
+        network_uuids = []
+        for network in self.list_networks_detail()["entities"]:
+            network_uuids.append({"network_uuid": network["uuid"]})
+        data = {
+            'boot': {
+                'uefi_boot': False
+            },
+            'boot_device_type': 'CDROM',
+            'memory_mb':
+            self.memory * 1024,
+            'name':
+            self.vm_name,
+            'num_cores_per_vcpu':
+            1,
+            'num_vcpus':
+            self.cpu,
+            'timezone':
+            'UTC',
+            'vm_disks': [{
+                'is_cdrom': True,
+                'is_empty': False,
+                'is_scsi_pass_through': True,
+                'is_thin_provisioned': False,
+                'vm_disk_clone': {
+                    'disk_address': {
+                        'device_bus': 'ide',
+                        'device_index': 0,
+                        'vmdisk_uuid': vmdisk_uuid[0]
+                    }
+                }
+            },
+            {
+                'is_cdrom': True,
+                'is_empty': False,
+                'is_scsi_pass_through': True,
+                'is_thin_provisioned': False,
+                'vm_disk_clone': {
+                    'disk_address': {
+                        'device_bus': 'ide',
+                        'device_index': 1,
+                        'vmdisk_uuid': vmdisk_uuid[1]
+                    },
+                }
+            },
+            {
+                'is_cdrom': False,
+                'is_empty': True,
+                'is_scsi_pass_through': True,
+                'is_thin_provisioned': False,
+                'vm_disk_create': {
+                    'size': self.disk*1024*1024*1024,
+                    'storage_container_uuid': self.storage_container_uuid
+                }
+            }],
+            'vm_nics': network_uuids
+        }
+        logging.debug("data is " + str(data))
+        return self.make_request(endpoint, 'post', data=data)
+        
     def delete_vm(self, vm_uuid):
         logging.debug("Delete VM")
         endpoint = urljoin(self.base_url, "vms/%s" % vm_uuid)
