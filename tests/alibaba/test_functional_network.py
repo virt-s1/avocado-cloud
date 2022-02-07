@@ -27,7 +27,42 @@ class NetworkTest(Test):
         1. Start VM. Attach max NICs and check all can get IP
         2. Add 1 more NIC. Should not be added
         3. Detach all NICs. Device should be removed inside guest
+
+        Notice: Some of instance types are not support Hot Plug NIC
+        https://help.aliyun.com/document_detail/25378.html
         """
+
+        unsupport_instance_types = [
+            'ecs.t6-c1m1.large',
+            'ecs.t6-c1m2.large',
+            'ecs.t6-c1m4.large',
+            'ecs.t6-c2m1.large',
+            'ecs.t6-c4m1.large',
+            'ecs.t5-lc2m1.nano',
+            'ecs.t5-c1m1.large',
+            'ecs.t5-c1m2.large',
+            'ecs.t5-c1m4.large',
+            'ecs.t5-lc1m1.small',
+            'ecs.t5-lc1m2.large',
+            'ecs.t5-lc1m2.small',
+            'ecs.t5-lc1m4.large',
+            'ecs.s6-c1m1.small',
+            'ecs.s6-c1m2.large',
+            'ecs.s6-c1m2.small',
+            'ecs.s6-c1m4.large',
+            'ecs.s6-c1m4.small',
+            'ecs.n4.small',
+            'ecs.n4.large',
+            'ecs.mn4.small',
+            'ecs.mn4.large',
+            'ecs.e4.small',
+            'ecs.e4.large',
+        ]
+
+        if self.vm.flavor in unsupport_instance_types:
+            self.cancel('Unsupport instance type ({}), skip this case.'.format(
+                self.vm.flavor))
+
         # 1. Attach max NICs and check all can get IP
         count = self.vm.nic_count - 1
         self.log.info("Step 1: Attach %s NICs." % count)
@@ -46,7 +81,7 @@ class NetworkTest(Test):
         self.log.info("NIC Count: %s" % count)
         self.session.cmd_output("bash {0}/aliyun_enable_nics.sh {1}".format(
             guest_path, count),
-                                timeout=180)
+            timeout=180)
 
         self.session.cmd_output('ip addr', timeout=30)
         time.sleep(60)  # waiting for dhcp works
@@ -81,7 +116,7 @@ class NetworkTest(Test):
         self.log.info("NIC Count: %s" % count)
         self.session.cmd_output("bash {0}/aliyun_disable_nics.sh {1}".format(
             guest_path, count),
-                                timeout=180)
+            timeout=180)
 
         nic_ids = [
             self.vm.get_nic_id(nic) for nic in self.vm.query_nics()
@@ -130,7 +165,7 @@ class NetworkTest(Test):
         self.log.info("NIC Count: %s" % count)
         self.session.cmd_output("bash {0}/aliyun_enable_nics.sh {1}".format(
             guest_path, count),
-                                timeout=180)
+            timeout=180)
 
         time.sleep(10)
         self.session.cmd_output('ip addr', timeout=30)
