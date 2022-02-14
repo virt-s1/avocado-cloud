@@ -41,3 +41,5 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_root_exit_code
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_disable_cloudinit
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_ip_route_append
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_dependency
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_removed_dependency

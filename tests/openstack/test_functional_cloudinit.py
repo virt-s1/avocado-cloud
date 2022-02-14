@@ -621,7 +621,7 @@ ssh_pwauth: 1
                 "sudo cat /etc/sudoers.d/90-cloud-init-users"),
             "No sudo privilege")  
         # checking cloud-init status
-        cmd = 'cloud-init status'
+        cmd = 'sudo cloud-init status'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
   
 
@@ -657,7 +657,7 @@ ssh_pwauth: 1
                           expect_kw='ConfigDrive',
                           msg='check if ConfigDrive in /run/cloud-init/cloud.cfg',
                           is_get_console=False)
-        cmd = 'cloud-init status'
+        cmd = 'sudo cloud-init status'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
 
 
@@ -1441,6 +1441,69 @@ rh_subscription:
                           expect_ret=0,
                           expect_kw="Running command ['ip', '-4', 'route', 'append',",
                           msg="check if using ip route append",
+                          is_get_console=False)
+
+    def test_cloudinit_dependency(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-288482 - CLOUDINIT-TC: Check cloud-init dependency, openssl and gdisk 
+        1. Launch instance with cloud-init installed
+        2. Check the cloud-init denpendency
+        # rpm -qR cloud-init 
+        """
+        self.log.info(
+            "RHEL-288482 - CLOUDINIT-TC: Check cloud-init dependency, openssl and gdisk")
+        self.session.connect(timeout=self.ssh_wait_timeout)        
+        cmd = 'sudo rpm -qR cloud-init | grep openssl'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='openssl',
+                          msg='check if openssl is cloud-init dependency',
+                          is_get_console=False)
+        cmd = 'sudo rpm -qR cloud-init | grep gdisk'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='gdisk',
+                          msg='check if gdisk is cloud-init dependency',
+                          is_get_console=False)
+
+    def test_cloudinit_removed_dependency(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-198795 - CLOUDINIT-TC: Check cloud-init removed dependency, net-tools, python3-mock, python3-nose, python3-tox 
+        1. Launch instance with cloud-init installed
+        2. Check the cloud-init denpendency
+        # rpm -qR cloud-init 
+        """
+        self.log.info(
+            "RHEL-198795 - CLOUDINIT-TC: Check cloud-init removed dependency")
+        self.session.connect(timeout=self.ssh_wait_timeout)        
+        cmd = 'sudo rpm -qR cloud-init'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='net-tools',
+                          msg='check if net-tools is removed from cloud-init dependency',
+                          is_get_console=False)
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='python3-mock',
+                          msg='check if python3-mock is removed from cloud-init dependency',
+                          is_get_console=False)
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='python3-nose',
+                          msg='check if python3-nose is removed from cloud-init dependency',
+                          is_get_console=False)
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_not_kw='python3-tox',
+                          msg='check if python3-tox is removed from cloud-init dependency',
                           is_get_console=False)
 
 
