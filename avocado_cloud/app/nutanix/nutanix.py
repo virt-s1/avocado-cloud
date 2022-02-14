@@ -205,7 +205,7 @@ class PrismApi(PrismSession):
             if self.image_name_kickstart_iso == image['name']:
                 vmdisk_uuid.append(image['vm_disk_id'])
         logging.debug("vmdisk_uuid is "+str(vmdisk_uuid))
-        if vmdisk_uuid == "":
+        if len(vmdisk_uuid) != 2:
             logging.error("Image %s not found." % self.image_name)
             exit(1)
         # Attach NICs (all).

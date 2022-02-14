@@ -927,10 +927,10 @@ runcmd:
             with open('/dev/urandom', 'rb') as urandom:
                 while True:
                     byte = urandom.read(1)
-                    byte = byte.decode("gbk","ignore")
-                    if byte in ('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-                                './0123456789'):
-                        salt += byte
+                    
+                    if byte in (b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+                                b'./0123456789'):
+                        salt += byte.decode("utf8","ignore")
                         if len(salt) == 16:
                             break
         salt = crypt_type + salt

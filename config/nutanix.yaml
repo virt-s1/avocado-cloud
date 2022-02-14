@@ -5,8 +5,8 @@ Credential:
   username: admin
   password: Sanbanhua@1013
 Subscription:
-  username: QualityAssurance
-  password: VHVFhPS5TEG8dud9
+  username: 
+  password: 
 VM:
   rhel_ver: '8.5'
   username: cloud-user
