@@ -1,7 +1,7 @@
 from avocado import Test
 from avocado_cloud.app import Setup
 import time
-
+import logging
 
 class LifeCycleTest(Test):
     def setUp(self):
@@ -26,11 +26,13 @@ class LifeCycleTest(Test):
         self.vm.create(wait=True)
         if self.vm.is_stopped():
             self.vm.start(wait=True)
+        
         self.session.connect(authentication="password")
         output = self.session.cmd_output('whoami')
         self.assertEqual(
             self.vm.vm_username, output, "Create VM with password error: \
 output of cmd `who` unexpected -> %s" % output)
+        
 
     def test_create_vm_sshkey(self):
         output = self.session.cmd_output('whoami')
@@ -83,6 +85,23 @@ output of cmd `who` unexpected -> %s" % output)
         self.vm.delete(wait=True)
         self.assertFalse(self.vm.exists(), "Delete VM error: VM still exists")
 
+    def test_kickstart_install_vm(self):
+        if self.vm.exists():
+                self.vm.delete(wait=True)
+        self.vm.create_by_ISO_kickstart(wait=True)
+        self.vm.start(wait=True)
+        logging.debug("wait for kickstart automatic installation")
+        time.sleep(3600)
+        logging.debug("re-write self vm user name for kickstart installation verfication")
+        origin_username = self.vm.vm_username
+        self.vm.vm_username = "root"
+        self.session.connect(authentication="password")
+        self.assertEqual(self.vm.vm_username,
+                         self.session.cmd_output("whoami"),
+                         "Fail to login with password")
+        logging.debug("recover self vm user name for kickstart installation verfication")
+        self.vm.vm_username = origin_username
+        
     def tearDown(self):
         if self.name.name.endswith("create_vm_password"):
             self.vm.delete(wait=True)

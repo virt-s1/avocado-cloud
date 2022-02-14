@@ -912,6 +912,124 @@ runcmd:
             "cloud-final.service status is not active (exited)")
         self.session.cmd_output("sudo subscription-manager unregister")
 
+    def _generate_password(self, password, hash, salt=''):
+        import crypt
+        if hash == 'md5':
+            crypt_type = '$1$'
+        elif hash == 'sha-256':
+            crypt_type = '$5$'
+        elif hash == 'sha-512':
+            crypt_type = '$6$'
+        else:
+            assert False, 'Unhandled hash option: {}'.format(hash)
+        # Generate a random salt
+        if salt == '':
+            with open('/dev/urandom', 'rb') as urandom:
+                while True:
+                    byte = urandom.read(1)
+                    
+                    if byte in (b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+                                b'./0123456789'):
+                        salt += byte.decode("utf8","ignore")
+                        if len(salt) == 16:
+                            break
+        salt = crypt_type + salt
+        hashed = crypt.crypt(password, salt)
+        return hashed
+
+    def test_cloudinit_chpasswd_with_hashed_passwords(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-172679	CLOUDINIT-TC: chpasswd in cloud-init should support hashed passwords
+        1. Add 6 users in the VM
+        2. Add different passwords to /etc/cloud/cloud.conf.d/test_hash_passwords.cfg
+        chpasswd:
+          list:
+            - test1:(md5 hashed)
+            - test2:(sha256 hashed)
+            - test3:(sha-512 hashed)
+            - test4:RedHat@2019
+            - test5:R (random)
+            - test6:RANDOM (random)
+        3. Verify if cloud-init can handle these passwords
+        """
+        self.log.info("RHEL-172679 CLOUDINIT-TC: chpasswd in cloud-init should support hashed passwords")
+        self.session.cmd_output("sudo su -")
+        # Enable boot diagnostic
+        #utils_azure.command("az vm boot-diagnostics enable -n {} -g {} --storage https://{}.blob.core.windows.net/"\
+        #    .format(self.vm.vm_name, self.vm.resource_group, self.vm.storage_account), timeout=120)
+        # Add test1..test6 users in the VM
+        for i in range(1, 7):
+            user = "test{}".format(str(i))
+            self.session.cmd_output("userdel -r {}".format(user))
+            self.session.cmd_output("useradd {}".format(user))
+            self.assertEqual(self.session.cmd_status_output("id {}".format(user))[0], 0,
+                "Fail to create user {}".format(user))
+        # Run set_passwords module
+        base_pw = "RedHat@2019"
+        pw_config_dict = {
+            "test1": self._generate_password(base_pw, "md5"),
+            "test2": self._generate_password(base_pw, "sha-256"),
+            "test3": self._generate_password(base_pw, "sha-512"),
+            "test4": base_pw,
+            "test5": "R",
+            "test6": "RANDOM"
+        }
+        CONFIG='''\
+chpasswd:
+  list:
+    - test1:{test1}
+    - test2:{test2}
+    - test3:{test3}
+    - test4:{test4}
+    - test5:{test5}
+    - test6:{test6}'''.format(**pw_config_dict)
+        self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_hash_passwords.cfg".format(CONFIG))
+        self.session.cmd_output("rm -f /var/lib/cloud/instance/sem/config_set_passwords /var/log/cloud-init*.log")
+        output = self.session.cmd_output("cloud-init single --name set_passwords")
+        
+        #####################Comment this section cause NUTANIXVM has no method to get console log, may be related to BZ2034588(root cause: put log to console error)#####################
+        # Verify serial output. Sleep 20s to wait for the serial console log refresh
+        #time.sleep(30)
+        #serial_output = utils_azure.command("az vm boot-diagnostics get-boot-log -n {} -g {}".format(self.vm.vm_name, self.vm.resource_group), timeout=10, ignore_status=True).stdout
+        #for line in serial_output.split('\r\n'):
+        #    if "test5" in line:
+        #        test5_pw = line.split(':')[1]
+        #    elif "test6" in line:
+        #        test6_pw = line.split(':')[1]
+        #if "test5_pw" not in vars() or "test6_pw" not in vars():
+        #    self.fail("Not show random passwords in the serial console")
+         #####################Comment this section cause NUTANIXVM has no method to get console log, may be related to BZ2034588(root cause: put log to console error)#####################
+        test4_salt = self.session.cmd_output("getent shadow test4").split('$')[2]
+        test5_salt = self.session.cmd_output("getent shadow test5").split('$')[2]
+        test6_salt = self.session.cmd_output("getent shadow test6").split('$')[2]
+        shadow_dict = {
+            "test1": pw_config_dict['test1'],
+            "test2": pw_config_dict['test2'],
+            "test3": pw_config_dict['test3'],
+            "test4": "test4:{}:".format(self._generate_password(base_pw, "sha-512", test4_salt)),
+            #"test5": "test5:{}:".format(self._generate_password(test5_pw, "sha-512", test5_salt)), #Comment this cause NUTANIXVM has no method to get console log
+            #"test6": "test6:{}:".format(self._generate_password(test6_pw, "sha-512", test6_salt)),#Comment this cause NUTANIXVM has no method to get console log
+        }
+        for user in shadow_dict:
+            real = self.session.cmd_output("getent shadow {}".format(user))
+            expect = shadow_dict.get(user)
+            self.assertIn(expect, real,
+                "The {} password in /etc/shadow doesn't meet the expectation. Real:{} Expect:{}".format(user, real, expect))
+        #Move this step after checking test4 pwd
+        for line in output.split('\n'):
+            if "test5" in line:
+                test5_pw = line.split(':')[1]
+            elif "test6" in line:
+                test6_pw = line.split(':')[1]
+            elif "failed" in line:
+                self.fail("Failed to set password, analyze:  conpath = \"/dev/console\",wfh.flush(), OSError: [Errno 5] Input/output error; root cause:  should same with BZ2034588")
+        # From cloud-init-21.1-3.el8 or cloud-init-21.1-4.el9 the password should not in the output and cloud-init-output.log
+        if "test5_pw" in vars() or "test6_pw" in vars():
+            self.fail("Should not show random passwords in the output")
+        self._check_cloudinit_log()
+         
+        
     def tearDown(self):
         logging.debug("=========Now we getinto tearDown procedure=========")
         if not self.session.connect(timeout=10) and self.vm.exists():

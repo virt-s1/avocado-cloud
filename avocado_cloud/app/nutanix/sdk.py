@@ -59,6 +59,16 @@ class NutanixVM(VM):
                 res['task_uuid'], 60,
                 "Timed out waiting for server to get created.")
         self._data = None
+        
+    def create_by_ISO_kickstart(self, wait=False):
+        logging.info("Create VM by ISO kickstart")
+        res = self.prism.create_vm_ISO_kickstart()
+        logging.debug("res is " + str(res))
+        if wait:
+            self.wait_for_status(
+                res['task_uuid'], 60,
+                "Timed out waiting for server to get created.")
+        self._data = None
 
     def delete(self, wait=False):
         logging.info("Delete VM")

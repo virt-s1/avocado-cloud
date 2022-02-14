@@ -10,12 +10,15 @@ Subscription:
 VM:
   rhel_ver: '8.5'
   username: cloud-user
-  password: redhat1
+  password: redhat
   keypair: xen-jenkins
-  vm_name: vm_script
+  vm_name: vm_kickstart_script
   image_name: 8_5_local_qcow2_createForStorage
+  image_name_iso: RHEL-8.5.0-20211013.2
+  image_name_kickstart_iso: kick_start_iso
   storage_container_uuid: 4000ebd1-6408-4ff7-8c61-577c39014c59 
   network_uuid: 813fb939-d5a0-4277-93bb-46505f98c508
   custom_data:
 Other:
   packages:
+
