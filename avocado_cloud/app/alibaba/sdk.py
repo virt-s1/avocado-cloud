@@ -208,6 +208,8 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         else:
             for nic_id in nic_ids:
                 self.ecs.detach_nic(self.id, nic_id)
+                # Alibaba: timer expired after 10s in backend, BZ2051831
+                time.sleep(12)
             if wait:
                 for count in utils_misc.iterate_timeout(
                         300, "Timed out waiting for nics to be detached",
