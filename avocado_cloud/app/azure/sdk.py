@@ -450,6 +450,7 @@ class AzureVM(VM):
         self.authentication_type = "ssh" if self.generate_ssh_keys or \
             self.ssh_key_value else "password"
         self.custom_data = params.get("custom_data", "*/VM/*")
+        self.user_data = params.get("user_data", "*/VM/*")
         self.use_unmanaged_disk = params.get("use_unmanaged_disk", "*/VM/*")
         self.assign_identity = False
         subscription_id = AzureAccount.show().get("id")
@@ -494,6 +495,8 @@ class AzureVM(VM):
             cmd += ' --admin-password "{}"'.format(self.vm_password)
         if self.custom_data:
             cmd += ' --custom-data "{}"'.format(self.custom_data)
+        if self.user_data:
+            cmd += ' --user-data "{}"'.format(self.user_data)
         if self.use_unmanaged_disk:
             cmd += ' --use-unmanaged-disk --storage-account {}'.format(self.storage_account)
         if self.assign_identity:
