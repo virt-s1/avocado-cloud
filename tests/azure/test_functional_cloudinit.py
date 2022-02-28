@@ -72,6 +72,8 @@ class CloudinitTest(Test):
                 "test_cloudinit_login_with_publickey",
                 "test_cloudinit_save_and_handle_customdata_script",
                 "test_cloudinit_save_and_handle_customdata_cloudinit_config",
+                "test_cloudinit_save_and_handle_userdata_script",
+                "test_cloudinit_save_and_handle_userdata_cloudinit_config",
                 "test_cloudinit_assign_identity",
         ]:
             if self.vm.exists():
@@ -446,6 +448,69 @@ cloud_config_modules:
             "/var/log/cloud-init.log -B 10")
         self.assertIn("Ran 6 modules", output,
                       "The custom data is not handled correctly")
+
+    def test_cloudinit_save_and_handle_userdata_script(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-286797 - CLOUDINIT-TC: Save and handle userdata(script)
+        1. Create VM with user data
+        2. Check if user data script is executed
+        """
+        self.log.info("RHEL-286797 - CLOUDINIT-TC: Save and handle userdata(script)")
+        # Prepare user script
+        script = """\
+#!/bin/bash
+echo 'teststring' >> /var/log/test.log\
+"""
+        with open("/tmp/userdata.sh", 'w') as f:
+            f.write(script)
+        # 1. Create VM with user data
+        self.vm.user_data = "/tmp/userdata.sh"
+        self.vm.create()
+        self.session.connect()
+        # 2. Check if user data script is executed
+        for retry in range(1, 11):
+            if utils_azure.file_exists("/var/log/test.log", self.session):
+                break
+            self.log.info("/var/log/test.log doesn't exist. Wait for 10s and retry...({}/10)".format(retry))
+            time.sleep(10)
+        self.assertEqual("teststring",
+                         self.session.cmd_output("cat /var/log/test.log"),
+                         "The user data script is not executed correctly.")
+
+    def test_cloudinit_save_and_handle_userdata_cloudinit_config(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        RHEL-286798 - CLOUDINIT-TC: Save and handle userdata(cloud-init configuration)
+        1. Create VM with user data
+        2. Check if the new cloud-init configuration is handled correctly
+        """
+        self.log.info(
+            "RHEL-286798 - CLOUDINIT-TC: Save and handle userdata(cloud-init configuration)")
+        # Prepare user data
+        userdata_ori = """\
+#cloud-config
+cloud_config_modules:
+ - mounts
+ - locale
+ - set-passwords
+ - yum-add-repo
+ - disable-ec2-metadata
+ - runcmd
+"""
+        with open("/tmp/userdata.conf", 'w') as f:
+            f.write(userdata_ori)
+        # 1. Create VM with custom data
+        self.vm.user_data = "/tmp/userdata.conf"
+        self.vm.create()
+        self.session.connect()
+        # 2. Check if the new cloud-init configuration is handled correctly
+        # (There should be 6 modules ran in cloud-init.log)
+        output = self.session.cmd_output(
+            "sudo grep 'running modules for config' "
+            "/var/log/cloud-init.log -B 10")
+        self.assertIn("Ran 6 modules", output,
+                      "The user data is not handled correctly")
 
     def test_cloudinit_auto_extend_root_partition_and_filesystem(self):
         """

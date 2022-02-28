@@ -11,6 +11,8 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_networkmanager_dispatcher
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_customdata_script
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_customdata_cloudinit_config
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_userdata_script
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_save_and_handle_userdata_cloudinit_config
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_extend_root_partition_and_filesystem
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_regenerate_sshd_keypairs
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_auto_resize_partition_in_gpt
