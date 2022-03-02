@@ -309,7 +309,13 @@ ssh_pwauth: 1
         cmd = 'cat /etc/sysconfig/network-scripts/ifcfg-eth0'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='IPV6INIT=yes', is_get_console=False)
         utils_lib.run_cmd(self, 'uname -r', expect_ret=0, msg='Get instance kernel version', is_get_console=False)
-    
+        #bug 2046540, check ipv6 route inet6 prefix
+        cmd = 'cat /etc/sysconfig/network-scripts/route6-eth0'
+        utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='::/0 via', is_get_console=False)
+        #no invalid route
+        cmd = 'journalctl -b -u NetworkManager|grep warn'
+        utils_lib.run_cmd(self, cmd, expect_not_kw='ignoring invalid route', is_get_console=False)
+
     def test_cloudinit_check_random_password_len(self):
         '''
         :avocado: tags=tier2,cloudinit
