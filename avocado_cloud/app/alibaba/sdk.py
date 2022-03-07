@@ -175,6 +175,8 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         nics_list = self.list_nics()
         if len(nics_list) >= nic_count:
             for nic in nics_list[0:nic_count]:
+		# Workaround for BZ2055488#c3: sleep a while between requests
+                time.sleep(12)
                 self.ecs.attach_nic(self.id, nic.get("NetworkInterfaceId"))
         else:
             raise Exception("No enough NICs. Need: %s; Exists: %s" %
