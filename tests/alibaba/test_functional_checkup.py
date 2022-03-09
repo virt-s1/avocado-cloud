@@ -1008,10 +1008,10 @@ will not check kernel-devel package.')
             The actual boot time is no more than the experienced max time.
         """
         if 'ecs.ebm' in self.vm.flavor:
-            max_boot_time = 40
+            max_boot_time = 80
         else:
             # kvm-based VMs
-            max_boot_time = 20
+            max_boot_time = 40
 
         boot_time_sec = utils_alibaba.getboottime(self)
         utils_alibaba.compare_nums(self, num1=boot_time_sec, num2=max_boot_time,
