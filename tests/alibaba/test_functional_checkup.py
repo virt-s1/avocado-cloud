@@ -779,12 +779,14 @@ will not check kernel-devel package.')
 
         # Compare image labels
         for label in inside:
+            if label in ('qcow2', 'raw', 'vhd'):
+                continue
             if label in outside:
                 self.log.debug(
                     'Inside label "{}" exists in outside labels.'.format(label))
             else:
                 self.log.debug(
-                    'Inside label "{}" doesn\'t exist in outside labels.')
+                    'Inside label "{}" doesn\'t exist in outside labels.'.format(label))
                 self.fail('The image labels are mismatched.')
 
         self.log.info('The image labels are matched.')
@@ -1006,10 +1008,10 @@ will not check kernel-devel package.')
             The actual boot time is no more than the experienced max time.
         """
         if 'ecs.ebm' in self.vm.flavor:
-            max_boot_time = 40
+            max_boot_time = 80
         else:
             # kvm-based VMs
-            max_boot_time = 20
+            max_boot_time = 40
 
         boot_time_sec = utils_alibaba.getboottime(self)
         utils_alibaba.compare_nums(self, num1=boot_time_sec, num2=max_boot_time,
