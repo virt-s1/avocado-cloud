@@ -779,12 +779,14 @@ will not check kernel-devel package.')
 
         # Compare image labels
         for label in inside:
+            if label in ('qcow2', 'raw', 'vhd'):
+                continue
             if label in outside:
                 self.log.debug(
                     'Inside label "{}" exists in outside labels.'.format(label))
             else:
                 self.log.debug(
-                    'Inside label "{}" doesn\'t exist in outside labels.')
+                    'Inside label "{}" doesn\'t exist in outside labels.'.format(label))
                 self.fail('The image labels are mismatched.')
 
         self.log.info('The image labels are matched.')
