@@ -464,19 +464,38 @@ will not check kernel-devel package.')
                       "virt-what result is not %s" % virt_type)
 
     def test_check_pv_drivers(self):
-        self.log.info("Check pv drivers in VM")
-        virt_type = self.params.get('virt', '*/{0}/*'.format(self.vm.flavor),
-                                    'kvm')
-        if virt_type == 'xen':
-            module_list = ["xen_blkfront", "xen_netfront"]
-            output = self.session.cmd_output("lsmod|grep 'xen'")
-        elif virt_type == 'kvm':
-            module_list = ["virtio_net", "virtio_blk"]
-            output = self.session.cmd_output("lsmod|grep 'virtio'")
-        else:
-            self.fail("Virt is not xen or kvm: %s" % virt_type)
-        for module in module_list:
-            self.assertIn(module, output, "%s module doesn't exist" % module)
+        """ Test case for check PV drivers.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_pv_drivers
+        description:
+            Check the PV drivers for the instance.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_pv_drivers"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. virtio_net should be exist.
+            2. at least one of virtio_blk and nvme should be exist.
+        pass_criteria:
+            The PV drivers should be exist in the instance.
+        """
+
+        self.log.info('Check pv drivers in VM')
+
+        cmd = 'lsmod | grep -w virtio_net'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0)
+
+        cmd = 'lsmod | grep -w -e virtio_blk -e nvme'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0)
 
     def test_check_subscription_manager(self):
         pass
@@ -791,7 +810,7 @@ will not check kernel-devel package.')
 
         self.log.info('The image labels are matched.')
 
-    def test_check_yum_repoinfo(test_instance):
+    def test_check_yum_repoinfo(self):
         """Check the yum repoinfo for RHUI repos.
 
         case_name:
@@ -815,14 +834,14 @@ will not check kernel-devel package.')
         pass_criteria:
             All commands succeed.
         """
-        utils_alibaba.run_cmd(test_instance,
+        utils_alibaba.run_cmd(self,
                               'sudo yum repoinfo',
                               expect_ret=0,
                               expect_not_kw='Repo-pkgs          : 0',
                               timeout=1200,
                               msg='try to get repo info')
 
-    def test_yum_package_install(test_instance):
+    def test_yum_package_install(self):
         """Check the yum package installation.
 
         case_name:
@@ -852,50 +871,23 @@ will not check kernel-devel package.')
             All commands succeed.
         """
         utils_alibaba.run_cmd(
-            test_instance, "sudo yum clean all", expect_ret=0, timeout=180)
+            self, "sudo yum clean all", expect_ret=0, timeout=180)
         utils_alibaba.run_cmd(
-            test_instance, "sudo yum repolist", expect_ret=0, timeout=1200)
+            self, "sudo yum repolist", expect_ret=0, timeout=1200)
         utils_alibaba.run_cmd(
-            test_instance, "sudo yum check-update", timeout=1200)
-        utils_alibaba.run_cmd(test_instance,
+            self, "sudo yum check-update", timeout=1200)
+        utils_alibaba.run_cmd(self,
                               "sudo yum search zsh",
                               expect_ret=0,
                               timeout=180)
-        utils_alibaba.run_cmd(test_instance,
+        utils_alibaba.run_cmd(self,
                               "sudo yum -y install zsh",
                               expect_ret=0,
                               timeout=180)
-        utils_alibaba.run_cmd(test_instance,
+        utils_alibaba.run_cmd(self,
                               r"sudo rpm -q --queryformat '%{NAME}' zsh",
                               expect_ret=0)
-        utils_alibaba.run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
-
-        # if 'SAP' in test_instance.info['name'].upper(
-        # ) and '6.5' in test_instance.info['name']:
-        #     test_instance.log.info("Below is specified for SAP AMIs")
-        #     utils_alibaba.run_cmd(test_instance,
-        #             "sudo tuned-profiles-sap-hana",
-        #             expect_ret=0,
-        #             timeout=180)
-        #     utils_alibaba.run_cmd(
-        #         test_instance,
-        #         r"sudo rpm -q --queryformat '%{NAME}' tuned-profiles-sap-hana",
-        #         expect_ret=0)
-        #     utils_alibaba.run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
-
-    # def test_yum_group_install(test_instance):
-    #     # Skip this case due to yum server support is needed.
-    #     # Output message: "There is no installed groups file."
-    #     cmd = "sudo yum -y groupinstall 'Development tools'"
-    #     utils_alibaba.run_cmd(test_instance,
-    #             cmd,
-    #             expect_ret=0,
-    #             timeout=1200,
-    #             msg='try to install Development tools group')
-    #     utils_alibaba.run_cmd(test_instance,
-    #             'sudo rpm -q glibc-devel',
-    #             expect_ret=0,
-    #             msg='try to check installed pkg')
+        utils_alibaba.run_cmd(self, "sudo rpm -e zsh", expect_ret=0)
 
     def test_check_vulnerabilities(self):
         """ Check vulnerabilities for RHEL on Aliyun.
