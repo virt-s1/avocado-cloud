@@ -464,19 +464,38 @@ will not check kernel-devel package.')
                       "virt-what result is not %s" % virt_type)
 
     def test_check_pv_drivers(self):
-        self.log.info("Check pv drivers in VM")
-        virt_type = self.params.get('virt', '*/{0}/*'.format(self.vm.flavor),
-                                    'kvm')
-        if virt_type == 'xen':
-            module_list = ["xen_blkfront", "xen_netfront"]
-            output = self.session.cmd_output("lsmod|grep 'xen'")
-        elif virt_type == 'kvm':
-            module_list = ["virtio_net", "virtio_blk"]
-            output = self.session.cmd_output("lsmod|grep 'virtio'")
-        else:
-            self.fail("Virt is not xen or kvm: %s" % virt_type)
-        for module in module_list:
-            self.assertIn(module, output, "%s module doesn't exist" % module)
+        """ Test case for check PV drivers.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_pv_drivers
+        description:
+            Check the PV drivers for the instance.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_pv_drivers"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. virtio_net should be exist.
+            2. at least one of virtio_blk and nvme should be exist.
+        pass_criteria:
+            The PV drivers should be exist in the instance.
+        """
+
+        self.log.info('Check pv drivers in VM')
+
+        cmd = 'lsmod | grep -w virtio_net'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0)
+
+        cmd = 'lsmod | grep -w -e virtio_blk -e nvme'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0)
 
     def test_check_subscription_manager(self):
         pass
