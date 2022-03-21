@@ -23,6 +23,8 @@ class AlibabaVM(VM):
         self.disk_count = params.get('disk_count', '*/Flavor/*', 0)
         self.disk_size = params.get('disk_size', '*/Flavor/*', 0)
         self.disk_type = params.get('disk_type', '*/Flavor/*', '')
+        self.local_disk_driver = params.get('local_disk_driver', '*/Flavor/*', 'virtio_blk')
+        self.cloud_disk_driver = params.get('cloud_disk_driver', '*/Flavor/*', 'virtio_blk')
         self.nic_count = params.get('nic_count', '*/Flavor/*', 1)
         self.disk_quantity = params.get('disk_quantity', '*/Flavor/*', 0)
 

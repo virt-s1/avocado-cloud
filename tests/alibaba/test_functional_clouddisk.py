@@ -21,41 +21,45 @@ class CloudDiskTest(Test):
                 'cloud_disk_count', '*/Disk/*')
 
         self.cloud_disk_size = self.params.get('cloud_disk_size', '*/Disk/*')
+        self.cloud_disk_driver = self.vm.cloud_disk_driver
+        self.local_disk_driver = self.vm.local_disk_driver
         self.local_disk_count = self.vm.disk_count
         self.local_disk_size = self.vm.disk_size
         self.local_disk_type = self.vm.disk_type
+
         if self.name.name.endswith("test_local_disks"):
             if self.local_disk_count == 0:
                 self.cancel("No local disk. Skip this case.")
+
         self.disk_ids = self.cloud.init_cloud_disks(self.cloud_disk_count)
         self.dev_name = "vd"
 
-    def _cloud_disk_test(self,
-                         initial="b",
-                         disk_count=None,
-                         disk_type=None,
-                         disk_size=None):
-        if not disk_count:
-            disk_count = self.cloud_disk_count
-        if not disk_size:
-            disk_size = self.cloud_disk_size
+    def _cloud_disk_test(self, disk_type, initial, disk_count, disk_size):
+        self.log.debug('Function _cloud_disk_test: type={}, init={}, count={}, size={}'.format(
+            disk_type, initial, disk_count, disk_size))
+
+        dev_names = []
         for i in range(1, disk_count + 1):
             if disk_type == "nvme":
-                dev_fullname = "nvme%sn1" % (i - 1)
+                dev_fullname = "nvme%sn1" % (initial + i - 1)
             else:
-                if disk_type == "scsi":
-                    dev_name = "sd"
-                else:
-                    dev_name = self.dev_name
                 delta = ord(initial) - 97 + i
                 if delta <= 26:
                     idx = chr(96 + delta)
                 else:
+                    self.log.warn('disk idx exceeds "z".')
                     idx = 'a' + chr(96 + delta % 26)
-                dev_fullname = dev_name + idx
+                dev_fullname = self.dev_name + idx
+
             self._verify_disk(dev_fullname, disk_size)
+            dev_names.append(dev_fullname)
+
+        return dev_names
 
     def _verify_disk(self, dev_fullname, disk_size):
+        self.log.debug('Function _verify_disk: name={}, size={}'.format(
+            dev_fullname, disk_size))
+
         cmd = "fdisk -l /dev/{0} | grep /dev/{0}"
         output = self.session.cmd_output(cmd.format(dev_fullname))
 
@@ -129,54 +133,99 @@ echo test_content > /mnt/{0}/test_file"
 
     def test_online_attach_detach_cloud_disks(self):
         self.log.info("Online attach a cloud disk to VM")
+
         vols = self.vm.query_cloud_disks()
         for vol in vols:
             s = vol.get("status") or vol.get("Status")
             self.assertEqual(s.lower(), u'available',
                              "Disk status is not available")
+
         for disk_id in self.disk_ids:
-            if self.dev_name == "xvd":
-                dev = "sd"
-            else:
-                dev = "vd"
-            if self.local_disk_type == "scsi" and dev == "sd":
-                self.vm.attach_cloud_disks(
-                    disk_id=disk_id,
-                    dev=dev,
-                    local_disk_count=self.local_disk_count,
-                    wait=True)
-            else:
-                self.vm.attach_cloud_disks(disk_id=disk_id, dev=dev, wait=True)
+            self.vm.attach_cloud_disks(
+                disk_id=disk_id, dev=self.dev_name, wait=True)
+
         vols = self.vm.query_cloud_disks()
         for vol in vols:
             s = vol.get("status") or vol.get("Status")
             self.assertEqual(s.lower().replace('_', '-'), u"in-use",
                              "Disk status is not in-use")
+
         self.session.cmd_output('sudo su -')
 
-        if self.local_disk_type in ('ssd', 'hdd'):  # for alibaba
-            self._cloud_disk_test(initial=chr(98 + self.local_disk_count))
+        # if self.local_disk_type in ('ssd', 'hdd'):  # for alibaba
+        #     self._cloud_disk_test(initial=chr(98 + self.local_disk_count))
+        # else:
+        #     self._cloud_disk_test()
+
+        # Test cloud disks
+        self.log.debug('self.cloud_disk_driver = {}'.format(
+            self.cloud_disk_driver))
+        self.log.debug('self.cloud_disk_count = {}'.format(
+            self.cloud_disk_count))
+        self.log.debug('self.cloud_disk_size = {}'.format(
+            self.cloud_disk_size))
+        self.log.debug('self.local_disk_driver = {}'.format(
+            self.local_disk_driver))
+        self.log.debug('self.local_disk_count = {}'.format(
+            self.local_disk_count))
+
+        if self.cloud_disk_driver not in ('virtio_blk', 'nvme'):
+            self.fail('Unsuported cloud_disk_driver "{}".'.format(
+                self.cloud_disk_driver))
+
+        if self.local_disk_driver not in ('virtio_blk', 'nvme'):
+            self.fail('Unsuported local_disk_driver "{}".'.format(
+                self.local_disk_driver))
+
+        if self.cloud_disk_driver == 'virtio_blk':
+            _disk_type = 'ssd'
+            if self.local_disk_driver == 'nvme':
+                _initial = 'b'
+            else:
+                _initial = chr(ord('b') + self.local_disk_count)
         else:
-            self._cloud_disk_test()
+            _disk_type = 'nvme'
+            if self.local_disk_driver == 'nvme':
+                _initial = 1 + self.local_disk_count
+            else:
+                _initial = 1
+
+        self.log.debug('_disk_type = {}'.format(_disk_type))
+        self.log.debug('_initial = {}'.format(_initial))
+
+        dev_names = self._cloud_disk_test(disk_type=_disk_type,
+                                          initial=_initial,
+                                          disk_count=self.cloud_disk_count,
+                                          disk_size=self.cloud_disk_size)
+        self.log.debug('dev_names = {}'.format(dev_names))
 
         self.log.info("Online detach a cloud disk to VM")
+
         for disk_id in self.disk_ids:
             self.vm.detach_cloud_disks(disk_id=disk_id, wait=True)
+
         vols = self.vm.query_cloud_disks()
         for vol in vols:
             s = vol.get("status") or vol.get("Status")
             self.assertEqual(s.lower(), u'available',
                              "Disk status is not available")
-        for i in range(1, self.cloud_disk_count + 1):
-            delta = self.local_disk_count + i
-            if delta <= 25:
-                idx = chr(97 + delta)
-            else:
-                idx = 'a' + chr(97 - 1 + delta % 25)
-            cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
-            output = self.session.cmd_output(cmd % (self.dev_name, idx))
-            self.assertEqual(output, "",
-                             "Disk not detached.\n {0}".format(output))
+
+        for dev in dev_names:
+            cmd = 'fdisk -l /dev/{} 2>/dev/null'.format(dev)
+            output = self.session.cmd_output(cmd)
+            self.assertEqual(
+                output, "", "Disk not detached.\n {}".format(output))
+
+        # for i in range(1, self.cloud_disk_count + 1):
+        #     delta = self.local_disk_count + i
+        #     if delta <= 25:
+        #         idx = chr(97 + delta)
+        #     else:
+        #         idx = 'a' + chr(97 - 1 + delta % 25)
+        #     cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
+        #     output = self.session.cmd_output(cmd % (self.dev_name, idx))
+        #     self.assertEqual(output, "",
+        #                      "Disk not detached.\n {0}".format(output))
 
     def test_offline_attach_detach_cloud_disks(self):
         # Set timeout for Alibaba baremetal
