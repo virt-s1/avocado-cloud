@@ -178,7 +178,7 @@ echo test_content > /mnt/{0}/test_file"
                 self.local_disk_driver))
 
         if self.cloud_disk_driver == 'virtio_blk':
-            _disk_type = 'ssd'
+            _disk_type = 'cloud_ssd'
             if self.local_disk_driver == 'nvme':
                 _initial = 'b'
             else:
@@ -193,10 +193,10 @@ echo test_content > /mnt/{0}/test_file"
         self.log.debug('_disk_type = {}'.format(_disk_type))
         self.log.debug('_initial = {}'.format(_initial))
 
-        dev_names = self._cloud_disk_test(disk_type=_disk_type,
-                                          initial=_initial,
-                                          disk_count=self.cloud_disk_count,
-                                          disk_size=self.cloud_disk_size)
+        dev_names = self._disk_test(disk_type=_disk_type,
+                                    initial=_initial,
+                                    disk_count=self.cloud_disk_count,
+                                    disk_size=self.cloud_disk_size)
         self.log.debug('dev_names = {}'.format(dev_names))
 
         self.log.info("Online detach a cloud disk to VM")
@@ -281,7 +281,7 @@ echo test_content > /mnt/{0}/test_file"
                 self.local_disk_driver))
 
         if self.cloud_disk_driver == 'virtio_blk':
-            _disk_type = 'ssd'
+            _disk_type = 'cloud_ssd'
             if self.local_disk_driver == 'nvme':
                 _initial = 'b'
             else:
@@ -296,10 +296,10 @@ echo test_content > /mnt/{0}/test_file"
         self.log.debug('_disk_type = {}'.format(_disk_type))
         self.log.debug('_initial = {}'.format(_initial))
 
-        dev_names = self._cloud_disk_test(disk_type=_disk_type,
-                                          initial=_initial,
-                                          disk_count=self.cloud_disk_count,
-                                          disk_size=self.cloud_disk_size)
+        dev_names = self._disk_test(disk_type=_disk_type,
+                                    initial=_initial,
+                                    disk_count=self.cloud_disk_count,
+                                    disk_size=self.cloud_disk_size)
         self.log.debug('dev_names = {}'.format(dev_names))
 
         self.log.info("Offline detach a cloud disk to VM")
@@ -334,11 +334,52 @@ echo test_content > /mnt/{0}/test_file"
     def test_local_disks(self):
         self.log.info("Test local disks on VM")
         self.session.cmd_output('sudo su -')
-        initial = 'b'
-        self._cloud_disk_test(initial=initial,
-                              disk_count=self.local_disk_count,
-                              disk_type=self.local_disk_type,
-                              disk_size=self.local_disk_size)
+
+        # Test local disks
+        self.log.debug('self.cloud_disk_driver = {}'.format(
+            self.cloud_disk_driver))
+        self.log.debug('self.cloud_disk_count = {}'.format(
+            self.cloud_disk_count))
+        self.log.debug('self.cloud_disk_size = {}'.format(
+            self.cloud_disk_size))
+        self.log.debug('self.local_disk_driver = {}'.format(
+            self.local_disk_driver))
+        self.log.debug('self.local_disk_type = {}'.format(
+            self.local_disk_type))
+        self.log.debug('self.local_disk_count = {}'.format(
+            self.local_disk_count))
+        self.log.debug('self.local_disk_size = {}'.format(
+            self.local_disk_size))
+
+        if self.cloud_disk_driver not in ('virtio_blk', 'nvme'):
+            self.fail('Unsuported cloud_disk_driver "{}".'.format(
+                self.cloud_disk_driver))
+
+        if self.local_disk_driver not in ('virtio_blk', 'nvme'):
+            self.fail('Unsuported local_disk_driver "{}".'.format(
+                self.local_disk_driver))
+
+        if self.local_disk_driver == 'virtio_blk':
+            _disk_type = self.local_disk_type
+            if self.cloud_disk_driver == 'nvme':
+                _initial = 'a'
+            else:
+                _initial = 'b'
+        else:
+            _disk_type = 'nvme'
+            if self.cloud_disk_driver == 'nvme':
+                _initial = 1
+            else:
+                _initial = 0
+
+        self.log.debug('_disk_type = {}'.format(_disk_type))
+        self.log.debug('_initial = {}'.format(_initial))
+
+        dev_names = self._disk_test(disk_type=_disk_type,
+                                    initial=_initial,
+                                    disk_count=self.local_disk_count,
+                                    disk_size=self.local_disk_size)
+        self.log.debug('dev_names = {}'.format(dev_names))
 
     def tearDown(self):
         self.log.info("TearDown")
