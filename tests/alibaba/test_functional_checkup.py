@@ -810,7 +810,7 @@ will not check kernel-devel package.')
 
         self.log.info('The image labels are matched.')
 
-    def test_check_yum_repoinfo(test_instance):
+    def test_check_yum_repoinfo(self):
         """Check the yum repoinfo for RHUI repos.
 
         case_name:
@@ -834,14 +834,14 @@ will not check kernel-devel package.')
         pass_criteria:
             All commands succeed.
         """
-        utils_alibaba.run_cmd(test_instance,
+        utils_alibaba.run_cmd(self,
                               'sudo yum repoinfo',
                               expect_ret=0,
                               expect_not_kw='Repo-pkgs          : 0',
                               timeout=1200,
                               msg='try to get repo info')
 
-    def test_yum_package_install(test_instance):
+    def test_yum_package_install(self):
         """Check the yum package installation.
 
         case_name:
@@ -871,50 +871,23 @@ will not check kernel-devel package.')
             All commands succeed.
         """
         utils_alibaba.run_cmd(
-            test_instance, "sudo yum clean all", expect_ret=0, timeout=180)
+            self, "sudo yum clean all", expect_ret=0, timeout=180)
         utils_alibaba.run_cmd(
-            test_instance, "sudo yum repolist", expect_ret=0, timeout=1200)
+            self, "sudo yum repolist", expect_ret=0, timeout=1200)
         utils_alibaba.run_cmd(
-            test_instance, "sudo yum check-update", timeout=1200)
-        utils_alibaba.run_cmd(test_instance,
+            self, "sudo yum check-update", timeout=1200)
+        utils_alibaba.run_cmd(self,
                               "sudo yum search zsh",
                               expect_ret=0,
                               timeout=180)
-        utils_alibaba.run_cmd(test_instance,
+        utils_alibaba.run_cmd(self,
                               "sudo yum -y install zsh",
                               expect_ret=0,
                               timeout=180)
-        utils_alibaba.run_cmd(test_instance,
+        utils_alibaba.run_cmd(self,
                               r"sudo rpm -q --queryformat '%{NAME}' zsh",
                               expect_ret=0)
-        utils_alibaba.run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
-
-        # if 'SAP' in test_instance.info['name'].upper(
-        # ) and '6.5' in test_instance.info['name']:
-        #     test_instance.log.info("Below is specified for SAP AMIs")
-        #     utils_alibaba.run_cmd(test_instance,
-        #             "sudo tuned-profiles-sap-hana",
-        #             expect_ret=0,
-        #             timeout=180)
-        #     utils_alibaba.run_cmd(
-        #         test_instance,
-        #         r"sudo rpm -q --queryformat '%{NAME}' tuned-profiles-sap-hana",
-        #         expect_ret=0)
-        #     utils_alibaba.run_cmd(test_instance, "sudo rpm -e zsh", expect_ret=0)
-
-    # def test_yum_group_install(test_instance):
-    #     # Skip this case due to yum server support is needed.
-    #     # Output message: "There is no installed groups file."
-    #     cmd = "sudo yum -y groupinstall 'Development tools'"
-    #     utils_alibaba.run_cmd(test_instance,
-    #             cmd,
-    #             expect_ret=0,
-    #             timeout=1200,
-    #             msg='try to install Development tools group')
-    #     utils_alibaba.run_cmd(test_instance,
-    #             'sudo rpm -q glibc-devel',
-    #             expect_ret=0,
-    #             msg='try to check installed pkg')
+        utils_alibaba.run_cmd(self, "sudo rpm -e zsh", expect_ret=0)
 
     def test_check_vulnerabilities(self):
         """ Check vulnerabilities for RHEL on Aliyun.
