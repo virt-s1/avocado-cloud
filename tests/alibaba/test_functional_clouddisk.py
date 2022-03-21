@@ -9,10 +9,7 @@ class CloudDiskTest(Test):
         self.vm = self.cloud.vm
         pre_delete = False
         pre_stop = False
-        if self.name.name.endswith(
-                "test_offline_attach_detach_cloud_disks"
-        ) or self.name.name.endswith(
-                "test_offline_attach_detach_scsi_cloud_disks"):
+        if self.name.name.endswith("test_offline_attach_detach_cloud_disks"):
             pre_stop = True
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
                                           pre_stop=pre_stop)
@@ -181,58 +178,6 @@ echo test_content > /mnt/{0}/test_file"
             self.assertEqual(output, "",
                              "Disk not detached.\n {0}".format(output))
 
-    def test_online_attach_detach_scsi_cloud_disks(self):
-        self.dev_name = "sd"
-        if self.params.get('virt', '*/{0}/*'.format(self.vm.flavor)) != "kvm":
-            self.log.info(
-                "SCSI disk attach/detach only supported on KVM hypervisor")
-            raise TestSkipError
-        self.log.info("Online attach a scsi cloud disk to VM")
-        vols = self.vm.query_cloud_disks(scsi=True)
-        for vol in vols:
-            s = vol.get("status") or vol.get("Status")
-            self.assertEqual(s.lower(), u'available',
-                             "Disk status is not available")
-        for disk_id in self.disk_ids_scsi:
-            dev = "sd"
-            if self.local_disk_type == "scsi":
-                self.vm.attach_cloud_disks(
-                    disk_id=disk_id,
-                    dev=dev,
-                    local_disk_count=self.local_disk_count,
-                    wait=True)
-            else:
-                self.vm.attach_cloud_disks(disk_id=disk_id, dev=dev, wait=True)
-        vols = self.vm.query_cloud_disks(scsi=True)
-        for vol in vols:
-            s = vol.get("status") or vol.get("Status")
-            self.assertEqual(s.lower().replace('_', '-'), u"in-use",
-                             "Disk status is not in-use")
-        self.session.cmd_output('sudo su -')
-        if self.local_disk_type == "scsi":
-            self._cloud_disk_test(initial=chr(97 + self.local_disk_count))
-        else:
-            self._cloud_disk_test(initial="a")
-
-        self.log.info("Online detach a scsi cloud disk to VM")
-        for disk_id in self.disk_ids_scsi:
-            self.vm.detach_cloud_disks(disk_id=disk_id, wait=True, scsi=True)
-        vols = self.vm.query_cloud_disks(scsi=True)
-        for vol in vols:
-            s = vol.get("status") or vol.get("Status")
-            self.assertEqual(s.lower(), u'available',
-                             "Disk status is not available")
-        for i in range(1, self.cloud_disk_count + 1):
-            delta = self.local_disk_count + i
-            if delta <= 25:
-                idx = chr(97 + delta)
-            else:
-                idx = 'a' + chr(97 - 1 + delta % 25)
-            cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
-            output = self.session.cmd_output(cmd % (self.dev_name, idx))
-            self.assertEqual(output, "",
-                             "Disk not detached.\n {0}".format(output))
-
     def test_offline_attach_detach_cloud_disks(self):
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:
@@ -284,80 +229,6 @@ echo test_content > /mnt/{0}/test_file"
         for disk_id in self.disk_ids:
             self.vm.detach_cloud_disks(disk_id=disk_id, wait=True)
         vols = self.vm.query_cloud_disks()
-        for vol in vols:
-            s = vol.get("status") or vol.get("Status")
-            self.assertEqual(s.lower(), u'available',
-                             "Disk status is not available")
-        self.vm.start(wait=True)
-        self.session.connect(timeout=connect_timeout)
-        output = self.session.cmd_output('whoami')
-        self.assertEqual(
-            self.vm.vm_username, output,
-            "Start VM error: output of cmd `who` unexpected -> %s" % output)
-        self.session.cmd_output('sudo su -')
-        for i in range(1, self.cloud_disk_count + 1):
-            delta = self.local_disk_count + i
-            if delta <= 25:
-                idx = chr(97 + delta)
-            else:
-                idx = 'a' + chr(97 - 1 + delta % 25)
-            cmd = 'fdisk -l /dev/%s%s 2>/dev/null'
-            output = self.session.cmd_output(cmd % (self.dev_name, idx))
-            self.assertEqual(output, "",
-                             "Disk not detached.\n {0}".format(output))
-
-    def test_offline_attach_detach_scsi_cloud_disks(self):
-        # Set timeout for Alibaba baremetal
-        if 'ecs.ebm' in self.vm.flavor:
-            connect_timeout = 600
-        else:
-            connect_timeout = 120
-
-        self.dev_name = "sd"
-        if self.params.get('virt', '*/{0}/*'.format(self.vm.flavor)) != "kvm":
-            self.log.info(
-                "SCSI disk attach/detach only supported on KVM hypervisor")
-            raise TestSkipError
-        self.log.info("Offline attach a cloud disk to VM")
-        vols = self.vm.query_cloud_disks(scsi=True)
-        for vol in vols:
-            s = vol.get("status") or vol.get("Status")
-            self.assertEqual(s.lower(), u'available',
-                             "Disk status is not available")
-        for disk_id in self.disk_ids_scsi:
-            dev = "sd"
-            if self.local_disk_type == "scsi":
-                self.vm.attach_cloud_disks(
-                    disk_id=disk_id,
-                    dev=dev,
-                    local_disk_count=self.local_disk_count,
-                    wait=True)
-            else:
-                self.vm.attach_cloud_disks(disk_id=disk_id, dev=dev, wait=True)
-        vols = self.vm.query_cloud_disks(scsi=True)
-        for vol in vols:
-            s = vol.get("status") or vol.get("Status")
-            self.assertEqual(s.lower().replace('_', '-'), u"in-use",
-                             "Disk status is not in-use")
-        self.vm.start(wait=True)
-        self.session.connect(timeout=connect_timeout)
-        output = self.session.cmd_output('whoami')
-        self.assertEqual(
-            self.vm.vm_username, output,
-            "Start VM error: output of cmd `who` unexpected -> %s" % output)
-        self.session.cmd_output('sudo su -')
-        if self.local_disk_type == "scsi":
-            self._cloud_disk_test(initial=chr(97 + self.local_disk_count))
-        else:
-            self._cloud_disk_test(initial="a")
-
-        self.log.info("Offline detach a cloud disk to VM")
-        self.vm.stop(wait=True)
-        self.assertTrue(self.vm.is_stopped(),
-                        "Stop VM error: VM status is not SHUTOFF")
-        for disk_id in self.disk_ids_scsi:
-            self.vm.detach_cloud_disks(disk_id=disk_id, wait=True, scsi=True)
-        vols = self.vm.query_cloud_disks(scsi=True)
         for vol in vols:
             s = vol.get("status") or vol.get("Status")
             self.assertEqual(s.lower(), u'available',
