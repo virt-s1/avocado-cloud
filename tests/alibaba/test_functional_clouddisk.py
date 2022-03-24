@@ -35,6 +35,8 @@ class CloudDiskTest(Test):
         self.dev_name = 'vd'
 
     def _disk_test(self, disk_type, initial, disk_count, disk_size):
+        """Verify each one of the disks."""
+
         self.log.debug('Function _disk_test: type={}, init={}, count={}, size={}'.format(
             disk_type, initial, disk_count, disk_size))
 
@@ -57,6 +59,8 @@ class CloudDiskTest(Test):
         return dev_names
 
     def _verify_disk(self, dev_fullname, disk_size):
+        """Check the size of a disk and mount, partd, format, unmount it."""
+
         self.log.debug('Function _verify_disk: name={}, size={}'.format(
             dev_fullname, disk_size))
 
@@ -117,6 +121,33 @@ echo test_content > /mnt/{0}/test_file'
         self.session.cmd_output(cmd.format(dev_fullname))
 
     def test_online_attach_detach_cloud_disks(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]CloudDiskTest.test_online_attach_detach_cloud_disks
+        description:
+            Test case for checking online attach and detach cloud disk.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]CloudDiskTest.test_online_attach_detach_cloud_disks"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Online attach cloud disks to VM;
+            2. Verify the cloud disks inside the VM;
+            3. Online detach cloud disks;
+            4. Check if they are disappeared;
+        pass_criteria:
+            All the functionality should work normally.
+        """
+
         self.log.info('Online attach a cloud disk to VM')
 
         vols = self.vm.query_cloud_disks()
@@ -201,6 +232,33 @@ echo test_content > /mnt/{0}/test_file'
                 output, '', 'Disk not detached.\n {}'.format(output))
 
     def test_offline_attach_detach_cloud_disks(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]CloudDiskTest.test_offline_attach_detach_cloud_disks
+        description:
+            Test case for checking offline attach and detach cloud disk.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]CloudDiskTest.test_offline_attach_detach_cloud_disks"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Stop the instance and offline attach cloud disks to VM;
+            2. Start the VM and verify the cloud disks inside the VM;
+            3. Stop the instance and offline detach cloud disks;
+            4. Start the VM and check if they are disappeared;
+        pass_criteria:
+            All the functionality should work normally.
+        """
+
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
@@ -309,6 +367,31 @@ echo test_content > /mnt/{0}/test_file'
                 output, '', 'Disk not detached.\n {}'.format(output))
 
     def test_local_disks(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]CloudDiskTest.test_local_disks
+        description:
+            Test case for checking local disks.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]CloudDiskTest.test_local_disks"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Check the amount of the local disks inside the VM;
+            2. Verify each disk by mounting, formating, unmounting;
+        pass_criteria:
+            All the functionality should work normally.
+        """
+
         self.log.info('Test local disks on VM')
         self.session.cmd_output('sudo su -')
 

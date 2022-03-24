@@ -23,14 +23,34 @@ class NetworkTest(Test):
             self.primary_nic_id = self.cloud.primary_nic_id
 
     def test_hotplug_nics(self):
-        """
-        1. Start VM. Attach max NICs and check all can get IP
-        2. Add 1 more NIC. Should not be added
-        3. Detach all NICs. Device should be removed inside guest
+        """Test case for avocado framework.
 
-        Notice: Some of instance types are not support Hot Plug NIC
-        https://help.aliyun.com/document_detail/25378.html
+        case_name:
+            [Aliyun]NetworkTest.test_hotplug_nics
+        description:
+            Test case for hotplug NICs.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]NetworkTest.test_hotplug_nics"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Start VM. Attach max NICs and check all can get IP;
+            2. Add one more NIC. Should not be added;
+            3. Detach all NICs. Device should be removed inside guest;
+        pass_criteria:
+            All the functionality works well.
         """
+
+        # Notice: Some of instance types are not support Hot Plug NIC
+        # https://help.aliyun.com/document_detail/25378.html
 
         unsupport_instance_types = [
             'ecs.t6-c1m1.large',
@@ -134,11 +154,32 @@ class NetworkTest(Test):
         self.log.info("Detach all NICs successfully")
 
     def test_coldplug_nics(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]NetworkTest.test_coldplug_nics
+        description:
+            Test case for coldplug NICs.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]NetworkTest.test_coldplug_nics"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Stop VM. Attach max NICs. Start VM and check all can get IP;
+            2. Stop VM. Add 1 more NIC. Should not be added;
+            3. Stop VM. Detach all NICs. Device should be removed inside guest;
+        pass_criteria:
+            All the functionality works well.
         """
-        1. Stop VM. Attach max NICs. Start VM and check all can get IP
-        2. Stop VM. Add 1 more NIC. Should not be added
-        3. Stop VM. Detach all NICs. Device should be removed inside guest
-        """
+
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
