@@ -76,6 +76,33 @@ class GeneralTest(Test):
         self.session.cmd_output("rm -rf " + guest_path)
 
     def test_check_boot_message(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_boot_message
+        description:
+            Check the boot messages.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_boot_message"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Lookup contents from `/var/log/messages` for RHEL7 and lower.
+            2. Get boot message by `journalctl` for RHEL8 and higher.
+            3. Check if there is `error` or `fail` keyword in the boot message.
+            4. Excepts the entries from the whitelist.
+        pass_criteria:
+            No `error` or `fail` keywords in boot messages except the whitelisted ones.
+        """
+
         self.log.info("Check the boot messages with no errors")
         if self.rhel_ver.split('.')[0] == '9':
             data_file = "journalctl.el9.lst"
@@ -111,6 +138,31 @@ class GeneralTest(Test):
 
     # RHBZ#1006883
     def test_check_fstab(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_fstab
+        description:
+            Check if rootfs in /etc/fstab is presented by UUID.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_fstab"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Get the rootfs line from `/etc/fstab`.
+            2. Check if the device is presented by UUID.
+        pass_criteria:
+            The rootfs in /etc/fstab should be presented by UUID.
+        """
+
         fs_spec = ""
         output = self.session.cmd_output("cat /etc/fstab")
         for line in output.splitlines():
@@ -139,6 +191,30 @@ class GeneralTest(Test):
 
     # RHBZ#1032169
     def test_check_bash_prompt(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_bash_prompt
+        description:
+            Check the bash prompt.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_bash_prompt"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Check the value of `$PS1`.
+        pass_criteria:
+            `$PS1` should be `[\u@\h \W]\$`.
+        """
+
         output = self.session.cmd_output("echo $PS1")
         self.assertEqual(output, r"[\u@\h \W]\$",
                          "Bash prompt is not OK -> %s" % output)
@@ -171,6 +247,31 @@ class GeneralTest(Test):
 
     # RHBZ#1028889
     def test_check_redhat_release(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_redhat_release
+        description:
+            Check the version of `redhat-release-server` package.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_redhat_release"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Get the version of `redhat-release-server` package.
+            2. Compare with the system release version in `/etc/redhat-release`.
+        pass_criteria:
+            Release version and the redhat-release-server package should be matched.
+        """
+
         output = self.session.cmd_output("cat /etc/redhat-release")
         match = re.search(r"\d\.?\d+", output).group(0)
         self.assertEqual(
@@ -220,6 +321,31 @@ class GeneralTest(Test):
             sp_pwdp)
 
     def test_check_selinux_status(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_selinux_status
+        description:
+            Check the selinux status.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_selinux_status"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Check the SELinux status by `getenforce`.
+            2. Check the configuration in file `/etc/selinux/config`.
+        pass_criteria:
+            SELinux should be `Enforcing` and set as default.
+        """
+
         self.assertEqual(self.session.cmd_output("getenforce"), "Enforcing",
                          "SELinux is not enforcing")
         output = self.session.cmd_output(
@@ -231,6 +357,31 @@ class GeneralTest(Test):
         self.assertEqual(keyword, "enforcing", "SELinux is not enforcing")
 
     def test_check_selinux_contexts(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_selinux_contexts
+        description:
+            Check the selinux contexts of all system files.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_selinux_contexts"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Use `restorecon` command to check system files.
+            2. Except the entries in whitelist selinux.el9.lst.
+        pass_criteria:
+            Selinux contexts of the system files should not be changed except the whitelisted ones.
+        """
+
         self.log.info(
             "Check all files confiled by SELinux has the correct contexts")
         selinux_now = self.dest_dir + "selinux.now"
@@ -257,6 +408,31 @@ class GeneralTest(Test):
             "Found extra SELinux contexts have been modified:\n%s" % output)
 
     def test_check_files_controlled_by_rpm(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_files_controlled_by_rpm
+        description:
+            Check if all system files are controlled by rpm.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_files_controlled_by_rpm"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Query files that doesn't belong to any package.
+            2. Except the entries in whitelist rogue.el*.lst.
+        pass_criteria:
+            All system files are controlled by rpm except the whitelisted ones.
+        """
+
         self.log.info(
             "Check all files on the disk is controlled by rpm packages")
         utils_script = "rogue.sh"
@@ -283,6 +459,32 @@ class GeneralTest(Test):
             "Found extra files not controlled by rpm:\n%s" % output)
 
     def test_check_file_content_integrity_by_rpm(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_file_content_integrity_by_rpm
+        description:
+            Check the file content integrity by `rpm -v` command.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_file_content_integrity_by_rpm"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Query all the packages installed.
+            2. Verify each package by `rpm -v`
+            3. Except the entries in whitelist rpm_va.el*.lst
+        pass_criteria:
+            All packages should be intact excepted the ones from the whitelist.
+        """
+
         self.log.info("Check file content integrity by rpm -Va")
         if self.rhel_ver.split('.')[0] == '9':
             data_file = "rpm_va.el9.lst"
@@ -312,6 +514,31 @@ will not check kernel-devel package.')
                          "Found extra files has been modified:\n%s" % output)
 
     def test_check_file_content_integrity_by_diff(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_file_content_integrity_by_diff
+        description:
+            Check the file content integrity by `diff` command.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_file_content_integrity_by_diff"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Get the templates from file_cmp.el*;
+            2. Compare specific template with the files in VM.
+        pass_criteria:
+            All files should be intact and match with the templates.
+        """
+
         # Compare every single file under local "data/vendor/file_cmp"
         root_path = os.path.dirname(os.path.dirname(self.pwd))
         src_dir = os.path.join(os.path.join(root_path, 'data'),
@@ -351,6 +578,30 @@ will not check kernel-devel package.')
 
     # RHBZ#1144155
     def test_check_boot_cmdline_parameters(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_boot_cmdline_parameters
+        description:
+            Check parameters in boot cmdline.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_boot_cmdline_parameters"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Check if all entries from cmdline_params.lst exist in cmdline.
+        pass_criteria:
+            All entries from cmdline_params.lst should be exist in cmdline.
+        """
+
         root_path = os.path.dirname(os.path.dirname(self.pwd))
         src_dir = os.path.join(os.path.join(root_path, "data"),
                                self.cloud.cloud_provider)
@@ -364,6 +615,31 @@ will not check kernel-devel package.')
 
     # RHBZ#1033780
     def test_check_product_certificate(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_product_certificate
+        description:
+            Check the product certificates in the system.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_product_certificate"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Query product certificates.
+            2. Check if the mandatory certificate exists.
+        pass_criteria:
+            Proper product certificates should be installed.
+        """
+
         output_tmp = self.session.cmd_output(
             "rpm -qf /etc/pki/product-default/230.pem")
         htb = rhel = False
@@ -396,6 +672,32 @@ will not check kernel-devel package.')
             self.fail("Product certificate is not found")
 
     def test_check_package_signature(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_package_signature
+        description:
+            Check the package signature.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_package_signature"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Check each package's signature.
+            2. Find the ones without signature.
+            3. Except the entries in signature.
+        pass_criteria:
+            Except entries in rpm_sign.lst all packages has been signed.
+        """
+
         data_file = "rpm_sign.lst"
         self.session.copy_data_to_guest(self.cloud.cloud_provider, data_file)
         cmd = "rpm -qa --qf '%{name}-%{version}-%{release}.%{arch} \
@@ -414,6 +716,31 @@ will not check kernel-devel package.')
             "There're packages that are not signed.\n {0}".format(output))
 
     def test_check_hostname(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_hostname
+        description:
+            Check that the hostname is set correctly.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_hostname"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Set a hostname while creating instance via Aliyun SDK.
+            2. Check the hostname inside VM.
+        pass_criteria:
+            The hostname should be set correctly.
+        """
+
         output = self.session.cmd_output("hostname").split('.')[0]
         self.assertEqual(output, self.vm.vm_name.replace('_', '-'),
                          "The hostname is wrong")
@@ -455,6 +782,31 @@ will not check kernel-devel package.')
             output)
 
     def test_check_virt_what(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_virt_what
+        description:
+            Check the virtualization platform.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_virt_what"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Call `virt-what` to show the platform
+            2. Compare with the definition
+        pass_criteria:
+            The virtualization platform matches the definition.
+        """
+
         self.log.info("Check the virt-what")
         if 'ecs.ebm' in self.vm.flavor:
             self.cancel("Alibaba baremetal, skip this case.")
@@ -464,7 +816,7 @@ will not check kernel-devel package.')
                       "virt-what result is not %s" % virt_type)
 
     def test_check_pv_drivers(self):
-        """ Test case for check PV drivers.
+        """Test case for avocado framework.
 
         case_name:
             [Aliyun]GeneralTest.test_check_pv_drivers
@@ -504,75 +856,119 @@ will not check kernel-devel package.')
         """Test case for avocado framework.
 
         case_name:
-            Collect information and logs
-
+            [Aliyun]GeneralTest.test_collect_information_for_create
         description:
-            Collect basic information and logs from the instance.
-
+            Collect basic information and logs after creating VM.
         bugzilla_id:
             n/a
-
         polarion_id:
-            n/a
-
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_collect_information_for_create"
         maintainer:
             cheshi@redhat.com
-
         case_priority:
             0
-
         case_component:
             checkup
-
         key_steps:
-            1. Deliver vm_check.sh to the instance
-            2. Run vm_check.sh to collect information
-            3. Deliver the test results to local
-
+            1. Create a new VM;
+            2. Deliver vm_check.sh to the instance;
+            3. Run vm_check.sh to collect information;
+            4. Deliver the test results to local;
         pass_criteria:
-            n/a
+            The logs can be delivered successfully.
         """
+
         utils_alibaba.collect_information(self, 'create')
 
     def test_collect_information_for_reboot(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_collect_information_for_reboot
+        description:
+            Collect basic information and logs after rebooting VM.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_collect_information_for_reboot"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Reboot the instance;
+            2. Deliver vm_check.sh to the instance;
+            3. Run vm_check.sh to collect information;
+            4. Deliver the test results to local;
+        pass_criteria:
+            The logs can be delivered successfully.
+        """
+
         utils_alibaba.collect_information(self, 'reboot')
 
     def test_collect_information_for_restart(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_collect_information_for_restart
+        description:
+            Collect basic information and logs after restarting VM.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_collect_information_for_restart"
+        maintainer:
+            cheshi@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Stop and start the instance;
+            2. Deliver vm_check.sh to the instance;
+            3. Run vm_check.sh to collect information;
+            4. Deliver the test results to local;
+        pass_criteria:
+            The logs can be delivered successfully.
+        """
+
         utils_alibaba.collect_information(self, 'restart')
 
     def test_collect_metadata(self):
         """Test case for avocado framework.
 
         case_name:
-            Collect metadata from cloud provider. (Just collection)
-
+            [Aliyun]GeneralTest.test_collect_metadata
         description:
-            Gathering the metadata from cloud providers's metadata server
-            inside instance.
-
+            Gathering the metadata from cloud providers's metadata server inside instance.
         bugzilla_id:
             n/a
-
         polarion_id:
-            n/a
-
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_collect_metadata"
         maintainer:
             cheshi@redhat.com
-
         case_priority:
             0
-
         case_component:
             checkup
-
         key_steps:
             1. Deliver traverse_metadata.sh to the instance
             2. Run traverse_metadata.sh to collect information
             3. Deliver the test results to local
-
         pass_criteria:
-            n/a
+            The metadata can be delivered successfully.
         """
+
         self.log.info("Collect Metadata")
 
         guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
@@ -613,29 +1009,27 @@ will not check kernel-devel package.')
         """Test case for avocado framework.
 
         case_name:
-            Check CPU count
-
+            [Aliyun]GeneralTest.test_check_cpu_count
         description:
-            Check the CPU# inside the instance.
-
+            Check the CPU count inside the VM.
         bugzilla_id:
             n/a
-
         polarion_id:
-            n/a
-
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_cpu_count"
         maintainer:
             cheshi@redhat.com
-
         case_priority:
             0
-
         case_component:
             checkup
-
+        key_steps:
+            1. Collect and compare the CPU count.
         pass_criteria:
-            n/a
+            CPU number inside the VM equals to guest CPU # in SPEC.
         """
+
         guest_cpu = int(
             self.session.cmd_output(
                 "lscpu | grep ^CPU.s.: | awk '{print $2}'"))
@@ -650,29 +1044,28 @@ will not check kernel-devel package.')
         """Test case for avocado framework.
 
         case_name:
-            Check memory size
-
+            [Aliyun]GeneralTest.test_check_mem_size
         description:
             Check the memory size inside the instance.
-
         bugzilla_id:
             n/a
-
         polarion_id:
-            n/a
-
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_check_mem_size"
         maintainer:
             cheshi@redhat.com
-
         case_priority:
             0
-
         case_component:
             checkup
-
+        key_steps:
+            1. Collect and compare the Memory Size.
+            2. Consider the parts taken by kdump service.
         pass_criteria:
-            n/a
+            Memory Size is as expect in SPEC.
         """
+
         guest_mem = int(
             self.session.cmd_output("free -m | grep ^Mem: | awk '{print $2}'"))
         expected_mem = self.vm.memory * 1024
@@ -685,32 +1078,30 @@ will not check kernel-devel package.')
                 guest_mem, expected_mem))
 
     def test_kdump_status(self):
-        """Test kdump status
+        """Test case for avocado framework.
 
         case_name:
-            Test kdump status
-
+            [Aliyun]GeneralTest.test_kdump_status
         description:
-            Check kdump is running.
-
+            Check kdump service status.
         bugzilla_id:
             n/a
-
         polarion_id:
-            n/a
-
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]GeneralTest.test_kdump_status"
         maintainer:
             cheshi@redhat.com
-
         case_priority:
             0
-
         case_component:
             checkup
-
+        key_steps:
+            1. Check kdump status.
         pass_criteria:
-            kdump service is running.
+            kdump.service is active and runnig.
         """
+
         self.log.info("Checking kdump status")
 
         if self.rhel_ver.split('.')[0] == '6':
@@ -766,6 +1157,7 @@ will not check kernel-devel package.')
             All the labels from /etc/image-id should exist in the configured
             image name.
         """
+
         self.log.info("Check the /etc/image-id is correct.")
 
         # Get TargetName
@@ -834,6 +1226,7 @@ will not check kernel-devel package.')
         pass_criteria:
             All commands succeed.
         """
+
         utils_alibaba.run_cmd(self,
                               'sudo yum repoinfo',
                               expect_ret=0,
@@ -870,6 +1263,7 @@ will not check kernel-devel package.')
         pass_criteria:
             All commands succeed.
         """
+
         utils_alibaba.run_cmd(
             self, "sudo yum clean all", expect_ret=0, timeout=180)
         utils_alibaba.run_cmd(
@@ -916,6 +1310,7 @@ will not check kernel-devel package.')
             There is no unexpected vulnerabilities in system.
             Whitelisted all the vulnerabilities from RHEL7.9 and RHEL8.3 before July 2021.
         """
+
         # Print microcode version
         utils_alibaba.run_cmd(self, 'rpm -qa|grep microcode',
                               msg='Get microcode version')
@@ -963,6 +1358,7 @@ will not check kernel-devel package.')
         pass_criteria:
             The actual boot time is no more than the experienced max time.
         """
+        
         if 'ecs.ebm' in self.vm.flavor:
             max_boot_time = 40
         else:
