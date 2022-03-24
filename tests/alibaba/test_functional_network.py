@@ -26,7 +26,7 @@ class NetworkTest(Test):
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_hotplug_nics
+            [Aliyun]NetworkTest.test_hotplug_nics
         description:
             Test case for hotplug NICs.
         bugzilla_id:
@@ -34,7 +34,7 @@ class NetworkTest(Test):
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_hotplug_nics"
+            "[Aliyun]NetworkTest.test_hotplug_nics"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -157,7 +157,7 @@ class NetworkTest(Test):
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_coldplug_nics
+            [Aliyun]NetworkTest.test_coldplug_nics
         description:
             Test case for coldplug NICs.
         bugzilla_id:
@@ -165,7 +165,7 @@ class NetworkTest(Test):
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_coldplug_nics"
+            "[Aliyun]NetworkTest.test_coldplug_nics"
         maintainer:
             cheshi@redhat.com
         case_priority:

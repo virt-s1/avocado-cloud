@@ -26,7 +26,7 @@ class LifeCycleTest(Test):
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_create_vm_password
+            [Aliyun]LifeCycleTest.test_create_vm_password
         description:
             Test create an RHEL instance on Aliyun and autherize with password.
         bugzilla_id:
@@ -34,7 +34,7 @@ class LifeCycleTest(Test):
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_create_vm_password"
+            "[Aliyun]LifeCycleTest.test_create_vm_password"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -95,7 +95,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_create_vm_sshkey
+            [Aliyun]LifeCycleTest.test_create_vm_sshkey
         description:
             Test create an RHEL instance on Aliyun and autherize with sshkey.
         bugzilla_id:
@@ -103,7 +103,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_create_vm_sshkey"
+            "[Aliyun]LifeCycleTest.test_create_vm_sshkey"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -127,7 +127,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_start_vm
+            [Aliyun]LifeCycleTest.test_start_vm
         description:
             Test start an RHEL instance on Aliyun.
         bugzilla_id:
@@ -135,7 +135,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_start_vm"
+            "[Aliyun]LifeCycleTest.test_start_vm"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -175,7 +175,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_reboot_vm
+            [Aliyun]LifeCycleTest.test_reboot_vm
         description:
             Test reboot RHEL instance from Aliyun SDK.
         bugzilla_id:
@@ -183,7 +183,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_reboot_vm"
+            "[Aliyun]LifeCycleTest.test_reboot_vm"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -219,7 +219,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_reboot_inside_vm
+            [Aliyun]LifeCycleTest.test_reboot_inside_vm
         description:
             Test reboot RHEL instance on Aliyun inside instance.
         bugzilla_id:
@@ -227,7 +227,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_reboot_inside_vm"
+            "[Aliyun]LifeCycleTest.test_reboot_inside_vm"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -264,7 +264,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_stop_vm
+            [Aliyun]LifeCycleTest.test_stop_vm
         description:
             Test stop RHEL instance from Aliyun platform.
         bugzilla_id:
@@ -272,7 +272,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_stop_vm"
+            "[Aliyun]LifeCycleTest.test_stop_vm"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -294,7 +294,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_delete_vm
+            [Aliyun]LifeCycleTest.test_delete_vm
         description:
             Test delete RHEL instance from Aliyun platform.
         bugzilla_id:
@@ -302,7 +302,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_delete_vm"
+            "[Aliyun]LifeCycleTest.test_delete_vm"
         maintainer:
             cheshi@redhat.com
         case_priority:

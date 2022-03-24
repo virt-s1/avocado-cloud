@@ -124,7 +124,7 @@ echo test_content > /mnt/{0}/test_file'
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_online_attach_detach_cloud_disks
+            [Aliyun]CloudDiskTest.test_online_attach_detach_cloud_disks
         description:
             Test case for checking online attach and detach cloud disk.
         bugzilla_id:
@@ -132,7 +132,7 @@ echo test_content > /mnt/{0}/test_file'
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_online_attach_detach_cloud_disks"
+            "[Aliyun]CloudDiskTest.test_online_attach_detach_cloud_disks"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -235,7 +235,7 @@ echo test_content > /mnt/{0}/test_file'
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_offline_attach_detach_cloud_disks
+            [Aliyun]CloudDiskTest.test_offline_attach_detach_cloud_disks
         description:
             Test case for checking offline attach and detach cloud disk.
         bugzilla_id:
@@ -243,7 +243,7 @@ echo test_content > /mnt/{0}/test_file'
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_offline_attach_detach_cloud_disks"
+            "[Aliyun]CloudDiskTest.test_offline_attach_detach_cloud_disks"
         maintainer:
             cheshi@redhat.com
         case_priority:
@@ -370,7 +370,7 @@ echo test_content > /mnt/{0}/test_file'
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_local_disks
+            [Aliyun]CloudDiskTest.test_local_disks
         description:
             Test case for checking local disks.
         bugzilla_id:
@@ -378,7 +378,7 @@ echo test_content > /mnt/{0}/test_file'
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
             RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_local_disks"
+            "[Aliyun]CloudDiskTest.test_local_disks"
         maintainer:
             cheshi@redhat.com
         case_priority:
