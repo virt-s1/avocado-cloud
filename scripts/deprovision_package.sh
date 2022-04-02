@@ -57,6 +57,12 @@ function deprovision_cloudinit_wala() {
     sed -i -e 's/^ResourceDisk.Format=.*/ResourceDisk.Format=n/g' \
            -e 's/^ResourceDisk.EnableSwap=.*/ResourceDisk.EnableSwap=n/g' \
         /etc/waagent.conf
+    # For old WALA version
+    grep ^Provisioning.Agent /etc/waagent.conf > /dev/null || {
+        sed -i -e 's/^Provisioning.UseCloudInit=.*/Provisioning.UseCloudInit=y/g' \
+               -e 's/^Provisioning.Enabled=.*/Provisioning.Enabled=n/g' \
+            /etc/waagent.conf
+    }
     swapoff -a
     for i in "${delete_arr[@]}";
     do
