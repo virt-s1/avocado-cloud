@@ -1528,7 +1528,7 @@ ssh_pwauth: 1
         self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_random_pw_len.cfg".format(CONFIG))
         self.session.cmd_output("cloud-init single -n set_passwords", timeout=30)
         # Wait for serial log to refresh
-        time.sleep(30)
+        time.sleep(60)
         serial_output = str(utils_azure.acommand("az vm boot-diagnostics get-boot-log -n {} -g {}".format(self.vm.vm_name, self.vm.resource_group), timeout=10, ignore_status=True).stdout)
         for line in serial_output.split('\r\n'):
             if "test1" in line:
@@ -1573,8 +1573,12 @@ ssh_pwauth: 1
         Verify default values in cloud.cfg
         '''
         self.log.info("RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg")
-        self.session.copy_data_to_guest('azure', 'default_cloud.cfg')
-        diff = self.session.cmd_output("diff /tmp/default_cloud.cfg /etc/cloud/cloud.cfg")
+        if int(self.project.split('.')[0]) < 9:
+            self.session.copy_data_to_guest('azure', 'default_cloud.cfg')
+            diff = self.session.cmd_output("diff /tmp/default_cloud.cfg /etc/cloud/cloud.cfg")
+        else:
+            self.session.copy_data_to_guest('azure', 'default_cloud_90.cfg')
+            diff = self.session.cmd_output("diff /tmp/default_cloud_90.cfg /etc/cloud/cloud.cfg")
         self.assertEqual(diff, '', 
             "Default cloud.cfg is changed:\n"+diff)
 
@@ -1725,19 +1729,30 @@ ssh_pwauth: 1
                     self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
                     "Fail to disable cloud-init related services")
         self.session.cmd_output("sudo touch /etc/cloud/cloud-init.disabled")
-        # Deprovision the VM
+        # Clean the VM
         self.session.cmd_output("sudo rm -rf /var/lib/cloud /var/log/cloud-init* \
             /var/log/messages /var/lib/NetworkManager/dhclient-* \
-                 /etc/resolv.conf /run/cloud-init")      
+                 /etc/resolv.conf /run/cloud-init")
+        # Restart the VM
         self.session.close()
-        # Create new VM with this os disk
-        osdisk = self.vm.properties["storageProfile"]["osDisk"]["vhd"]["uri"]
-        self.vm.delete()
-        self.vm.image = osdisk        
-        self.vm.os_disk_name += "-new"
-        self.vm.create()
-        self.session.connect()
-        # Check the new VM status
+        self.vm.reboot()
+        time.sleep(10)
+        self.session.connect(timeout=60)
+
+        # # Deprovision the VM
+        # self.session.cmd_output("sudo rm -rf /var/lib/cloud /var/log/cloud-init* \
+        #     /var/log/messages /var/lib/NetworkManager/dhclient-* \
+        #          /etc/resolv.conf /run/cloud-init")      
+        # self.session.close()
+        # # Create new VM with this os disk
+        # osdisk = self.vm.properties["storageProfile"]["osDisk"]["vhd"]["uri"]
+        # self.vm.delete()
+        # self.vm.image = osdisk        
+        # self.vm.os_disk_name += "-new"
+        # self.vm.create()
+        # self.session.connect()
+
+        # Check the VM status
         self.assertNotIn("enabled",
                     self.session.cmd_output("sudo systemctl is-enabled cloud-{init-local,init,config,final}"),
                     "Fail to disable cloud-init related services!")
