@@ -1,5 +1,6 @@
 cc_rightscale_userdata.*Failed to get raw userdata in module rightscale_userdata
 util.py.DEBUG.. Failed mount of ./dev/sd.1. as .ntfs.. Unexpected error while running command
+util.py.DEBUG.. Failed to mount device: ./dev/sd.1. with type: .ntfs. using mount command: .* which caused exception: Unexpected error while running command
 Failed mounting /dev/sd.1 to .* due to: Unexpected error while running command
 nofail
 Ran .* modules with 0 failures
