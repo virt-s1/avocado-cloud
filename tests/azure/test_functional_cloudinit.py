@@ -1601,7 +1601,10 @@ ssh_pwauth: 1
             self.error("Bootup is not finished in 100s. Exit.")
         for line in self.session.cmd_output("systemd-analyze blame|grep -E '(cloud-init-local|cloud-init|cloud-final|cloud-config)'|sed 's/^ *//g'").split('\n'):
             real_time, service = line.split(' ')
-            real_time = float(real_time.rstrip('s'))
+            if real_time.endswith('ms'):
+                real_time = 1
+            else:
+                real_time = float(real_time.rstrip('s'))
             total += real_time
             self.assertTrue(real_time < limit, "{} service startup time is {}s >= {}s".format(service, real_time, limit))
         self.assertTrue(total < total_limit, "All the services startup time is {}s >= {}s".format(total, total_limit))
