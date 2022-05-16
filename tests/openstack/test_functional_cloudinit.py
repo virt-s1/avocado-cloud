@@ -117,6 +117,11 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='active', is_get_console=False)
     
     def _check_cloudinit_done_and_service_isactive(self):
+        # if cloud-init status is running, waiting
+        output='status: running'
+        while output=='status: running':
+            time.sleep(20) # waiting for cloud-init done
+            output = self.session.cmd_output('sudo cloud-init status')
         # check cloud-init status is done
         cmd = 'sudo cloud-init status'
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='status: done', msg='Get cloud-init status', is_get_console=False)
@@ -125,6 +130,14 @@ ssh_pwauth: 1
         self._check_cloudinit_services_isactive()
 
         # no 'Traceback' in log, maybe hit by mistake, for example, cannot connect media data
+    def _output_cloudinit_log(self):
+        cmd = 'sudo cat /var/log/cloud-init.log'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          msg='check /var/log/cloud-init.log',
+                          is_get_console=False)
+
 
     def test_cloudinit_check_services_status(self):
         '''
@@ -641,6 +654,7 @@ ssh_pwauth: 1
             "No sudo privilege")  
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
+        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_config_drive(self):
         """
@@ -676,6 +690,7 @@ ssh_pwauth: 1
                           is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
+        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_two_nics(self):
         """
@@ -705,6 +720,7 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DEVICE=eth1', is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
+        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_stateless_ipv6(self):
         """
@@ -732,6 +748,7 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DHCPV6C_OPTIONS=-S,IPV6_AUTOCONF=yes', is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
+        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_stateful_ipv6(self):
         """
@@ -758,6 +775,7 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='IPV6_FORCE_ACCEPT_RA=yes', is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
+        self._output_cloudinit_log()
     
     def test_cloudinit_check_ifcfg_no_startmode(self):
         '''
@@ -1131,15 +1149,10 @@ packages:
             self.session.cmd_output("subscription-manager list --consumed --pool-only"),
             "Cannot auto-attach pools")
 
-        # if cloud-init status is running, waiting
-        output='status: running'
-        while output=='status: running':
-            time.sleep(20) # waiting for cloud-init done
-            output = self.session.cmd_output('cloud-init status')
-
         # no error because of disable-repo null
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
+        self._output_cloudinit_log()
 
         # check package installed
         time.sleep(30) # waiting for package install done.
