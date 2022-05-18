@@ -1260,6 +1260,8 @@ rh_subscription:
         self.assertLess(
             float(boot_time_sec), float(max_boot_time), 
             "First boot time is greater than {}".format(max_boot_time))
+        # check cloud-init.log
+        self._output_cloudinit_log()
         # Check cloud-init services time
         init_time_sec = self._get_service_startup_time("cloud-init-local.service")
         self.assertLess(
