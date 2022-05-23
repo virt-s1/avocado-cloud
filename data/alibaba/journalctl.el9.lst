@@ -32,3 +32,4 @@ cc_keys_to_console.py[WARNING]: Writing keys to the system console failed!
 util.py[WARNING]: Running module keys-to-console
 cloud-final.service: Failed with result 'exit-code'.
 Failed to start Execute cloud user/final scripts.
+kernel: unchecked MSR access error: WRMSR to 0x3a

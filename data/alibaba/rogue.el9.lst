@@ -223,6 +223,26 @@
 /usr/share/fonts/liberation/.uuid
 /boot/efi/NvVars
 /etc/systemd/system/graphical.target.wants/udisks2.service
+/etc/alternatives/apropos
+/etc/alternatives/apropos.1.gz
+/etc/alternatives/man
+/etc/alternatives/man.1.gz
+/etc/alternatives/soelim
+/etc/alternatives/soelim.1.gz
+/etc/alternatives/whatis
+/etc/alternatives/whatis.1.gz
+/etc/kernel/cmdline
+/etc/systemd/system/ctrl-alt-del.target
+/etc/systemd/system/dbus.service
+/etc/systemd/system/multi-user.target.wants/insights-client-boot.service
+/etc/systemd/system/sockets.target.wants/dbus.socket
+/etc/systemd/system/sysinit.target.wants/systemd-network-generator.service
+/etc/systemd/system/timers.target.wants/logrotate.timer
+/etc/systemd/user/basic.target.wants/systemd-tmpfiles-setup.service
+/etc/systemd/user/dbus.service
+/etc/systemd/user/sockets.target.wants/dbus.socket
+/etc/systemd/user/timers.target.wants/systemd-tmpfiles-clean.timer
+/etc/cloud/cloud.cfg.d/aliyun_cloud.cfg
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
