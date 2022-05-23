@@ -605,11 +605,16 @@ will not check kernel-devel package.')
         root_path = os.path.dirname(os.path.dirname(self.pwd))
         src_dir = os.path.join(os.path.join(root_path, "data"),
                                self.cloud.cloud_provider)
-        data_file = "cmdline_params.lst"
+        if self.rhel_ver.split('.')[0] == '9':
+            data_file = "cmdline_params.el9.lst"
+        else:
+            data_file = "cmdline_params.lst"
+
         lines = filter(None,
                        (line.rstrip()
                         for line in open(os.path.join(src_dir, data_file))))
         output = self.session.cmd_output("cat /proc/cmdline")
+        self.log.info('The output of /proc/cmdline: {0}'.format(output))
         for line in lines:
             self.assertIn(line, output, "%s is not in boot parameters" % line)
 
@@ -645,6 +650,12 @@ will not check kernel-devel package.')
         htb = rhel = False
         if output_tmp.startswith("redhat-release"):
             htb = True
+
+        if self.vm.arch == "x86_64" and self.rhel_ver.split('.')[0] == '9':
+            output = self.session.cmd_output(
+                "rpm -qf /etc/pki/product-default/486.pem")
+            if output.startswith("redhat-release"):
+                rhel = True
 
         if self.vm.arch == "x86_64" and self.rhel_ver.split('.')[0] != '8':
             output = self.session.cmd_output(

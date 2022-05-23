@@ -74,5 +74,7 @@ SM5....T.  c /boot/grub2/grubenv
 .M.......  c /etc/crypto-policies/back-ends/nss.config
 S.5....T.  c /etc/containers/registries.conf
 .M...UG..    /run/uuidd
+.M.....T.    /boot/grub2/fonts/unicode.pf2
+.......T.    /boot/efi/EFI/redhat/shim.efi
 #################### KNOWN ISSUES BELOW ####################
 S.5....T.    /usr/lib/systemd/system/cloud-init.service
