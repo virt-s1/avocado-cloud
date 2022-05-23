@@ -711,8 +711,7 @@ will not check kernel-devel package.')
 
         data_file = "rpm_sign.lst"
         self.session.copy_data_to_guest(self.cloud.cloud_provider, data_file)
-        cmd = "rpm -qa --qf '%{name}-%{version}-%{release}.%{arch} \
-(%{SIGPGP:pgpsig})\n'|grep -v 'Key ID'"
+        cmd = "rpm -qa --qf '%{name}-%{version}-%{release}.%{arch} (%{SIGPGP:pgpsig})'|grep -v 'Key ID'"
 
         output = self.session.cmd_output(
             cmd + "|grep -vFf %s" % os.path.join(self.dest_dir, data_file))
