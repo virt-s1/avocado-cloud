@@ -108,7 +108,7 @@ EOF
         self.log.debug("Package name list: {}".format(pkgname_list))
         if "kernel" not in pkgname_list:
             [
-                self.session.cmd_output("rpm -e {}".format(pkgname))
+                self.session.cmd_output("rpm -e {}".format(pkgname), timeout=300)
                 for pkgname in pkgname_list
             ]
         # Install package
