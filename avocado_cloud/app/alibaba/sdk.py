@@ -223,6 +223,15 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
                         detached_count, len(nic_ids)))
                     if detached_count >= len(nic_ids):
                         break
+    def assign_secondary_private_ips(self, nic_id, secondary_private_ip_count):
+        """Assign secondary private ip addresses for primary NIC"""
+        logging.info("Assigning secondary private ip addresses for primary NIC")
+        return self.ecs.assign_private_ips(nic_id, secondary_private_ip_count)
+
+    def unassign_secondary_private_ips(self, nic_id, secondary_private_ip_list):
+        """Unassign secondary private ip addresses from primary NIC"""
+        logging.info("Unassigning secondary private ip addresses from primary NIC")
+        return self.ecs.unassign_private_ips(nic_id, secondary_private_ip_list)
 
     def query_nics(self):
         """Get NIC list of the current instance."""
