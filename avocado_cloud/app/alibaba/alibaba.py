@@ -30,7 +30,8 @@ from aliyunsdkecs.request.v20140526 import DetachNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import DeleteNetworkInterfaceRequest
 from aliyunsdkecs.request.v20140526 import GetInstanceConsoleOutputRequest
 from aliyunsdkecs.request.v20140526 import DescribeAvailableResourceRequest
-
+from aliyunsdkecs.request.v20140526 import AssignPrivateIpAddressesRequest
+from aliyunsdkecs.request.v20140526 import UnassignPrivateIpAddressesRequest
 
 class AliyunConfig(object):
 
@@ -448,6 +449,24 @@ class AlibabaSDK(object):
         key_list = ["NetworkInterfaceId"]
         self.vm_params["NetworkInterfaceId"] = nic_id
         request = self._add_params(request, key_list, self.vm_params)
+        return self._send_request(request)
+
+    # Assign Secondary Private IPs
+    def assign_private_ips(self, nic_id, secondary_private_ip_count):
+        request = AssignPrivateIpAddressesRequest.AssignPrivateIpAddressesRequest()
+        key_list = ["NetworkInterfaceId", "SecondaryPrivateIpAddressCount"]
+        self.vm_params["NetworkInterfaceId"] = nic_id
+        self.vm_params["SecondaryPrivateIpAddressCount"] = secondary_private_ip_count
+        request = self._add_params(request, key_list, self.vm_params)
+        return self._send_request(request)
+
+    # Unassign Secondary Private IPs
+    def unassign_private_ips(self, nic_id, secondary_private_ip_list):
+        request = UnassignPrivateIpAddressesRequest.UnassignPrivateIpAddressesRequest()
+        key_list = ["NetworkInterfaceId"]
+        self.vm_params["NetworkInterfaceId"] = nic_id
+        request = self._add_params(request, key_list, self.vm_params)
+        request.set_PrivateIpAddresss(secondary_private_ip_list)
         return self._send_request(request)
 
     def get_console_log(self, instance_id):

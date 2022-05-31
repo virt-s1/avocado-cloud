@@ -18,9 +18,10 @@ class NetworkTest(Test):
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
                                           pre_stop=pre_stop)
         if self.name.name.endswith("test_hotplug_nics") or \
-           self.name.name.endswith("test_coldplug_nics"):
-            self.cloud.init_nics(self.vm.nic_count)
-            self.primary_nic_id = self.cloud.primary_nic_id
+            self.name.name.endswith("test_coldplug_nics") or \
+            self.name.name.endswith("test_assign_unassign_secondary_private_ips"):
+                self.cloud.init_nics(self.vm.nic_count)
+                self.primary_nic_id = self.cloud.primary_nic_id
 
     def test_hotplug_nics(self):
         """Test case for avocado framework.
@@ -247,6 +248,59 @@ class NetworkTest(Test):
         self.assertEqual(self.session.cmd_output(guest_cmd), "1",
                          "Fail to remove all NICs inside guest")
         self.log.info("Detach all NICs successfully")
+
+    def test_assign_unassign_secondary_private_ips(self):
+        """Test case for assign and unassign secondary private ip addresses.
+
+        case_name:
+            [Aliyun]NetworkTest.test_assign_unassign_secondary_private_ips
+        description:
+            Test case for assign and unassign secondary private ip addresses
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RedHatEnterpriseLinux7/workitems?query=title:\
+            "[Aliyun]NetworkTest.test_assign_unassign_secondary_private_ips"
+        maintainer:
+            yoguo@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Assign multiple secondary private ip addresses for primary NIC;
+            2. Install the NetworkManger-cloud-setup package and edit the nm-cloud-setup service
+            # systemctl edit nm-cloud-setup.service
+            [Service]
+            Environment=NM_CLOUD_SETUP_ALIYUN=yes
+            3. systemctl daemon-reload
+            4. Start the nm-cloud-setup service (systemctl start nm-cloud-setup.service)
+            5. Check all the ip addresses by 'ip addr show'
+            6. Unassign all the secondary private ip addresses
+            7. Start the nm-cloud-setup service (systemctl start nm-cloud-setup.service)
+            8. Check all the ip addresses by 'ip addr show'(Only primary ip exists)
+        pass_criteria:
+            All the functionality works well.
+        """
+        # Assign multiple secondary private ips
+        secondary_private_ip_count = 3
+        ret = self.vm.assign_secondary_private_ips(self.primary_nic_id, secondary_private_ip_count)
+        private_ip_list = ret.get("AssignedPrivateIpAddressesSet").get("PrivateIpSet").get("PrivateIpAddress")
+        self.assertEqual(len(private_ip_list), secondary_private_ip_count,
+                         "Fail to assign all secondary private ip addresses")
+
+        # Unassign multiple secondary private ips
+        self.vm.unassign_secondary_private_ips(self.primary_nic_id, private_ip_list)
+        time.sleep(5)
+
+        private_ip_list = []
+        for nic in self.vm.query_nics():
+            for private_ip_set in nic.get("PrivateIpSets").get("PrivateIpSet"):
+                if not private_ip_set.get("Primary"):
+                    private_ip_list.append(private_ip_set.get("PrivateIpAddress"))
+        self.assertEqual(len(private_ip_list), 0,
+                         "Fail to unassign all secondary private ip addresses")
 
     def tearDown(self):
         if self.name.name.endswith("test_hotplug_nics") or \
