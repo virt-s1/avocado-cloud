@@ -4,7 +4,7 @@ import os
 from avocado import Test
 from avocado import main
 from avocado_cloud.app import Setup
-from avocado_cloud.app.azure import AzureAccount
+from avocado_cloud.app.azure import AzureAccount, AzureImage
 from distutils.version import LooseVersion
 from avocado_cloud.utils.utils_azure import command
 
@@ -24,7 +24,13 @@ class GeneralTest(Test):
             if LooseVersion(self.project) < LooseVersion('7.8'):
                 self.cancel(
                     "Skip case because RHEL-{} ondemand image doesn't support gen2".format(self.project))
-            cloud = Setup(self.params, self.name, size="DC2s")
+            cloud = Setup(self.params, self.name, size="DS1_v2")
+            cloud.vm.vm_name += "-gen2"
+            self.image = AzureImage(self.params, generation="V2")
+            if not self.image.exists():
+                self.image.create()
+            cloud.vm.image = self.image.name
+            cloud.vm.use_unmanaged_disk = False
         else:
             cloud = Setup(self.params, self.name)
         self.vm = cloud.vm
@@ -408,6 +414,9 @@ be removed and a new *_waagent.pid file is generated")
         self.log.info(
             "RHEL-178728	WALA-TC: [General] Verify provision Gen2 VM")
         error_msg = ""
+        # Verify is Gen2
+        if self.session.cmd_status_output("dmesg|grep -w EFI")[0] != 0:
+            self.error('This is not Gen2 VM! Abort the test.')
         # Verify hostname is correct
         try:
             self.test_check_hostname()
