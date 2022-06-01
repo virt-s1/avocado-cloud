@@ -77,6 +77,11 @@ sudo chown -R root:root /root/.ssh")
         self.session.cmd_output(
             "/usr/bin/mv /var/lib/waagent /tmp/waagent-bak")
         self.session.cmd_output("userdel -rf {}".format(self.username))
+        if self.session.cmd_status_output('id {}'.format(self.username))[0] == 0:
+            self.log.debug("Fail to delete user! Retry...")
+            time.sleep(1)
+            self.session.cmd_output("ps aux|grep {}".format(self.username))
+            self.session.cmd_output("userdel -rf {}".format(self.username))
         self.session.cmd_output("rm -f /var/log/waagent.log")
         self.session.cmd_output("touch /tmp/deprovisioned")
 
