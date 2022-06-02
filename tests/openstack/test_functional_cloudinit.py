@@ -483,14 +483,8 @@ ssh_pwauth: 1
             # checking /etc/sysconfig/network NOZEROCONF=yes
             output = self.session.cmd_output('sudo cat /etc/sysconfig/network')
             self.log.info("run: cat /etc/sysconfig/network  " + output)
-            # checking if there is 'Traceback' in log
-            cmd = 'sudo cat /var/log/cloud-init.log'
-            utils_lib.run_cmd(self,
-                          cmd,
-                          expect_ret=0,
-                          expect_not_kw='Traceback',
-                          msg=str(x)+' run: check Traceback in /var/log/cloud-init.log',
-                          is_get_console=False)
+            # checking cloud-init status
+            self._check_cloudinit_done_and_service_isactive()
 
             time.sleep(30)
 
