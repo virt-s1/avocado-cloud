@@ -21,7 +21,7 @@ class WALAConfTest(Test):
         account.login()
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         if self.case_short_name == "test_resource_disk_gpt_partition":
-            cloud = Setup(self.params, self.name, size="L16s")
+            cloud = Setup(self.params, self.name, size="M64ls")
         else:
             cloud = Setup(self.params, self.name)
         self.vm = cloud.vm

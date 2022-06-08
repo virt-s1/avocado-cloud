@@ -581,14 +581,14 @@ be removed and a new *_waagent.pid file is generated")
             "rm -rf /var/lib/waagent/WALinuxAgent-* /var/log/waagent.log")
         self._modify_value("AutoUpdate.Enabled", "y")
         self.log.info("3. Start waagent service. Check if can download \
-auto-update packages \"host plugin\" string should be in waagent.log")
+auto-update packages. Special string should be in waagent.log")
         self.session.cmd_output("service waagent start")
         time.sleep(50)
-        for retry in range(0, 10):
+        for retry in range(0, 30):
             if self.session.cmd_status_output("ll /var/lib/waagent/WALinuxAgent-*.zip")[0] == 0:
                 break
             self.log.info("Waiting for auto-update package downloaded. \
-Retry: {0}/10".format(retry+1))
+Retry: {0}/30".format(retry+1))
             time.sleep(10)
         else:
             self.fail("Fail to download auto-update packages from host plugin")

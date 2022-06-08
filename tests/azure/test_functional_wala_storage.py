@@ -17,13 +17,12 @@ class StorageTest(Test):
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         self.project = self.params.get("rhel_ver", "*/VM/*")
         if self.case_short_name == "test_verify_storage_rule_gen2":
-            # cloud.vm.vm_name += "-gen2"
-            # self.image = AzureImage(self.params, generation="V2")
-            # if not self.image.exists():
-            #     self.image.create()
-            # cloud.vm.image = self.image.name
-            # cloud.vm.use_unmanaged_disk = False
-            size = "DC2s"
+            cloud.vm.vm_name += "-gen2"
+            self.image = AzureImage(self.params, generation="V2")
+            if not self.image.exists():
+                self.image.create()
+            cloud.vm.image = self.image.name
+            cloud.vm.use_unmanaged_disk = False
         else:
             size = "DS2_v2"
         cloud = Setup(self.params, self.name, size=size)
