@@ -59,7 +59,7 @@ class CloudinitTest(Test):
                 "test_cloudinit_boot_time"):
             pre_delete = True
         #below data is used for the login case and other cases except above specific cases.
-        #set ssh_pwauth: 0 to trigger sshd service restart, bz#2091217
+        #set ssh_pwauth: 0 to trigger sshd service restart, bz#
         user_data = """\
 #cloud-config
 
@@ -147,7 +147,7 @@ ssh_pwauth: 0
         check if four cloud-init services are active
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        self._check_cloudinit_services_isactive()
+        self._check_cloudinit_done_and_service_isactive()# cloud-config is inactive?
 
     def test_cloudinit_verify_services(self):
         '''
@@ -173,6 +173,7 @@ ssh_pwauth: 0
         check no traceback log in cloudinit logs
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
+        self._check_cloudinit_done_and_service_isactive()# the first case of tier2
         cmd = 'sudo cat /var/log/cloud-init.log'
         utils_lib.run_cmd(self,
                           cmd,
