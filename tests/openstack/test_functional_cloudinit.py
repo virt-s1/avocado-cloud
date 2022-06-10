@@ -105,6 +105,33 @@ ssh_pwauth: 0
         self.assertEqual(output, self.vm.vm_name.replace('_', '-'),
                          "The hostname is wrong")
 
+    def test_cloudinit_datasource_openstack(self):
+        """
+        :avocado: tags=tier1,cloudinit
+        RHEL-286739 - CLOUDINIT-TC: Check the datasource on OpenStack PSI
+        1. Launch instance with cloud-init installed on OpenStack PSI
+        2. Check the datasource is openstack
+        # cat /run/cloud-init/cloud.cfg 
+        # cat /run/cloud-init/ds-identify.log
+        """
+        self.log.info(
+            "RHEL-286739 - CLOUDINIT-TC: Check the datasource on OpenStack PSI")
+        self.session.connect(timeout=self.ssh_wait_timeout)
+        cmd = 'cat /run/cloud-init/cloud.cfg'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='datasource_list: [ OpenStack, None ]',
+                          msg='check if the datasource is OpenStack',
+                          is_get_console=False)
+        cmd = 'cat /run/cloud-init/ds-identify.log | grep datasource'
+        utils_lib.run_cmd(self,
+                          cmd,
+                          expect_ret=0,
+                          expect_kw='Found single datasource: OpenStack',
+                          msg='check there is Found single datasource: OpenStack',
+                          is_get_console=False)
+
     def _check_cloudinit_services_isactive(self):
         cmd = 'cloud-init -v'
         utils_lib.run_cmd(self, cmd, expect_ret=0, msg='Get cloud-init version', is_get_console=False)
@@ -147,7 +174,8 @@ ssh_pwauth: 0
         check if four cloud-init services are active
         '''
         self.session.connect(timeout=self.ssh_wait_timeout)
-        self._check_cloudinit_done_and_service_isactive()# cloud-config is inactive?
+        # sometimes CI job gets that cloud-config inactive, so checking cloud-init status before checking services
+        self._check_cloudinit_done_and_service_isactive()
 
     def test_cloudinit_verify_services(self):
         '''
@@ -650,7 +678,6 @@ ssh_pwauth: 1
             "No sudo privilege")  
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
-        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_config_drive(self):
         """
@@ -686,7 +713,6 @@ ssh_pwauth: 1
                           is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
-        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_two_nics(self):
         """
@@ -716,7 +742,6 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DEVICE=eth1', is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
-        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_stateless_ipv6(self):
         """
@@ -744,7 +769,6 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='DHCPV6C_OPTIONS=-S,IPV6_AUTOCONF=yes', is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
-        self._output_cloudinit_log()
 
     def test_cloudinit_create_vm_stateful_ipv6(self):
         """
@@ -771,7 +795,6 @@ ssh_pwauth: 1
         utils_lib.run_cmd(self, cmd, expect_ret=0, expect_kw='IPV6_FORCE_ACCEPT_RA=yes', is_get_console=False)
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
-        self._output_cloudinit_log()
     
     def test_cloudinit_check_ifcfg_no_startmode(self):
         '''
@@ -1131,6 +1154,10 @@ packages:
             "Reboot VM error: output of cmd `who` unexpected -> %s" % output)
         self.log.info("Waiting 30s for subscription-manager done...")
         time.sleep(30) # waiting for subscription-manager register done.
+        # no error because of disable-repo null
+        # check cloud-init status is done and services are active
+        self._check_cloudinit_done_and_service_isactive()
+
         self.session.cmd_output("sudo su -")
         # check register
         self.assertEqual(self.session.cmd_status_output(
@@ -1144,11 +1171,6 @@ packages:
         self.assertNotEqual("",
             self.session.cmd_output("subscription-manager list --consumed --pool-only"),
             "Cannot auto-attach pools")
-
-        # no error because of disable-repo null
-        # check cloud-init status is done and services are active
-        self._check_cloudinit_done_and_service_isactive()
-        self._output_cloudinit_log()
 
         # check package installed
         time.sleep(30) # waiting for package install done.
@@ -1198,6 +1220,9 @@ rh_subscription:
         # 51.55900s (modules-config/config-rh_subscription)
         self.log.info("Waiting 60s for subscription-manager done...")
         time.sleep(60) 
+        # check cloud-init status is done and services are active
+        self._check_cloudinit_done_and_service_isactive()
+
         self.session.cmd_output("sudo su -")
         # check register
         self.assertEqual(self.session.cmd_status_output(
@@ -1251,6 +1276,8 @@ rh_subscription:
         self.session.connect(timeout=self.ssh_wait_timeout)
         max_boot_time = 50
         cloud_init_startup_time = 18
+        # check cloud-init status is done and services are active
+        self._check_cloudinit_done_and_service_isactive()
         # Check boot time
         boot_time_sec = utils_lib.getboottime(self)
         self.assertLess(
@@ -1318,32 +1345,6 @@ rh_subscription:
             float(final_time_sec), float(cloud_init_startup_time), 
             "cloud-final startup time is greater than {}".format(cloud_init_startup_time))
 
-    def test_cloudinit_datasource_openstack(self):
-        """
-        :avocado: tags=tier2,cloudinit
-        RHEL-286739 - CLOUDINIT-TC: Check the datasource on OpenStack PSI
-        1. Launch instance with cloud-init installed on OpenStack PSI
-        2. Check the datasource is openstack
-        # cat /run/cloud-init/cloud.cfg 
-        # cat /run/cloud-init/ds-identify.log
-        """
-        self.log.info(
-            "RHEL-286739 - CLOUDINIT-TC: Check the datasource on OpenStack PSI")
-        self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = 'cat /run/cloud-init/cloud.cfg'
-        utils_lib.run_cmd(self,
-                          cmd,
-                          expect_ret=0,
-                          expect_kw='datasource_list: [ OpenStack, None ]',
-                          msg='check if the datasource is OpenStack',
-                          is_get_console=False)
-        cmd = 'cat /run/cloud-init/ds-identify.log | grep datasource'
-        utils_lib.run_cmd(self,
-                          cmd,
-                          expect_ret=0,
-                          expect_kw='Found single datasource: OpenStack',
-                          msg='check there is Found single datasource: OpenStack',
-                          is_get_console=False)
 
     def test_cloudinit_root_exit_code(self):
         """

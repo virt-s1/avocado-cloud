@@ -1,6 +1,7 @@
 cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_login_with_publickey
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_hostname
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_datasource_openstack
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_services_status
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_services
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_check_log_no_traceback
@@ -37,7 +38,6 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_verify_customized_file_in_authorizedkeysfile
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_boot_time
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_reboot_time
-    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_datasource_openstack
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_root_exit_code
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_disable_cloudinit
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_ip_route_append
