@@ -61,6 +61,7 @@ class CloudinitTest(Test):
         if self.case_short_name in [
             "test_cloudinit_login_with_password",
             "test_cloudinit_remove_cache_and_reboot_password",
+            "test_cloudinit_update_existing_password",
         ]:
             self.vm.vm_name += "-pw"
         if self.case_short_name == "test_cloudinit_mount_with_noexec_option":
@@ -75,6 +76,7 @@ class CloudinitTest(Test):
                 "test_cloudinit_save_and_handle_userdata_script",
                 "test_cloudinit_save_and_handle_userdata_cloudinit_config",
                 "test_cloudinit_assign_identity",
+                "test_cloudinit_update_existing_password",
         ]:
             if self.vm.exists():
                 self.vm.delete()
@@ -1766,6 +1768,31 @@ ssh_pwauth: 1
                     self.session.cmd_output("sudo systemctl is-active cloud-init-local"),
                     "cloud-init-local service status is wrong!")
 
+    def test_cloudinit_update_existing_password(self):
+        """
+        :avocado: tags=tier1,cloudinit
+        RHEL-198376: [Azure]Update existing user password
+        1. Create a VM with user azuredebug and new password(diffrent with password in image)
+        2. Login with the new password, should have sudo privilege
+        """
+        self.log.info(
+            "RHEL-198376: [Azure]Update existing user password")
+        self.vm.ssh_key_value = None
+        self.vm.generate_ssh_keys = None
+        self.vm.authentication_type = "password"
+        self.vm.vm_username = "azuredebug"
+        self.vm.vm_password = "RHEL99@Azure"
+        self.vm.create(wait=True)
+        self.session.connect(authentication="password")
+        self.assertEqual(self.vm.vm_username,
+                         self.session.cmd_output("whoami"),
+                         "Fail to login with password")
+        self.assertIn(
+            "%s ALL=(ALL) NOPASSWD:ALL" % self.vm.vm_username,
+            self.session.cmd_output(
+                "sudo cat /etc/sudoers.d/90-cloud-init-users"),
+            "No sudo privilege")
+
     def tearDown(self):
         if not self.session.connect(timeout=10):
             self.vm.delete()
@@ -1825,7 +1852,8 @@ ssh_pwauth: 1
                 "test_cloudinit_remove_cache_and_reboot_password",
                 "test_cloudinit_mount_with_noexec_option",
                 "test_cloudinit_no_networkmanager",
-                "test_cloudinit_dhclient_hook_disable_cloudinit"
+                "test_cloudinit_dhclient_hook_disable_cloudinit",
+                "test_cloudinit_update_existing_password"
         ]:
             self.vm.delete(wait=False)
 
