@@ -1770,7 +1770,7 @@ ssh_pwauth: 1
 
     def test_cloudinit_update_existing_password(self):
         """
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier2,cloudinit
         RHEL-198376: [Azure]Update existing user password
         1. Create a VM with user azuredebug and new password(diffrent with password in image)
         2. Login with the new password, should have sudo privilege
