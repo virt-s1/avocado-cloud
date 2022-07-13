@@ -47,6 +47,8 @@ function deprovision_wala() {
     if [ ${release%%.*} == '8' ];then
         sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
     fi
+    # Create ifcfg-eth0 to workaround BZ#2092002
+    touch /etc/sysconfig/network-scripts/ifcfg-eth0
 }
 
 function deprovision_cloudinit_wala() {
