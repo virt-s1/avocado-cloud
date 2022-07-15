@@ -5,6 +5,7 @@ from avocado import main
 from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount, AzureNIC, AzurePublicIP, AzureNicIpConfig
 from distutils.version import LooseVersion
+from avocado_cloud.utils.utils_azure import WalaConfig
 
 
 class NetworkTest(Test):
@@ -94,6 +95,20 @@ class NetworkTest(Test):
         self.session = cloud.init_vm()
         self.session.cmd_output("sudo su -")
         self.username = self.vm.vm_username
+
+        # Should disable auto update to verify the function in the current version
+        if self.case_short_name in [
+                "test_change_hostname_check_dns", "test_nmcli_change_hostname",
+                "test_kill_exthandler_change_hostname",
+                "test_change_hostname_several_times"
+        ]:
+            self.session.cmd_output("sudo /usr/bin/cp /etc/waagent.conf{,-bak}")
+            walaconfig = WalaConfig(self.session)
+            walaconfig.modify_value("AutoUpdate.Enabled", "n")
+            status, output = walaconfig.verify_value("AutoUpdate.Enabled", "n")
+            self.assertEqual(status, 0, output)
+            del status, output
+            self.session.cmd_output("systemctl restart waagent")
 
     def test_connectivity_check(self):
         """
@@ -369,6 +384,9 @@ lo eth0\
         ]:
             self.session.cmd_output("hostnamectl set-hostname {}".format(
                 self.vm.vm_name))
+            self.session.cmd_output(
+                "/usr/bin/cp /etc/waagent.conf-bak /etc/waagent.conf")
+            self.session.cmd_output("systemctl restart waagent")
         elif self.case_short_name in [
                 "test_provision_vm_with_multiple_nics",
                 "test_provision_vm_with_sriov_nic",
