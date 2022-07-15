@@ -443,7 +443,7 @@ be removed and a new *_waagent.pid file is generated")
 
     def test_install_uninstall_package(self):
         """
-        :avocado: tags=tier3
+        :avocado: tags=tier2
         RHEL7-41625	WALA-TC: [General] Installing and Uninstalling the WALinuxAgent package
         """
         self.log.info(
@@ -689,6 +689,9 @@ Retry: {0}/10".format(retry+1))
         time.sleep(50)
         for retry in range(0, 10):
             if self.session.cmd_status_output("ll /var/lib/waagent/WALinuxAgent-*.zip")[0] == 0:
+                break
+            if self.session.cmd_status_output("grep 'Installed Agent .* is the most current agent' /var/log/waagent.log")[0] == 0:
+                self.log.info("Current version is the latest. No need to download zip files.")
                 break
             self.log.info(
                 "Waiting for auto-update package downloaded. Retry: {0}/10".format(retry+1))

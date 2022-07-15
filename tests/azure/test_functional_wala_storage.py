@@ -16,6 +16,8 @@ class StorageTest(Test):
         account.login()
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         self.project = self.params.get("rhel_ver", "*/VM/*")
+        # Multiple disk test need DS2_v2 size
+        cloud = Setup(self.params, self.name, size="DS2_v2")
         if self.case_short_name == "test_verify_storage_rule_gen2":
             cloud.vm.vm_name += "-gen2"
             self.image = AzureImage(self.params, generation="V2")
@@ -23,9 +25,6 @@ class StorageTest(Test):
                 self.image.create()
             cloud.vm.image = self.image.name
             cloud.vm.use_unmanaged_disk = False
-        else:
-            size = "DS2_v2"
-        cloud = Setup(self.params, self.name, size=size)
         self.vm = cloud.vm
         self.session = cloud.init_vm()
         self.session.cmd_output("sudo su -")
@@ -128,7 +127,27 @@ class StorageTest(Test):
     def _get_links(self, disk_path):
         return self.session.cmd_output("ls -l " + disk_path)
 
-    def _verify_storage_rule(self):
+    def _attach_disk(self, disk_name, disk_size, generation):
+        """
+        If gen1, attach unmanaged disk; if gen2, attach managed disk
+        """
+        if generation == 'gen1':
+            self.vm.unmanaged_disk_attach(disk_name, disk_size)
+        else:
+            self.vm.disk_attach(disk_name, disk_size)
+        time.sleep(5)
+
+    def _detach_disk(self, disk_name, generation):
+        """
+        If gen1, detach unmanaged disk; if gen2, detach managed disk
+        """
+        if generation == 'gen1':
+            self.vm.unmanaged_disk_detach(disk_name)
+        else:
+            self.vm.disk_detach(disk_name)
+        time.sleep(5)
+
+    def _verify_storage_rule(self, generation):
         """
         1. Check /dev/disk/azure/, there should be soft links to sda and sdb
         2. Attach a new disk, then check /dev/disk/azure again. There should
@@ -159,8 +178,12 @@ class StorageTest(Test):
         # 2. Attach a new disk, check /dev/disk/azure/scsi1
         self.log.info("2. Attach a new disk, check /dev/disk/azure/scsi1")
         disk1_name = "{}-disk1-{}".format(self.vm.vm_name, self.postfix)
-        self.vm.unmanaged_disk_attach(disk1_name, 10)
-        time.sleep(5)
+        # if generation == 'gen1':
+        #     self.vm.unmanaged_disk_attach(disk1_name, 10)
+        # else:
+        #     self.vm.disk_attach(disk1_name, 10)
+        # time.sleep(5)
+        self._attach_disk(disk1_name, 10, generation)
         links = self._get_links(scsi1_path)
         self._check_in_link("sdc", links)
         # 3. Create partition /dev/sdc1, then check /dev/disk/azure/scsi1
@@ -183,8 +206,9 @@ class StorageTest(Test):
         self.log.info("5. Add another new disk(disk2). Create a partition \
 and check /dev/disk/azure/scsi1")
         disk2_name = "{}-disk2-{}".format(self.vm.vm_name, self.postfix)
-        self.vm.unmanaged_disk_attach(disk2_name, 10)
-        time.sleep(5)
+        self._attach_disk(disk2_name, 10, generation)
+        # self.vm.unmanaged_disk_attach(disk2_name, 10)
+        # time.sleep(5)
         links = self._get_links(scsi1_path)
         self._disk_part(disk="/dev/sdd", size=1)
         time.sleep(5)
@@ -210,8 +234,9 @@ and check /dev/disk/azure/scsi1")
         # 7. Detach the disk2, then check /dev/disk/azure/scsi1 again
         self.log.info(
             "7. Detach the disk2, then check /dev/disk/azure/scsi1 again")
-        self.vm.unmanaged_disk_detach(disk2_name)
-        time.sleep(5)
+        # self.vm.unmanaged_disk_detach(disk2_name)
+        # time.sleep(5)
+        self._detach_disk(disk2_name, generation)
         links = self._get_links(scsi1_path)
         self._check_in_link(disk1, links)
         self._check_not_in_link(disk2, links)
@@ -223,7 +248,7 @@ and check /dev/disk/azure/scsi1")
         RHEL7-90706	WALA-TC: [Storage] Verify storage rule - Gen1
         """
         self.log.info("RHEL7-90706	WALA-TC: [Storage] Verify storage rule - Gen1")
-        self._verify_storage_rule()
+        self._verify_storage_rule('gen1')
 
     def test_verify_storage_rule_gen2(self):
         """
@@ -232,7 +257,7 @@ and check /dev/disk/azure/scsi1")
         BZ#1859037
         """
         self.log.info("RHEL-188921	WALA-TC: [Storage] Verify storage rule - Gen2")
-        self._verify_storage_rule()
+        self._verify_storage_rule('gen2')
 
     def tearDown(self):
         self.vm.delete(wait=False)

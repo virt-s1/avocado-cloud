@@ -442,7 +442,7 @@ rhel-swap/s/^/#/' /etc/fstab")
             self._swapsize_check(swapsize="1025")
         except:
             result_error_msg += \
-                "non-integer multiple of 64M size check failed\n"
+                "BZ#1977216:non-integer multiple of 64M size check failed\n"
         self.log.info("2. large swap check")
         try:
             self._swapsize_check(swapsize="50070")
@@ -469,17 +469,18 @@ rhel-swap/s/^/#/' /etc/fstab")
             "{} is not GPT partition. Exit.".format(temporary_disk))
         # Set resource disk
         self._swapsize_check(swapsize="2048")
-        # Check waagent.log
-        with open("{}/data/azure/ignore_waagent_messages".format(BASEPATH),
-                  'r') as f:
-            ignore_message_list = f.read().split('\n')
-        cmd = "sudo sh -c \"grep -iE '(error|fail)' /var/log/waagent.log\""
-        if ignore_message_list:
-            cmd += "|grep -vE '({})'".format('|'.join(ignore_message_list))
-        error_log = self.session.cmd_output(cmd)
-        self.assertEqual(
-            error_log, "",
-            "There's error in the /var/log/waagent.log: \n%s" % error_log)
+        # Ignore this checkpoint because of won't fix BZ#1814143
+        # # Check waagent.log
+        # with open("{}/data/azure/ignore_waagent_messages".format(BASEPATH),
+        #           'r') as f:
+        #     ignore_message_list = f.read().split('\n')
+        # cmd = "sudo sh -c \"grep -iE '(error|fail)' /var/log/waagent.log\""
+        # if ignore_message_list:
+        #     cmd += "|grep -vE '({})'".format('|'.join(ignore_message_list))
+        # error_log = self.session.cmd_output(cmd)
+        # if error_log:
+        #     self.log.warn("Error logs in waagent.log: \n{}".format(error_log))
+
 
     def test_monitor_hostname(self):
         """
@@ -502,7 +503,7 @@ rhel-swap/s/^/#/' /etc/fstab")
         else:
             self.session.cmd_output("sudo hostnamectl set-hostname %s" %
                                     hostname1)
-        time.sleep(30)
+        time.sleep(70)
         self.session.connect()
         if LooseVersion(self.project) < LooseVersion("7.0"):
             cmd = "sudo grep '' /etc/sysconfig/network"

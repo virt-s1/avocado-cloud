@@ -1591,3 +1591,11 @@ vm_sizes:
             cpu: 2
             memory: 8.0
             disk_size: 100
+    M64ls:
+            name: Standard_M64ls
+            resource_group: walaautoeastus
+            storage_account: walaautoeastus
+            region: eastus
+            cpu: 64
+            memory: 512.0
+            disk_size: 2000
