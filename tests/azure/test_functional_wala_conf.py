@@ -1342,6 +1342,9 @@ fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
     #     self.session.cmd_output("cat /sys/fs/cgroup/cpu/WALinuxAgent/WALinuxAgent/cpu.cfs_quota_us")
 
     def tearDown(self):
+        if not self.session.connect(timeout=20):
+            self.vm.delete()
+            return
         # recover_list = ["test_delete_root_passwd",
         #                 "test_monitor_hostname",
         #                 "test_reset_system_account",
