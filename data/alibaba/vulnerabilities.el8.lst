@@ -26,3 +26,5 @@ spectre_v2:Mitigation: Full AMD retpoline, STIBP: disabled, RSB filling
 spectre_v2:Mitigation: Full AMD retpoline, IBPB: conditional, STIBP: conditional, RSB filling
 spectre_v2:Mitigation: Full AMD retpoline, IBPB: conditional, IBRS_FW, STIBP: always-on, RSB filling
 spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling
+spectre_v2:Mitigation: Retpolines, STIBP: disabled, RSB filling
+spectre_v2:Mitigation: Retpolines, IBPB: conditional, STIBP: conditional, RSB filling
