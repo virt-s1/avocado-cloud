@@ -653,7 +653,7 @@ will not check kernel-devel package.')
 
         if self.vm.arch == "x86_64" and self.rhel_ver.split('.')[0] == '9':
             output = self.session.cmd_output(
-                "rpm -qf /etc/pki/product-default/486.pem")
+                "rpm -qf /etc/pki/product-default/479.pem")
             if output.startswith("redhat-release"):
                 rhel = True
 
@@ -1370,10 +1370,10 @@ will not check kernel-devel package.')
         """
         
         if 'ecs.ebm' in self.vm.flavor:
-            max_boot_time = 40
+            max_boot_time = 80
         else:
             # kvm-based VMs
-            max_boot_time = 20
+            max_boot_time = 40
 
         boot_time_sec = utils_alibaba.getboottime(self)
         utils_alibaba.compare_nums(self, num1=boot_time_sec, num2=max_boot_time,
