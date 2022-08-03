@@ -1087,29 +1087,44 @@ will not check kernel-devel package.')
             msg="Memory Size is not as expect Real: {0}; Expected: {1}".format(
                 guest_mem, expected_mem))
 
-    def test_kdump_status(self):
+    def test_kdump_function(self):
         """Test case for avocado framework.
 
         case_name:
-            [Aliyun]GeneralTest.test_kdump_status
+            [Aliyun]GeneralTest.test_kdump_function
         description:
-            Check kdump service status.
+            Check kdump function works well on Aliyun platform.
+            Kdump works on Aliyun platform with RHEL Images. 
+            From RHEL8.7 there is a feature request
+            "Bug 2088457 - (Alibaba 8.7features) - backport support for pvpanic:
+            add crash loaded event", \
+            kdump event shows in Aliyun console.
         bugzilla_id:
             n/a
         polarion_id:
-            https://polarion.engineering.redhat.com/polarion/#/project/\
-            RedHatEnterpriseLinux7/workitems?query=title:\
-            "[Aliyun]GeneralTest.test_kdump_status"
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/workitems?query=title:"[Aliyun]GeneralTest.test_kdump_function"
         maintainer:
-            cheshi@redhat.com
+            linl@redhat.com
         case_priority:
             0
         case_component:
             checkup
         key_steps:
-            1. Check kdump status.
+            1. Start an instance (e.g., c6.xlarge) with RHEL image on Aliyun.
+            2. Check the kdump service is enabled and active.
+            3. From RHEL8.7, check if there is kernel paremeter \
+               "crash_kexec_post_notifiers=1" loaded via command \
+               "dmesg | grep command". \
+               This parameter should be set by default in RHEL8.7 images \
+               to support GUEST_CRASHLOADED event.
+            4. Trigger a crash via "echo c > /proc/sysrq-trigger" in instance. \
+               Instance crashes and reboot.
+            5. There is vmcore generated in /var/crash. \
+               From RHEL8.7, Check if there is message about the panic in Aliyun console event (Manually).
         pass_criteria:
-            kdump.service is active and runnig.
+            System can enter to the second kernel and then reboot,\
+            and crash core can be gernerated.
+            From RHEL8.7, there is kdump event shows in Aliyun console.
         """
 
         self.log.info("Checking kdump status")
@@ -1118,8 +1133,9 @@ will not check kernel-devel package.')
             check_cmd = 'sudo service kdump status'
         else:
             check_cmd = 'systemctl status kdump.service'
-
+        
         kdump_running = False
+        
         for i in range(10):
             output = self.session.cmd_output(check_cmd)
             self.log.debug("%s" % output)
@@ -1139,6 +1155,36 @@ will not check kernel-devel package.')
 
         if not kdump_running:
             self.fail('kdump service is not running at last.')
+
+        self.log.info("Check kdump function")
+        utils_alibaba.run_cmd(self,
+                        r'cat /proc/sys/kernel/sysrq',
+                        expect_ret=0,
+                        msg='Check the default sysrq value')
+        self.log.info("Before system crash")
+        utils_alibaba.run_cmd(self,
+                        r'find /var/crash',
+                        expect_ret=0,
+                        msg='list /var/crash')
+        self.log.info("Crashing via ssh")
+        trigger_cmd = "bash -c 'echo c > /proc/sysrq-trigger'"
+        self.log.debug("Send command '%s' " % trigger_cmd)
+        self.session.session.sendline("'%s'" % trigger_cmd)
+        try:
+            status, output = self.session.cmd_status_output(trigger_cmd)
+            self.log.info("trigger ret: %s, output: %s" % (status, output))
+        except Exception as err:
+            self.log.info("Error to read output as expected! %s" % err)
+        time.sleep(30)
+        self.session.connect()
+        self.log.info("After system crash")
+        utils_alibaba.run_cmd(self,
+                        r'find /var/crash',
+                        expect_ret=0,
+                        msg='list /var/crash after crash')
+        cmd = 'cat /var/crash/1*/vmcore-dmesg.txt|tail -50'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0, expect_kw='write_sysrq_trigger')
+
 
     def test_check_image_id(self):
         """Check the image label in Alibaba private image.

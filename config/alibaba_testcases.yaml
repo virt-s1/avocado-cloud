@@ -22,7 +22,7 @@ cases:
   test_functional_checkup.py:GeneralTest.test_check_hostname
   test_functional_checkup.py:GeneralTest.test_check_virt_what
   test_functional_checkup.py:GeneralTest.test_check_pv_drivers
-  test_functional_checkup.py:GeneralTest.test_kdump_status
+  test_functional_checkup.py:GeneralTest.test_kdump_function
   test_functional_checkup.py:GeneralTest.test_check_image_id
   test_functional_checkup.py:GeneralTest.test_check_vulnerabilities
   test_functional_network.py:NetworkTest.test_hotplug_nics
