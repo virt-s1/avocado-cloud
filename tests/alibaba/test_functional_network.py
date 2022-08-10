@@ -260,7 +260,7 @@ class NetworkTest(Test):
             n/a
         polarion_id:
             https://polarion.engineering.redhat.com/polarion/#/project/\
-            RedHatEnterpriseLinux7/workitems?query=title:\
+            RHELVIRT/workitems?query=title:\
             "[Aliyun]NetworkTest.test_assign_unassign_secondary_private_ips"
         maintainer:
             yoguo@redhat.com
@@ -284,7 +284,10 @@ class NetworkTest(Test):
             All the functionality works well.
         """
         # Assign multiple secondary private ips
-        secondary_private_ip_count = 3
+        if self.vm.private_ip_quantity < 2:
+            self.cancel('Only 1 primary private ip is supported. Skip this case.')
+
+        secondary_private_ip_count = self.vm.private_ip_quantity - 1
         ret = self.vm.assign_secondary_private_ips(self.primary_nic_id, secondary_private_ip_count)
         private_ip_list = ret.get("AssignedPrivateIpAddressesSet").get("PrivateIpSet").get("PrivateIpAddress")
         self.assertEqual(len(private_ip_list), secondary_private_ip_count,
@@ -292,7 +295,7 @@ class NetworkTest(Test):
 
         # Unassign multiple secondary private ips
         self.vm.unassign_secondary_private_ips(self.primary_nic_id, private_ip_list)
-        time.sleep(5)
+        time.sleep(10)
 
         private_ip_list = []
         for nic in self.vm.query_nics():

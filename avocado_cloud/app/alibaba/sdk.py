@@ -27,6 +27,7 @@ class AlibabaVM(VM):
         self.cloud_disk_driver = params.get('cloud_disk_driver', '*/Flavor/*', 'virtio_blk')
         self.nic_count = params.get('nic_count', '*/Flavor/*', 1)
         self.disk_quantity = params.get('disk_quantity', '*/Flavor/*', 0)
+        self.private_ip_quantity = params.get('private_ip_quantity', '*/Flavor/*', 1)
 
         # VM access parameters
         self.vm_username = params.get('username', '*/VM/*')
