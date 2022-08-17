@@ -63,7 +63,10 @@ ssh_pwauth: 1
 """.format(self.vm.vm_username, self.vm.vm_password)
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:
-            connect_timeout = 600
+            if self.vm.boot_mode == 'uefi':
+                connect_timeout = 1200
+            else:
+                connect_timeout = 600
         else:
             connect_timeout = 120
 
@@ -153,7 +156,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
-            connect_timeout = 120
+            connect_timeout = 300
 
         self.vm.start(wait=True)
         self.session.connect(timeout=connect_timeout)
@@ -201,7 +204,7 @@ password: output of cmd `who` unexpected -> %s" % output)
         if 'ecs.ebm' in self.vm.flavor:
             connect_timeout = 600
         else:
-            connect_timeout = 120
+            connect_timeout = 300
 
         before = self.session.cmd_output('last reboot')
         self.vm.reboot(wait=True)

@@ -28,6 +28,7 @@ class AlibabaVM(VM):
         self.nic_count = params.get('nic_count', '*/Flavor/*', 1)
         self.disk_quantity = params.get('disk_quantity', '*/Flavor/*', 0)
         self.private_ip_quantity = params.get('private_ip_quantity', '*/Flavor/*', 1)
+        self.boot_mode = params.get('boot_mode', '*/Flavor/*', 'bios')
 
         # VM access parameters
         self.vm_username = params.get('username', '*/VM/*')
