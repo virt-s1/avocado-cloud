@@ -488,10 +488,16 @@ rhel-swap/s/^/#/' /etc/fstab")
         Check Provisioning.MonitorHostName=y or n
         """
         self.log.info("WALA conf: Monitor Hostname")
-        eth_file = "/etc/sysconfig/network-scripts/ifcfg-eth0"
+        # eth_file = "/etc/sysconfig/network-scripts/ifcfg-eth0"
+        # The time of waiting for the hostname to be publish
+        WAIT_TIME = 40
         hostname0 = self.vm.vm_name
         hostname1 = "walahostcheck1"
         hostname2 = "walahostcheck2"
+        # Verify default value is y
+        self._verify_value("Provisioning.MonitorHostName", "y")
+        # Change monitor period to 10s
+        self._modify_value("Provisioning.MonitorHostNamePeriod", "10")
         # 1. Provisioning.MonitorHostName=n
         self.log.info("Provisioning.MonitorHostName=n")
         self._modify_value("Provisioning.MonitorHostName", "n")
@@ -503,7 +509,7 @@ rhel-swap/s/^/#/' /etc/fstab")
         else:
             self.session.cmd_output("sudo hostnamectl set-hostname %s" %
                                     hostname1)
-        time.sleep(70)
+        time.sleep(WAIT_TIME)
         self.session.connect()
         if LooseVersion(self.project) < LooseVersion("7.0"):
             cmd = "sudo grep '' /etc/sysconfig/network"
@@ -511,26 +517,32 @@ rhel-swap/s/^/#/' /etc/fstab")
             cmd = "sudo grep '' /etc/hostname"
         self.assertIn(hostname1, self.session.cmd_output(cmd),
                       "Fail to set hostname in disable MinitorHostName case")
-        self.assertEqual(
-            "DHCP_HOSTNAME=%s" % hostname0,
-            self.session.cmd_output("sudo grep -R DHCP_HOSTNAME %s" %
-                                    eth_file),
-            "DHCP_HOSTNAME should not be changed when \
-Provisioning.MonitorHostName=n")
+        # From WALinuxAgent-2.7.0.6-3.el8/el9, use nmcli instead of DHCP_HOSTNAME
+        # to publish hostname to DNS
+        # Old hostname should be in DNS
+        self.assertNotIn(
+            "NXDOMAIN",
+            self.session.cmd_output("nslookup {}".format(
+                hostname0)), "Old hostname should be in DNS when MonitorHostName=n")
+        # New hostname should not be in DNS
+        self.assertIn(
+            "NXDOMAIN",
+            self.session.cmd_output("nslookup {0}".format(
+                hostname1)), "New hostname should not be in DNS when MonitorHostName=n")
         # 2. Provisioning.MonitorHostName=y
         self.log.info("Provisioning.MonitorHostName=y")
         self._modify_value("Provisioning.MonitorHostName", "y")
         self.session.cmd_output("sudo service waagent restart")
         time.sleep(5)
-        self.session.cmd_output("sudo sed -i '/^DHCP_HOSTNAME/d' %s" %
-                                eth_file)
+        # self.session.cmd_output("sudo sed -i '/^DHCP_HOSTNAME/d' %s" %
+        #                         eth_file)
         if LooseVersion(self.project) < LooseVersion("7.0"):
             self.session.send_line("sudo hostname %s" % hostname2)
         else:
             self.session.cmd_output("sudo hostnamectl set-hostname %s" %
                                     hostname2)
         self.session.close()
-        time.sleep(30)
+        time.sleep(WAIT_TIME)
         self.session.connect()
         if LooseVersion(self.project) < LooseVersion("7.0"):
             cmd = "sudo grep '' /etc/sysconfig/network"
@@ -538,10 +550,25 @@ Provisioning.MonitorHostName=n")
             cmd = "sudo grep '' /etc/hostname"
         self.assertIn(hostname2, self.session.cmd_output(cmd),
                       "Fail to set hostname in enable MinitorHostName case")
-        self.assertEqual(
-            self.session.cmd_output("sudo grep DHCP_HOSTNAME %s" % eth_file),
-            "DHCP_HOSTNAME=%s" % hostname2,
-            "DHCP_HOSTNAME is not changed when Provisioning.MonitorHostName=y")
+        max_retry = 10
+        for retry in (1, max_retry+1):
+            output = self.session.cmd_output("nslookup {}".format(hostname2))
+            if "NXDOMAIN" not in output:
+                break
+            # Old hostname should not be in DNS
+            self.log.debug("New hostname is not published. Wait for 5s and try again...({}/{})".format(retry, max_retry))
+            time.sleep(5)
+        else:
+            self.fail("New hostname should be in DNS when MonitorHostName=n")
+        self.assertIn(
+            "NXDOMAIN",
+            self.session.cmd_output("nslookup {}".format(
+                hostname0)), "Old hostname should not be in DNS when MonitorHostName=n")
+
+        # self.assertEqual(
+        #     self.session.cmd_output("sudo grep DHCP_HOSTNAME %s" % eth_file),
+        #     "DHCP_HOSTNAME=%s" % hostname2,
+        #     "DHCP_HOSTNAME is not changed when Provisioning.MonitorHostName=y")
 
     def test_device_timeout(self):
         """
