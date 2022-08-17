@@ -245,6 +245,7 @@
 /etc/systemd/user/sockets.target.wants/dbus.socket
 /etc/systemd/user/timers.target.wants/systemd-tmpfiles-clean.timer
 /etc/cloud/cloud.cfg.d/aliyun_cloud.cfg
+/etc/cloud/cloud.cfg.d/aliyun_ebm.cfg.bak
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
