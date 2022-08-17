@@ -1416,7 +1416,10 @@ will not check kernel-devel package.')
         """
         
         if 'ecs.ebm' in self.vm.flavor:
-            max_boot_time = 80
+            if self.vm.boot_mode == 'uefi':
+                max_boot_time = 240
+            else:
+                max_boot_time = 80
         else:
             # kvm-based VMs
             max_boot_time = 40
@@ -1452,7 +1455,10 @@ will not check kernel-devel package.')
             The actual boot time is no more than the experienced max time.
         """
         if 'ecs.ebm' in self.vm.flavor:
-            max_boot_time = 80
+            if self.vm.boot_mode == 'uefi':
+                max_boot_time = 240
+            else:
+                max_boot_time = 80
         else:
             # kvm-based VMs
             max_boot_time = 40

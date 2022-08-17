@@ -9,6 +9,7 @@ mds:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknow
 meltdown:Mitigation: PTI
 meltdown:Not affected
 spec_store_bypass:Mitigation: Speculative Store Bypass disabled via prctl and seccomp
+spec_store_bypass:Mitigation: Speculative Store Bypass disabled via prctl
 spec_store_bypass:Vulnerable
 spectre_v1:Mitigation: usercopy/swapgs barriers and __user pointer sanitization
 spectre_v2:Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling
@@ -28,3 +29,4 @@ spectre_v2:Mitigation: Full AMD retpoline, IBPB: conditional, IBRS_FW, STIBP: al
 spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling
 spectre_v2:Mitigation: Retpolines, STIBP: disabled, RSB filling
 spectre_v2:Mitigation: Retpolines, IBPB: conditional, STIBP: conditional, RSB filling
+spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: always-on, RSB filling
