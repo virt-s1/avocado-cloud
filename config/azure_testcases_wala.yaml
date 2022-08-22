@@ -41,7 +41,6 @@ cases:
     test_functional_wala_settings.py:SettingsTest.test_add_new_user
     test_functional_wala_settings.py:SettingsTest.test_run_command_shell_script
     test_functional_wala_settings.py:SettingsTest.test_run_command_ifconfig
-    test_functional_wala_settings.py:SettingsTest.test_extension_cleanup_if_invalid
     test_functional_wala_settings.py:SettingsTest.test_extension_uninstall
     test_functional_wala_function.py:WALAFuncTest.test_waagent_verbose
     test_functional_wala_function.py:WALAFuncTest.test_waagent_version
