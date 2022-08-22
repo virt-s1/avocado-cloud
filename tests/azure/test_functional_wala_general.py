@@ -55,34 +55,53 @@ class GeneralTest(Test):
         self.username = self.vm.vm_username
         self.package = self.params.get("packages", "*/Other/*")
         if self.case_short_name == "test_install_uninstall_package":
-            if self.session.cmd_status_output("ls /tmp/{}".format(self.package))[0] != 0:
-                self.cancel("Package doesn't exist. Skip case.")
+            if self.session.cmd_status_output("ls /tmp/{}".format(self.package.split(',')[0]))[0] != 0:
+                self.log.info("Package doesn't exist. Download from brew.")
+                nvr = self.package.split(',')[0].replace('-udev', '')
+                command("brew download-build {}".format(nvr)) 
+                self.session.copy_files_to(
+                    local_path="{} {}".format(self.package.split(',', ' ')),
+                    remote_path="/tmp/"
+                )
         if self.case_short_name.startswith("test_host_plugin"):
             self.session.cmd_output(
                 "sudo /usr/bin/cp /etc/waagent.conf{,-bak}")
         if self.case_short_name == "test_upgrade_downgrade_package":
-            rhel7_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-7/packages/WALinuxAgent/2.2.32/1.el7/noarch/WALinuxAgent-2.2.32-1.el7.noarch.rpm"
-            rhel8_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/WALinuxAgent/2.2.32/1.el8/noarch/WALinuxAgent-2.2.32-1.el8.noarch.rpm"
-            try:
-                self.assertEqual(0, self.session.cmd_status_output("ls /tmp/{}".format(self.package))[0],
-                                 "No new pakcage in guest VM")
-                import requests
+            self.assertEqual(0, self.session.cmd_status_output("ls /tmp/{}".format(self.package.split(',')[0]))[0],
+                                "No new pakcage in guest VM")
+            # Get the previous version to get the old package
+            # rhel7 project has 2 units(7.9), rhel8+ has 3 units(8.7.0). Need to handle both formats
+            new_nvr = self.package.split(',')[0].replace('-udev', '').replace('.noarch.rpm', '')
+            xyz_list = self.project.split('.')
+            y_version = int(xyz_list[1])
+            def get_old_pkg(y):
+                if y == '0':
+                    self.cancel('This is the first y-stream. No old package. Skip.')
+                xyz_list[1] = str(int(y)-1)
+                old_version = '.'.join(xyz_list)
                 if str(self.project).startswith('7'):
-                    old_pkg_url = rhel7_old_pkg_url
-                elif str(self.project).startswith('8'):
-                    old_pkg_url = rhel8_old_pkg_url
-                self.old_pkg = old_pkg_url.split('/')[-1]
-                if not os.path.exists("/tmp/{}".format(self.old_pkg)):
-                    r = requests.get(old_pkg_url, allow_redirects=True)
-                    open("/tmp/{}".format(self.old_pkg), 'wb').write(r.content)
-                self.session.copy_files_to(
-                    local_path="/tmp/{}".format(self.old_pkg),
-                    remote_path="/tmp/{}".format(self.old_pkg))
-                self.assertEqual(0, self.session.cmd_status_output("ls /tmp/{}".format(self.old_pkg))[0],
-                                 "No old pakcage in guest VM")
-            except:
-                self.cancel(
-                    "No old or new package in guest VM. Skip this case.")
+                    old_tag = "extras-rhel-{}-candidate".format(old_version)
+                else:
+                    old_tag = "rhel-{}-candidate".format(old_version)
+                # python2 prints warning message. So write to file as a workaround
+                command("brew latest-build {} WALinuxAgent --quiet > oldpkgnvr".format(old_tag))
+                old_nvr = command("cat oldpkgnvr|awk '{print $1}'").stdout.strip('\n')
+                if old_nvr == new_nvr:
+                    self.log.info("Old package equal to new package. Find the previous one...")
+                    return get_old_pkg(int(y)-1)
+                else:
+                    return old_nvr
+            old_nvr = get_old_pkg(y_version)
+            if not os.path.exists("./oldpkg/{}.noarch.rpm".format(old_nvr)):
+                command('mkdir oldpkg;cd oldpkg;brew download-build {}'.format(old_nvr))
+                command('rm -f oldpkg/*.src.*')
+            self.session.copy_files_to(
+                local_path="{}".format('./oldpkg'),
+                remote_path="/tmp/"
+            )
+            self.assertEqual(0, self.session.cmd_status_output("ls /tmp/oldpkg/{}.noarch.rpm".format(old_nvr))[0],
+                                "No old pakcage in guest VM")
+
 
     @property
     def wala_version(self):
@@ -450,16 +469,17 @@ be removed and a new *_waagent.pid file is generated")
             "RHEL7-41625 WALA-TC: [General] Installing and Uninstalling the WALinuxAgent package")
         self.session.cmd_output("sudo su -")
         self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -e WALinuxAgent")[0], "Fail to uninstall package through rpm")
+            "rpm -e WALinuxAgent WALinuxAgent-udev")[0], "Fail to uninstall package through rpm")
         self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -ivh /tmp/{}".format(self.package))[0], "Fail to install package through rpm")
-        yum_remove = "yum remove WALinuxAgent -y --disablerepo=*"
+            "cd /tmp;rpm -ivh {};cd ~".format(self.package.replace(',', ' ')))[0], "Fail to install package through rpm")
+        yum_remove = "yum remove WALinuxAgent WALinuxAgent-udev -y --disablerepo=*"
         if LooseVersion(self.project) >= LooseVersion("8.0"):
+            # Don't remove dependencies
             yum_remove += " --noautoremove"
         self.assertEqual(0, self.session.cmd_status_output(
             yum_remove)[0], "Fail to uninstall package through yum")
         self.assertEqual(0, self.session.cmd_status_output(
-            "yum install -y /tmp/{} --disablerepo=*".format(self.package))[0], "Fail to install package through yum")
+            "cd /tmp;yum install -y {} --disablerepo=*;cd ~".format(self.package.replace(',', ' ')))[0], "Fail to install package through yum")
 
     def test_upgrade_downgrade_package(self):
         """
@@ -469,16 +489,19 @@ be removed and a new *_waagent.pid file is generated")
         self.log.info(
             "RHEL7-41626 WALA-TC: [General] Upgrading and downgrading the WALinuxAgent package")
         self.session.cmd_output("sudo su -")
+
+        # Downgrade through rpm
         self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -Uvh --oldpackage /tmp/{}".format(self.old_pkg))[0],
+            "rpm -Uvh --oldpackage /tmp/oldpkg/*.rpm")[0],
             "Fail to downgrade package through rpm")
         old_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
         # Modify waagent.conf and waagent.logrotate before update
         self.session.cmd_output("echo '# teststring' >> /etc/waagent.conf")
         self.session.cmd_output("echo '# teststring' >> /etc/logrotate.d/waagent.logrotate")
+        # Upgrade through rpm
         self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -Uvh /tmp/{}".format(self.package))[0],
+            "cd /tmp/; rpm -Uvh {}".format(self.package.replace(',', ' ')))[0],
             "Fail to upgrade package through rpm")
         self.assertEqual("enabled", self.session.cmd_output("systemctl is-enabled waagent"),
                          "After upgrade, the waagent service is not enabled")
@@ -492,13 +515,16 @@ be removed and a new *_waagent.pid file is generated")
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
         self.assertNotEqual(old_pid, new_pid,
                             "waagent service is not restarted after upgrade through rpm")
+
+        # Downgrade through yum
         self.assertEqual(0, self.session.cmd_status_output(
-            "yum downgrade /tmp/{} --disablerepo=* -y".format(self.old_pkg))[0],
+            "yum downgrade /tmp/oldpkg/* --disablerepo=* -y")[0],
             "Fail to downgrade package through yum")
         old_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
+        # Upgrade through yum
         self.assertEqual(0, self.session.cmd_status_output(
-            "yum upgrade -y /tmp/{} --disablerepo=*".format(self.package))[0],
+            "cd /tmp; yum upgrade -y {} --disablerepo=*".format(self.package.replace(',', ' ')))[0],
             "Fail to upgrade package through yum")
         new_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
