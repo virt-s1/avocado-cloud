@@ -507,9 +507,9 @@ be removed and a new *_waagent.pid file is generated")
                          "After upgrade, the waagent service is not enabled")
         self.assertEqual("active", self.session.cmd_output("systemctl is-active waagent"),
                          "After upgrade, the waagent service is not active")
-        self.assertEqual("# teststring", self.session.cmd_output("tail -1 /etc/waagent.conf"), 
+        self.assertIn("# teststring", self.session.cmd_output("tail -1 /etc/waagent.conf"),
             "Cannot keep the /etc/waagent.conf after upgrade")
-        self.assertEqual("# teststring", self.session.cmd_output("tail -1 /etc/logrotate.d/waagent.logrotate"), 
+        self.assertIn("# teststring", self.session.cmd_output("tail -1 /etc/logrotate.d/waagent.logrotate"),
             "Cannot keep the /etc/logrotate.d/waagent.logrotate after upgrade")
         new_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
