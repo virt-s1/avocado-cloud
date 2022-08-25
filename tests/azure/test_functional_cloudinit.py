@@ -329,10 +329,10 @@ class CloudinitTest(Test):
         origin_username = self.vm.vm_username
         self.vm.vm_username = "root"
         self.session.connect(authentication="publickey")
-        # Verify cloud.cfg ssh_deletekeys:   0
+        # Verify cloud.cfg ssh_deletekeys:   1        
         self.assertEqual(
             self.session.cmd_status_output(
-                "grep -E '(ssh_deletekeys: *1)' /etc/cloud/cloud.cfg")[0], 0,
+                "grep -E '(ssh_deletekeys: *1)|(ssh_deletekeys: *true)' /etc/cloud/cloud.cfg")[0], 0,
             "ssh_deletekeys: 1 is not in cloud.cfg")
         old_md5 = self.session.cmd_output("md5sum /etc/ssh/ssh_host_rsa_key "
                                           "/etc/ssh/ssh_host_ecdsa_key "
@@ -1571,18 +1571,12 @@ ssh_pwauth: 1
     def test_cloudinit_check_default_config(self):
         '''
         :avocado: tags=tier2,cloudinit
-        RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg
-        Verify default values in cloud.cfg
+        RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg is not changed
         '''
-        self.log.info("RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg")
-        if int(self.project.split('.')[0]) < 9:
-            self.session.copy_data_to_guest('azure', 'default_cloud.cfg')
-            diff = self.session.cmd_output("diff /tmp/default_cloud.cfg /etc/cloud/cloud.cfg")
-        else:
-            self.session.copy_data_to_guest('azure', 'default_cloud_90.cfg')
-            diff = self.session.cmd_output("diff /tmp/default_cloud_90.cfg /etc/cloud/cloud.cfg")
-        self.assertEqual(diff, '', 
-            "Default cloud.cfg is changed:\n"+diff)
+        self.log.info("RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg is not changed")
+        self.session.cmd_output("cat /etc/cloud/cloud.cfg")
+        self.assertNotIn("/etc/cloud/cloud.cfg", self.session.cmd_output("sudo rpm -V cloud-init"),
+            "The /etc/cloud/cloud.cfg is changed")
 
     def test_cloudinit_check_startup_time(self):
         '''
