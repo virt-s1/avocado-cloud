@@ -50,6 +50,10 @@ class OpenstackVM(VM):
         self.vm_username = params.get('username', '*/VM/*')
         self.vm_password = params.get('password', '*/VM/*', '')
 
+        #package info
+        self.package_url = params.get('package_url', '*/VM/*')
+        self.y_stream = params.get('y_stream', '*/VM/*')
+
         self.arch = 'x86_64'
 
     @property
