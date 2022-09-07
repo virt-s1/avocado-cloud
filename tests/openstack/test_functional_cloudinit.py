@@ -687,15 +687,13 @@ EOF
 during VM first boot")
         self.session.cmd_output("sudo su -")
         device = "/dev/vda"
-        # Partition Table: gpt, partition number is 3
-        # Partition Table: msdos, partition number is 1
-        part_type = self.session.cmd_output("parted -s %s print|grep 'Partition Table'|awk '{print $3}'" %device)
-        part_number = "3" if part_type == "gpt" else "1"
+        # Partition Table: gpt, partition number is 3 or 4, so change keywords from partition number to xfs
+        file_system = "xfs"
         # VM flavor m1.medium, size 40G
         self.assertEqual(
             "42.9GB",
             self.session.cmd_output(
-                "parted -s %s print|grep ' %s '|awk '{print $3}'" %(device, part_number)),
+                "parted -s %s print|grep '%s'|awk 'END{print $3}'" %(device, file_system)),
             "Fail to resize partition during first boot")
         
 
