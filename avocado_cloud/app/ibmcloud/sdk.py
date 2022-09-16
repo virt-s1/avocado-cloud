@@ -224,6 +224,7 @@ class PowerVM(VM):
         # self.volumes = params.get("volumes", "*/VM/*")
         # self.sys_type = params.get("sys_type", "*/VM/*")
         # self.storage_type = params.get("storage_type", "*/VM/*")
+        self.storage_pool = params.get("storage-pool", "*/VM/*")
         self.network = params.get("network", "*/VM/*")
         #self.nics = kwargs.get("nics")
         self.id = None
@@ -269,6 +270,8 @@ class PowerVM(VM):
         #     cmd += ' --processors "{}"'.format(self.processors)
         if self.processor_type:
             cmd += ' --processor-type "{}"'.format(self.processor_type)
+        if self.storage_pool:
+            cmd += ' --storage-pool {}'.format(self.storage_pool)
         # if self.volumes:
         #     cmd += ' --volumes {}'.format(self.volumes)
         # if self.sys_type:
@@ -281,8 +284,8 @@ class PowerVM(VM):
         except:
             return False
         # waiting for VM is active
-        LOG.info("Waiting for the health status of VM to be OK in 8 minutes...")
-        time.sleep(480)
+        LOG.info("Waiting for the health status of VM to be OK in 12 minutes...")
+        time.sleep(720)
         if len(ret.stdout):
             info = json.loads(ret.stdout)
             self.properties = info[0]
@@ -310,8 +313,8 @@ class PowerVM(VM):
         except:
             return False
         # Sometimes VM still exists for a while after cli finished
-        LOG.info("Waiting for the VM to be cleaned in 5 minutes...")
-        time.sleep(300)
+        LOG.info("Waiting for the VM to be cleaned in 10 minutes...")
+        time.sleep(600)
         if wait:
             error_message = "Timed out waiting for server to get deleted."
             for count in utils_misc.iterate_timeout(100,
