@@ -669,6 +669,12 @@ will not check kernel-devel package.')
             if output.startswith("redhat-release"):
                 rhel = True
 
+        if self.vm.arch == "aarch64" and self.rhel_ver.split('.')[0] == '8':
+            output = self.session.cmd_output(
+                "rpm -qf /etc/pki/product-default/419.pem")
+            if output.startswith("redhat-release"):
+                rhel = True
+
         if self.vm.arch == "ppc64le":
             output = self.session.cmd_output(
                 "rpm -qf /etc/pki/product-default/279.pem")

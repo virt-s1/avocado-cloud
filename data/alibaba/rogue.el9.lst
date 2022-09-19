@@ -9,6 +9,7 @@
 /etc/alternatives/ifdown
 /etc/alternatives/ifup
 /etc/alternatives/libnssckbi.so.x86_64
+/etc/alternatives/libnssckbi.so
 /etc/authselect/authselect.conf
 /etc/authselect/dconf-db
 /etc/authselect/dconf-locks
@@ -246,6 +247,23 @@
 /etc/systemd/user/timers.target.wants/systemd-tmpfiles-clean.timer
 /etc/cloud/cloud.cfg.d/aliyun_cloud.cfg
 /etc/cloud/cloud.cfg.d/aliyun_ebm.cfg.bak
+/etc/alternatives/arptables
+/etc/alternatives/arptables-helper
+/etc/alternatives/arptables-man
+/etc/alternatives/arptables-restore
+/etc/alternatives/arptables-restore-man
+/etc/alternatives/arptables-save
+/etc/alternatives/arptables-save-man
+/etc/alternatives/ebtables
+/etc/alternatives/ebtables-man
+/etc/alternatives/ebtables-restore
+/etc/alternatives/ebtables-save
+/etc/alternatives/ip6tables
+/etc/alternatives/ip6tables-restore
+/etc/alternatives/ip6tables-save
+/etc/alternatives/iptables
+/etc/alternatives/iptables-restore
+/etc/alternatives/iptables-save
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id

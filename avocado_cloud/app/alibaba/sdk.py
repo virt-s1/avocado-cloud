@@ -34,7 +34,7 @@ class AlibabaVM(VM):
         self.vm_username = params.get('username', '*/VM/*')
         self.vm_password = params.get('password', '*/VM/*')
 
-        self.arch = 'x86_64'
+        self.arch = params.get('arch', '*/Flavor/*', 'x86_64')
 
         self.ecs = AlibabaSDK(params)
 
