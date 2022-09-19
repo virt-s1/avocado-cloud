@@ -9,6 +9,7 @@
 /etc/alternatives/ifdown
 /etc/alternatives/ifup
 /etc/alternatives/libnssckbi.so.x86_64
+/etc/alternatives/libnssckbi.so
 /etc/authselect/authselect.conf
 /etc/authselect/dconf-db
 /etc/authselect/dconf-locks
@@ -231,6 +232,7 @@
 /etc/yum.repos.d/rhel.repo
 /initrd.root.sqsh
 /etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target
+/etc/cloud/cloud.cfg.d/aliyun_cloud.cfg
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
