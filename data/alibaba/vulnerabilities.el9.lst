@@ -31,3 +31,4 @@ spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditiona
 spectre_v2:Mitigation: Retpolines, STIBP: disabled, RSB filling
 spectre_v2:Mitigation: Retpolines, IBPB: conditional, STIBP: conditional, RSB filling
 spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: always-on, RSB filling
+spectre_v2:Mitigation: CSV2, BHB

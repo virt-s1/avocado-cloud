@@ -606,7 +606,10 @@ will not check kernel-devel package.')
         src_dir = os.path.join(os.path.join(root_path, "data"),
                                self.cloud.cloud_provider)
         if self.rhel_ver.split('.')[0] == '9':
-            data_file = "cmdline_params.el9.lst"
+            if self.vm.arch == "x86_64":
+                data_file = "cmdline_params.el9.lst"
+            elif self.vm.arch == "aarch64":
+                data_file = "cmdline_params.el9.arm64.lst"
         else:
             data_file = "cmdline_params.lst"
 
@@ -669,7 +672,7 @@ will not check kernel-devel package.')
             if output.startswith("redhat-release"):
                 rhel = True
 
-        if self.vm.arch == "aarch64" and self.rhel_ver.split('.')[0] == '8':
+        if self.vm.arch == "aarch64":
             output = self.session.cmd_output(
                 "rpm -qf /etc/pki/product-default/419.pem")
             if output.startswith("redhat-release"):

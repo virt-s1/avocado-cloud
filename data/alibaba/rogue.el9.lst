@@ -264,6 +264,7 @@
 /etc/alternatives/iptables
 /etc/alternatives/iptables-restore
 /etc/alternatives/iptables-save
+/boot/dtb
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
