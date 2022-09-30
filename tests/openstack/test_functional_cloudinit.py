@@ -62,17 +62,17 @@ class CloudinitTest(Test):
             pre_delete = True
         #below data is used for the login case and other cases except above specific cases.
         #set ssh_pwauth: 0 to trigger sshd service restart, bz#
+        #remove user: {0}, to test the default user
         user_data = """\
 #cloud-config
 
 runcmd:
   - [ sh, -xc, "echo $(date) ': hello today!'" ]
 
-user: {0}
-password: {1}
+password: {0}
 chpasswd: {{ expire: False }}
 ssh_pwauth: 0
-""".format(self.vm.vm_username, 'R')# test random password
+""".format('R')# test random password
         self.vm.user_data = base64.b64encode(
         user_data.encode('utf-8')).decode('utf-8')
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
