@@ -1,6 +1,7 @@
 from avocado import Test
 from avocado.core.exceptions import TestSkipError
 from avocado_cloud.app import Setup
+from avocado_cloud.utils import utils_alibaba
 
 
 class CloudDiskTest(Test):
@@ -30,6 +31,14 @@ class CloudDiskTest(Test):
         if self.name.name.endswith('test_local_disks'):
             if self.local_disk_count == 0:
                 self.cancel('No local disk. Skip this case.')
+
+        if self.name.name.endswith('test_nvme_basic') or \
+            self.name.name.endswith('test_blktests_nvme'):
+            if self.cloud_disk_driver == 'virtio_blk':
+                self.cancel('The cloud disk type is not nvme. Skip this case.')
+            else:
+                # self.cloud_disk_driver == 'nvme'
+                self.cloud_disk_count = 1
 
         self.disk_ids = self.cloud.init_cloud_disks(self.cloud_disk_count)
         self.dev_name = 'vd'
@@ -440,6 +449,158 @@ echo test_content > /mnt/{0}/test_file'
                                     disk_count=self.local_disk_count,
                                     disk_size=self.local_disk_size)
         self.log.debug('dev_names = {}'.format(dev_names))
+
+    def test_nvme_basic(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]CloudDiskTest.test_nvme_basic
+        description:
+            Test basic nvme functions in RHEL on AliCloud.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/workitems?query=title:\
+            "[Aliyun]CloudDiskTest.test_nvme_basic"
+        maintainer:
+            yoguo@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Launch an instance with nvme driver(eg. g7se,ebmg7se) on AliCloud.
+            2. Attach a nvme disk
+            3. Check nvme pci via command "sudo lspci|grep Non-Volatile"
+            4. Check nvme module via command "sudo lsmod|grep nvme"
+            5. Check non-boot nvme devices via command "sudo lsblk -l|grep nvme|cut -d ' ' -f 1|grep -v nvme0"
+            6. Install package nvme-cli, then do read and write tests with non boot nvme devices via below commands.
+               "sudo nvme read /dev/nvme0n1 --data-size=10000"
+               "echo "write test"|sudo nvme write /dev/nvme0n1 --data-size=10000"
+        pass_criteria:
+            Basic function tests pass for nmve blockers with nvme cli.
+        """
+
+        # Attach a nvme disk
+        vols = self.vm.query_cloud_disks()
+        for vol in vols:
+            s = vol.get('status') or vol.get('Status')
+            self.assertEqual(s.lower(), u'available',
+                             'Disk status is not available')
+
+        for disk_id in self.disk_ids:
+            self.vm.attach_cloud_disks(disk_id=disk_id, wait=True)
+
+        vols = self.vm.query_cloud_disks()
+        for vol in vols:
+            s = vol.get('status') or vol.get('Status')
+            self.assertEqual(s.lower().replace('_', '-'), u'in-use',
+                             'Disk status is not in-use')
+
+        cmd = 'lspci | grep Non-Volatile'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0)
+        cmd = 'lsmod | grep nvme'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0)
+
+        self.session.cmd_output('sudo yum -y install nvme-cli')
+
+        # Get the non-boot nvme disk
+        cmd = "lsblk -l | grep nvme | cut -d ' ' -f 1 | grep -v nvme0"
+        nvme_disk = self.session.cmd_output(cmd)
+
+        if len(nvme_disk) == 0:
+            self.fail("No nvme disk found!")
+
+        nvme_read = 'nvme read /dev/%s --data-size=10000' % nvme_disk
+        utils_alibaba.run_cmd(self,
+                        nvme_read,
+                        expect_ret=0,
+                        expect_kw=r'read: Success',
+                        msg="%s read test" % nvme_disk)
+        nvme_write = 'echo "write test" | nvme write /dev/%s --data-size=10000' % nvme_disk
+        utils_alibaba.run_cmd(self,
+                        nvme_write,
+                        expect_ret=0,
+                        expect_kw=r'write: Success',
+                        msg="%s write test" % nvme_disk)
+
+        for disk_id in self.disk_ids:
+            self.vm.detach_cloud_disks(disk_id=disk_id, wait=True)
+
+    def test_blktests_nvme(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]CloudDiskTest.test_blktests_nvme
+        description:
+            Test nvme disk with blktests framework in RHEL on AliCloud.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/workitems?query=title:\
+            "[Aliyun]CloudDiskTest.test_blktests_nvme"
+        maintainer:
+            yoguo@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Launch an instance with nvme driver(eg. g7se,ebmg7se) on AliCloud.
+            2. Attach a nvme disk
+            3. Install blktest required packages blktrace fio nvme-cli git sysstat.
+            4. Download blktest "git clone https://github.com/osandov/blktests.git".
+            5. Add test disk to configure file in blktest, e.g., echo 'TEST_DEVS=(/dev/nvme1n1)' > blktests/config".
+            6. Run blktests nvme test via command "sudo cd blktests;sudo ./check nvme".
+        pass_criteria:
+            There are not unknown failures in test results.
+        """
+
+        # Attach a nvme disk
+        vols = self.vm.query_cloud_disks()
+        for vol in vols:
+            s = vol.get('status') or vol.get('Status')
+            self.assertEqual(s.lower(), u'available',
+                             'Disk status is not available')
+
+        for disk_id in self.disk_ids:
+            self.vm.attach_cloud_disks(disk_id=disk_id, wait=True)
+
+        vols = self.vm.query_cloud_disks()
+        for vol in vols:
+            s = vol.get('status') or vol.get('Status')
+            self.assertEqual(s.lower().replace('_', '-'), u'in-use',
+                             'Disk status is not in-use')
+
+        # Install all required packages
+        self.session.cmd_output('sudo yum -y install blktrace fio nvme-cli git sysstat')
+        cmd = 'which git'
+        utils_alibaba.run_cmd(self, cmd, expect_ret=0)
+
+        cmd = 'git clone https://github.com/osandov/blktests.git'
+        self.session.cmd_output(cmd, timeout=600)
+
+        # Get the non-boot nvme disk
+        cmd = "lsblk -l | grep nvme | cut -d ' ' -f 1 | grep -v nvme0"
+        nvme_disk = self.session.cmd_output(cmd)
+
+        if len(nvme_disk) == 0:
+            self.fail("No nvme disk found!")
+
+        cmd = "echo 'TEST_DEVS=(/dev/%s)' > blktests/config" % nvme_disk
+        self.session.cmd_output(cmd)
+
+        cmd = 'cd blktests; ./check nvme'
+        output = self.session.cmd_output(cmd, timeout=1200)
+        if output.count('[failed]') > 1:
+            self.fail("%s failed found" % output.count('[failed]'))
+
+        cmd = 'dmesg'
+        utils_alibaba.run_cmd(self, cmd, msg="dmesg after test")
+
+        # Detach the nvme disk
+        for disk_id in self.disk_ids:
+            self.vm.detach_cloud_disks(disk_id=disk_id, wait=True)
 
     def tearDown(self):
         self.log.info('TearDown')
