@@ -16,6 +16,7 @@ cases:
     test_functional_wala_general.py:GeneralTest.test_cleanup_runexthandlers_pid
     test_functional_wala_general.py:GeneralTest.test_not_cause_python_ftbfs
     test_functional_wala_general.py:GeneralTest.test_check_mountpoint
+    test_functional_wala_general.py:GeneralTest.test_check_DATALOSS_WARNING_README
     test_functional_wala_general.py:GeneralTest.test_provision_gen2_vm
     test_functional_wala_general.py:GeneralTest.test_install_uninstall_package
     test_functional_wala_general.py:GeneralTest.test_upgrade_downgrade_package
@@ -24,6 +25,10 @@ cases:
     test_functional_wala_general.py:GeneralTest.test_host_plugin_extension
     test_functional_wala_general.py:GeneralTest.test_host_plugin_blob_status_upload
     test_functional_wala_general.py:GeneralTest.test_host_plugin_ignore_proxy
+    test_functional_wala_general.py:GeneralTest.test_verify_no_waagent_extn_logrotate
+    test_functional_wala_general.py:GeneralTest.test_verify_nic_down_up_in_one_line
+    test_functional_wala_general.py:GeneralTest.test_verify_agent_cgroup_enabled
+    test_functional_wala_general.py:GeneralTest.test_wala_version_not_lower_than_old_rhel
     test_functional_wala_network.py:NetworkTest.test_connectivity_check
     test_functional_wala_network.py:NetworkTest.test_check_dns
     test_functional_wala_network.py:NetworkTest.test_change_hostname_check_dns
@@ -33,6 +38,7 @@ cases:
     test_functional_wala_network.py:NetworkTest.test_provision_vm_with_multiple_nics
     test_functional_wala_network.py:NetworkTest.test_provision_vm_with_sriov_nic
     test_functional_wala_network.py:NetworkTest.test_provision_vm_with_ipv6
+    test_functional_wala_network.py:NetworkTest.test_provision_vm_without_ifcfg
     test_functional_wala_storage.py:StorageTest.test_verify_storage_rule_gen1
     test_functional_wala_storage.py:StorageTest.test_verify_storage_rule_gen2
     test_functional_wala_settings.py:SettingsTest.test_reset_existing_sshkey
@@ -56,6 +62,8 @@ cases:
     test_functional_wala_function.py:WALAFuncTest.test_interrupt_ctrl_c
     test_functional_wala_function.py:WALAFuncTest.test_waagent_daemon
     test_functional_wala_function.py:WALAFuncTest.test_waagent_show_configuration
+    test_functional_wala_function.py:WALAFuncTest.test_waagent_collect_logs
+    test_functional_wala_function.py:WALAFuncTest.test_waagent_setup_firewall
     test_functional_wala_conf.py:WALAConfTest.test_enable_verbose_logging
     test_functional_wala_conf.py:WALAConfTest.test_resource_disk_mount_point
     test_functional_wala_conf.py:WALAConfTest.test_resource_disk_file_type

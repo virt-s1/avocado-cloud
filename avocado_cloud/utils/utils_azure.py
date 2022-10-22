@@ -11,6 +11,7 @@ import logging
 import json
 
 from avocado.utils import process
+from avocado_cloud.app import Setup
 
 
 class AzureCmdError(Exception):
@@ -189,6 +190,58 @@ def format_location(location):
 
 def file_exists(filename, session):
     return session.cmd_status_output("ls " + filename)[0] == 0
+
+
+def deprovision(instance):
+    instance.session.cmd_output(
+        "sudo /usr/bin/cp -a ~/.ssh /root/;sudo chown -R root:root \
+/root/.ssh")
+    instance.session.close()
+    instance.vm.vm_username = "root"
+    instance.session.connect()
+    instance.session.cmd_output("systemctl stop waagent")
+    instance.session.cmd_output(
+        "/usr/bin/mv /var/lib/waagent /tmp/waagent-bak")
+    instance.session.cmd_output("userdel -rf {}".format(instance.username))
+    if instance.session.cmd_status_output('id {}'.format(instance.username))[0] == 0:
+        instance.log.debug("Fail to delete user! Retry...")
+        time.sleep(1)
+        instance.session.cmd_output("ps aux|grep {}".format(instance.username))
+        instance.session.cmd_output("userdel -rf {}".format(instance.username))
+    instance.session.cmd_output("rm -f /var/log/waagent.log")
+    instance.session.cmd_output("touch /tmp/deprovisioned")
+
+
+def recreate_vm(instance, tag, timeout=300, **kwargs):
+    osdisk_uri = instance.vm.properties["storageProfile"]["osDisk"]["vhd"][
+        "uri"]
+    cloud = Setup(instance.params, instance.name)
+    cloud.vm.vm_name = instance.vm.vm_name + "-" + tag
+    cloud.vm.image = osdisk_uri
+    cloud.vm.os_disk_name = instance.vm.vm_name + "_os" + \
+        time.strftime("%m%d%H%M%S", time.localtime())
+    for key in kwargs:
+        if key not in dir(cloud.vm):
+            instance.log.debug(
+                "No such property in AzureVM class: {}".format(key))
+        value = kwargs.get(key)
+        if value not in [True, False, None]:
+            value = "\"{}\"".format(value)
+        exec("cloud.vm.{0} = {1}".format(key, value))
+    cloud.vm.show()
+    if cloud.vm.exists():
+        cloud.vm.delete(wait=True)
+    session = None
+    wait = kwargs.get("wait", True)
+    try:
+        cloud.vm.create(wait=wait)
+        session = cloud.init_session()
+        if kwargs.get("connect", True) is True:
+            session.connect(timeout=timeout)
+    except Exception:
+        raise
+    finally:
+        return (cloud.vm, session)
 
 
 class WalaConfig(object):

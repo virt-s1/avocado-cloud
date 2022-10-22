@@ -6,6 +6,7 @@ from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount, AzureNIC, AzurePublicIP, AzureNicIpConfig
 from distutils.version import LooseVersion
 from avocado_cloud.utils.utils_azure import WalaConfig
+from avocado_cloud.utils import utils_azure
 
 
 class NetworkTest(Test):
@@ -369,12 +370,43 @@ lo eth0\
 
     def test_provision_vm_without_ifcfg(self):
         """
-        :avocado: tags=tier3
+        :avocado: tags=tier2
         RHEL-183385	WALA-TC: [Network] Provision VM without ifcfg file for primary NIC
         1. Create a VM, remove ifcfg-eth0 file
         2. Delete the VM and recreate. Verify if can provision successfully.
         """
-        raise NotImplementedError
+        self.log.info(
+            'RHEL-183385 WALA-TC: [Network] Provision VM without ifcfg file for primary NIC'
+        )
+        # Remove ifcfg-eth0 file
+        self.session.cmd_output("rm -f /etc/sysconfig/network-scripts/ifcfg-eth0")
+        # Delete and recreate the VM
+        utils_azure.deprovision(self)
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "noifcfg")
+        self.assertTrue(
+            session_1.connect(), "Fail to connect to VM without ifcfg file for primary NIC")
+
+    def test_verify_dhclient_not_in_waagent_cgroup(self):
+        """
+        :avocado: tags=tier3
+        VIRT-83220	WALA-TC: [Network] dhclient is not managed by waagent cgroup
+        1. Boot up a VM, ensure NetworkManager uses dhclient as dhcp client. dhclient process exists.
+        2. Verify dhclient is not in the waagent CGroup
+        """
+        self.log.info(
+            "VIRT-83220	WALA-TC: [Network] dhclient is not managed by waagent cgroup"
+        )
+        # 1. Verify dhclient process exists. If not, enable it.
+        if self.session.cmd_status_output("ps aux|grep [d]hclient")[0] != 0:
+            self.session.cmd_output("sed -i '/\[main\]/a dhcp = dhclient' /etc/NetworkManager/NetworkManager.conf")
+            self.session.cmd_output("systemctl restart NetworkManager")
+            self.assertEqual(0, self.session.cmd_status_output("ps aux|grep [d]hclient")[0],
+                "Cannot start dhclient process.")
+        # 2. Verify dhclient is not managered by waagent CGroup
+        self.assertNotIn("dhclient", self.session.cmd_output("systemctl status waagent|grep -v '\['"),
+            "Should not have dhclient in waagent status output")
+
+
 
     def tearDown(self):
         if self.case_short_name in [
@@ -393,6 +425,9 @@ lo eth0\
                 "test_provision_vm_with_ipv6",
         ]:
             self.vm.delete(wait=False)
+        elif self.case_short_name == "test_provision_vm_without_ifcfg":
+            self.vm.delete(wait=False)
+            self.vm_1.delete(wait=False)
 
 
 '''

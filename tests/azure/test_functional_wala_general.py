@@ -6,7 +6,7 @@ from avocado import main
 from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount, AzureImage
 from distutils.version import LooseVersion
-from avocado_cloud.utils.utils_azure import command
+from avocado_cloud.utils import utils_azure
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
@@ -41,7 +41,7 @@ class GeneralTest(Test):
             key1 = "{}/.ssh/id_rsa.pub".format(os.path.expanduser('~'))
             key2 = "/tmp/newkey.pub"
             if not os.path.exists(key2):
-                command("ssh-keygen -f {} -q -N ''".format(key2.split('.')[0]))
+                utils_azure.command("ssh-keygen -f {} -q -N ''".format(key2.split('.')[0]))
             self.assertTrue(os.path.exists(key1),
                             "Key {} doesn't exist".format(key1))
             self.assertTrue(os.path.exists(key2),
@@ -58,7 +58,7 @@ class GeneralTest(Test):
             if self.session.cmd_status_output("ls /tmp/{}".format(self.package.split(',')[0]))[0] != 0:
                 self.log.info("Package doesn't exist. Download from brew.")
                 nvr = self.package.split(',')[0].replace('-udev', '')
-                command("brew download-build {}".format(nvr)) 
+                utils_azure.command("brew download-build {}".format(nvr)) 
                 self.session.copy_files_to(
                     local_path="{} {}".format(self.package.split(',', ' ')),
                     remote_path="/tmp/"
@@ -84,8 +84,8 @@ class GeneralTest(Test):
                 else:
                     old_tag = "rhel-{}-candidate".format(old_version)
                 # python2 prints warning message. So write to file as a workaround
-                command("brew latest-build {} WALinuxAgent --quiet > oldpkgnvr".format(old_tag))
-                old_nvr = command("cat oldpkgnvr|awk '{print $1}'").stdout.strip('\n')
+                utils_azure.command("brew latest-build {} WALinuxAgent --quiet > oldpkgnvr".format(old_tag))
+                old_nvr = utils_azure.command("cat oldpkgnvr|awk '{print $1}'").stdout.strip('\n')
                 if old_nvr == new_nvr:
                     self.log.info("Old package equal to new package. Find the previous one...")
                     return get_old_pkg(int(y)-1)
@@ -93,8 +93,8 @@ class GeneralTest(Test):
                     return old_nvr
             old_nvr = get_old_pkg(y_version)
             if not os.path.exists("./oldpkg/{}.noarch.rpm".format(old_nvr)):
-                command('mkdir oldpkg;cd oldpkg;brew download-build {}'.format(old_nvr))
-                command('rm -f oldpkg/*.src.*')
+                utils_azure.command('mkdir oldpkg;cd oldpkg;brew download-build {}'.format(old_nvr))
+                utils_azure.command('rm -f oldpkg/*.src.*')
             self.session.copy_files_to(
                 local_path="{}".format('./oldpkg'),
                 remote_path="/tmp/"
@@ -120,11 +120,41 @@ class GeneralTest(Test):
         """
         :avocado: tags=tier1
         Check if the temporary disk is mounted
+        Verify the /mnt/resource is writable
         """
-        self.log.info("Check the mountpoint")
+        self.log.info("1. Verify /mnt/resource is mounted")
         self.assertNotEqual(
             self.session.cmd_output("mount|grep /mnt/resource"), '',
             "Resource Disk is not mounted after provisioning")
+        self.log.info("2. Verify /mnt/resource is writable")
+        self.session.cmd_output("sudo su -")
+        self.session.cmd_output("echo DONE > /mnt/resource/try.txt")
+        self.assertEqual("DONE", self.session.cmd_output("cat /mnt/resource/try.txt"),
+            "Failed to write data into the /mnt/resource")
+        self.assertEqual(0, self.session.cmd_status_output("rm -f /mnt/resource/try.txt")[0],
+            "Failed to delete file from /mnt/resource")
+
+    def test_check_DATALOSS_WARNING_README(self):
+        """
+        :avocado: tags=tier3
+        RHEL-178586	WALA-TC: [General] Verify DATALOSS_WARNING_README.txt in /mnt/resource
+        """
+        self.log.info("RHEL-178586	WALA-TC: [General] Verify DATALOSS_WARNING_README.txt in /mnt/resource")
+        self.assertEqual(
+            "WARNING: THIS IS A TEMPORARY DISK.",
+            self.session.cmd_output("head -1 /mnt/resource/DATALOSS_WARNING_README.txt"),
+            "Cannot read DATALOSS_WARNING_README.txt in /mnt/resource"
+        )
+
+    def test_verify_no_waagent_extn_logrotate(self):
+        """
+        :avocado: tags=tier2
+        RHEL-288307 - WALA-TC: [General] Verify no waagent-extn.logrotate	
+        """
+        self.log.info("RHEL-178586	WALA-TC: [General] Verify DATALOSS_WARNING_README.txt in /mnt/resource")
+        self.assertFalse(
+            utils_azure.file_exists("/etc/logrotate.d/waagent-extn.logrotate", self.session),
+            "/etc/logrotate.d/waagent-extn.logrotate should not exist!")
 
     def test_check_waagent_service(self):
         """
@@ -468,16 +498,31 @@ be removed and a new *_waagent.pid file is generated")
         self.log.info(
             "RHEL7-41625 WALA-TC: [General] Installing and Uninstalling the WALinuxAgent package")
         self.session.cmd_output("sudo su -")
+        # Workaround of BZ#2099552. Create waagent.service.d folder manually
+        serviced_path = "/usr/lib/systemd/system/waagent.service.d"
+        cpuquota = '''
+[Service]
+CPUQuota=75%
+'''
+        self.session.cmd_output("[ -d {0} ] || ( mkdir -p {0}; echo '{1}' > {0}/12-CPUQuota.conf )".format(serviced_path, cpuquota))
+        # rpm uninstall
         self.assertEqual(0, self.session.cmd_status_output(
             "rpm -e WALinuxAgent WALinuxAgent-udev")[0], "Fail to uninstall package through rpm")
+        # Verify no /usr/lib/systemd/system/waagent* left
+        self.assertNotEqual(0, self.session.cmd_status_output(
+            "ls /usr/lib/systemd/system/waagent*")[0], "Some files left after package is removed!"
+        )
+        # rpm install
         self.assertEqual(0, self.session.cmd_status_output(
             "cd /tmp;rpm -ivh {};cd ~".format(self.package.replace(',', ' ')))[0], "Fail to install package through rpm")
+        # yum uninstall
         yum_remove = "yum remove WALinuxAgent WALinuxAgent-udev -y --disablerepo=*"
         if LooseVersion(self.project) >= LooseVersion("8.0"):
             # Don't remove dependencies
             yum_remove += " --noautoremove"
         self.assertEqual(0, self.session.cmd_status_output(
             yum_remove)[0], "Fail to uninstall package through yum")
+        # yum install
         self.assertEqual(0, self.session.cmd_status_output(
             "cd /tmp;yum install -y {} --disablerepo=*;cd ~".format(self.package.replace(',', ' ')))[0], "Fail to install package through yum")
 
@@ -494,6 +539,10 @@ be removed and a new *_waagent.pid file is generated")
         self.assertEqual(0, self.session.cmd_status_output(
             "rpm -Uvh --oldpackage /tmp/oldpkg/*.rpm")[0],
             "Fail to downgrade package through rpm")
+        # Verify can restart service after rpm downgrade
+        self.assertEqual(0, self.session.cmd_status_output(
+            "systemctl restart waagent")[0],
+            "Fail to restart waagent service after rpm downgrade")
         old_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
         # Modify waagent.conf and waagent.logrotate before update
@@ -515,6 +564,10 @@ be removed and a new *_waagent.pid file is generated")
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
         self.assertNotEqual(old_pid, new_pid,
                             "waagent service is not restarted after upgrade through rpm")
+        # Verify can restart service after rpm upgrade
+        self.assertEqual(0, self.session.cmd_status_output(
+            "systemctl restart waagent")[0],
+            "Fail to restart waagent service after rpm upgrade")
 
         # Downgrade through yum
         self.assertEqual(0, self.session.cmd_status_output(
@@ -725,6 +778,63 @@ Retry: {0}/10".format(retry+1))
         else:
             self.fail("Fail to ignore proxy to download auto-update packages")
 
+    def test_verify_nic_down_up_in_one_line(self):
+        """
+        :avocado: tags=tier1
+        VIRT-294607 - WALA-TC: [General] Verify NIC down/up in the same line (code check)	
+        Verify 'ip link set nic down' and 'ip link set nic up' in the same line in the wala code
+        """
+        self.log.info("VIRT-294607 - WALA-TC: [General] Verify NIC down/up in the same line (code check)")
+        # Find the redhat.py full path
+        file_path = self.session.cmd_output("rpm -ql WALinuxAgent|grep 'osutil/redhat.py'")
+        # Check the content
+        self.assertEqual(0, 
+            self.session.cmd_status_output("grep -E 'ip link set .* down && ip link set .* up' {}".format(file_path))[0],
+            "BZ#2098233: The 'ip link set down' and 'ip link set up' are not in the same line!")
+
+    def test_verify_agent_cgroup_enabled(self):
+        """
+        :avocado: tags=tier2
+        VIRT-294849 - WALA-TC: [General] Verify Agent CGroup enabled
+        """
+        if self.wala_version < LooseVersion('2.7.0.6'):
+            self.cancel("This case is available in WALA v2.7.0.6+. Skip.")
+        self.log.info("VIRT-294849 - WALA-TC: [General] Verify Agent CGroup enabled")
+        # Print cgroup related logs
+        self.session.cmd_output("grep -i cgroup /var/log/waagent.log")
+        # Verify Agent CGroups is enabled
+        self.assertIn('True', 
+            self.session.cmd_output("grep 'Agent cgroups enabled' /var/log/waagent.log"),
+            "Agent cgroups is not enabled")
+
+    def test_wala_version_not_lower_than_old_rhel(self):
+        """
+        :avocado: tags=tier3
+        RHEL-198423 - WALA-TC: [General] Verify WALA version is not lower than it in the previous RHEL release
+        """
+        self.log.info("RHEL-198423 - WALA-TC: [General] Verify WALA version is not lower than it in the previous RHEL release")
+        new_wala_pkg = self.session.cmd_output("rpm -q WALinuxAgent")
+        new_wala_version = new_wala_pkg.split('-')[1]
+        # Get the previous WALA version
+        pre_x_version = int(self.project.split('.')[0]) - 1
+        if pre_x_version == 7:
+            pre_project = '7.9'
+            brew_tag = "extras-rhel-7.9-candidate"
+        else:
+            compose_id = utils_azure.command("http://download.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{0}/COMPOSE_ID|echo".format(pre_x_version)).stdout
+            pre_project = compose_id.split('-')[1]
+            brew_tag = "rhel-{}-pending".format(pre_project)
+        pre_wala_pkg = utils_azure.command("brew latest-build %s WALinuxAgent --quiet|awk '{print $1}'" % brew_tag).stdout.rstrip('\n')
+        self.log.info("The latest WALA package in the RHEL-{} is {}".format(pre_x_version, pre_wala_pkg))
+        pre_wala_version = pre_wala_pkg.split('-')[1]
+        # Compare the WALA versions
+        self.assertTrue(LooseVersion(new_wala_version) >= LooseVersion(pre_wala_version),
+            "The {} in RHEL-{} is lower than {} in the RHEL-{}".format(new_wala_pkg, self.project, pre_wala_pkg, pre_project))
+        self.log.info("The {} in RHEL-{} is newer than or equal to {} in the RHEL-{}".format(new_wala_pkg, self.project, pre_wala_pkg, pre_project))
+
+
+
+
     def tearDown(self):
         if self.case_short_name == "test_event_clean_up_when_above1000":
             self.session.cmd_output("rm -f /var/lib/waagent/events/test*")
@@ -746,7 +856,8 @@ Retry: {0}/10".format(retry+1))
                 "test_upgrade_downgrade_package",
                 "test_install_uninstall_package",
                 "test_provision_with_2_keys",
-                "test_provision_gen2_vm"]:
+                "test_provision_gen2_vm",
+            ]:
             self.vm.delete()
 
 

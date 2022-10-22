@@ -7,6 +7,7 @@ from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount
 from distutils.version import LooseVersion
 from avocado_cloud.utils.utils_azure import file_exists
+from avocado_cloud.utils import utils_azure
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
@@ -66,24 +67,24 @@ sudo chown -R root:root /root/.ssh")
             "mount {}1 /mnt/resource".format(self._get_temporary_disk()))
         self.session.cmd_output("rm -f /tmp/deprovisioned")
 
-    def _deprovision(self):
-        self.session.cmd_output(
-            "sudo /usr/bin/cp -a ~/.ssh /root/;sudo chown -R root:root \
-/root/.ssh")
-        self.session.close()
-        self.vm.vm_username = "root"
-        self.session.connect()
-        self.session.cmd_output("systemctl stop waagent")
-        self.session.cmd_output(
-            "/usr/bin/mv /var/lib/waagent /tmp/waagent-bak")
-        self.session.cmd_output("userdel -rf {}".format(self.username))
-        if self.session.cmd_status_output('id {}'.format(self.username))[0] == 0:
-            self.log.debug("Fail to delete user! Retry...")
-            time.sleep(1)
-            self.session.cmd_output("ps aux|grep {}".format(self.username))
-            self.session.cmd_output("userdel -rf {}".format(self.username))
-        self.session.cmd_output("rm -f /var/log/waagent.log")
-        self.session.cmd_output("touch /tmp/deprovisioned")
+#     def _deprovision(self):
+#         self.session.cmd_output(
+#             "sudo /usr/bin/cp -a ~/.ssh /root/;sudo chown -R root:root \
+# /root/.ssh")
+#         self.session.close()
+#         self.vm.vm_username = "root"
+#         self.session.connect()
+#         self.session.cmd_output("systemctl stop waagent")
+#         self.session.cmd_output(
+#             "/usr/bin/mv /var/lib/waagent /tmp/waagent-bak")
+#         self.session.cmd_output("userdel -rf {}".format(self.username))
+#         if self.session.cmd_status_output('id {}'.format(self.username))[0] == 0:
+#             self.log.debug("Fail to delete user! Retry...")
+#             time.sleep(1)
+#             self.session.cmd_output("ps aux|grep {}".format(self.username))
+#             self.session.cmd_output("userdel -rf {}".format(self.username))
+#         self.session.cmd_output("rm -f /var/log/waagent.log")
+#         self.session.cmd_output("touch /tmp/deprovisioned")
 
     def _modify_value(self,
                       key,
@@ -109,36 +110,36 @@ sudo chown -R root:root /root/.ssh")
                 key, sepr, value, conf_file))[0],
             "{0}{1}{2} is not in {3}".format(key, sepr, value, conf_file))
 
-    def _recreate_vm(self, tag, timeout=1200, **kwargs):
-        osdisk_uri = self.vm.properties["storageProfile"]["osDisk"]["vhd"][
-            "uri"]
-        cloud = Setup(self.params, self.name)
-        cloud.vm.vm_name = self.vm.vm_name + "-" + tag
-        cloud.vm.image = osdisk_uri
-        cloud.vm.os_disk_name = self.vm.vm_name + "_os" + \
-            time.strftime("%m%d%H%M%S", time.localtime())
-        for key in kwargs:
-            if key not in dir(cloud.vm):
-                self.log.debug(
-                    "No such property in AzureVM class: {}".format(key))
-            value = kwargs.get(key)
-            if value not in [True, False, None]:
-                value = "\"{}\"".format(value)
-            exec("cloud.vm.{0} = {1}".format(key, value))
-        cloud.vm.show()
-        if cloud.vm.exists():
-            cloud.vm.delete(wait=True)
-        session = None
-        wait = kwargs.get("wait", True)
-        try:
-            cloud.vm.create(wait=wait)
-            session = cloud.init_session()
-            if kwargs.get("connect", True) is True:
-                session.connect()
-        except Exception:
-            raise
-        finally:
-            return (cloud.vm, session)
+    # def _recreate_vm(self, tag, timeout=1200, **kwargs):
+    #     osdisk_uri = self.vm.properties["storageProfile"]["osDisk"]["vhd"][
+    #         "uri"]
+    #     cloud = Setup(self.params, self.name)
+    #     cloud.vm.vm_name = self.vm.vm_name + "-" + tag
+    #     cloud.vm.image = osdisk_uri
+    #     cloud.vm.os_disk_name = self.vm.vm_name + "_os" + \
+    #         time.strftime("%m%d%H%M%S", time.localtime())
+    #     for key in kwargs:
+    #         if key not in dir(cloud.vm):
+    #             self.log.debug(
+    #                 "No such property in AzureVM class: {}".format(key))
+    #         value = kwargs.get(key)
+    #         if value not in [True, False, None]:
+    #             value = "\"{}\"".format(value)
+    #         exec("cloud.vm.{0} = {1}".format(key, value))
+    #     cloud.vm.show()
+    #     if cloud.vm.exists():
+    #         cloud.vm.delete(wait=True)
+    #     session = None
+    #     wait = kwargs.get("wait", True)
+    #     try:
+    #         cloud.vm.create(wait=wait)
+    #         session = cloud.init_session()
+    #         if kwargs.get("connect", True) is True:
+    #             session.connect()
+    #     except Exception:
+    #         raise
+    #     finally:
+    #         return (cloud.vm, session)
 
     def _get_temporary_disk(self):
         boot_dev = self.session.cmd_output("mount|grep 'boot'|head -1| cut -c1-8")
@@ -162,8 +163,8 @@ sudo chown -R root:root /root/.ssh")
             r"sudo sed -i -e '1i\root:*teststring*:14600::::::' \
 -e '/^root.*$/d' /etc/shadow")
         self.session.cmd_output("sync")
-        self._deprovision()
-        self.vm_1, session_1 = self._recreate_vm("delrootpw-y")
+        utils_azure.deprovision(self)
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "delrootpw-y")
         self.assertTrue(
             session_1.connect(), "Fail to connect to VM after setting \
                         Provisioning.DeleteRootPassword=y and recreat VM.")
@@ -172,7 +173,7 @@ sudo chown -R root:root /root/.ssh")
                       "Fail to delete root password")
         # 2. Provisioning.DeleteRootPassword=n
         self._modify_value("Provisioning.DeleteRootPassword", "n")
-        self.vm_2, session_2 = self._recreate_vm("delrootpw-n")
+        self.vm_2, session_2 = utils_azure.recreate_vm(self, "delrootpw-n")
         self.assertTrue(
             session_2.connect(), "Fail to connect to VM after setting \
                         Provisioning.DeleteRootPassword=n and recreat VM.")
@@ -233,8 +234,8 @@ sudo chown -R root:root /root/.ssh")
         # self.assertEqual(md5_1a, md5_1b,
         #                  "Should not remove old ssh host keys in \
         # deprovisioning")
-        self._deprovision()
-        self.vm_1, session_1 = self._recreate_vm("regsshkey-n")
+        utils_azure.deprovision(self)
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "regsshkey-n")
         md5_1 = session_1.cmd_output("sudo md5sum /etc/ssh/ssh_host_dsa_key")
         self.assertEqual(
             md5_0, md5_1,
@@ -254,7 +255,7 @@ sudo chown -R root:root /root/.ssh")
         # self.assertNotEqual(md5_2a, md5_2b,
         #                     "Fail to remove old ssh host keys in \
         # deprovisioning")
-        self.vm_2, session_2 = self._recreate_vm("regsshkey-y")
+        self.vm_2, session_2 = utils_azure.recreate_vm(self, "regsshkey-y")
         md5_2 = session_2.cmd_output("sudo md5sum /etc/ssh/ssh_host_dsa_key")
         self.assertNotEqual(
             md5_0, md5_2, "Fail to regenerate ssh host keys in provisioning")
@@ -342,7 +343,7 @@ in ext4 file system." % max_retry)
             self._modify_value("ResourceDisk.SwapSizeMB", "2048")
             self.session.cmd_output(
                 "sudo rm -rf /var/lib/waagent/* /var/log/waagent.log")
-            self.vm_1, session_1 = self._recreate_vm("fstype-xfs")
+            self.vm_1, session_1 = utils_azure.recreate_vm(self, "fstype-xfs")
             self.assertIn(
                 "xfs", session_1.cmd_output("mount|grep /mnt/resource"),
                 "Bug 1372276. "
@@ -598,9 +599,9 @@ rhel-swap/s/^/#/' /etc/fstab")
         )
         # 1. Provisioning.Enabled=n
         self._modify_value("Provisioning.Enabled", "n")
-        self._deprovision()
+        utils_azure.deprovision(self)
         new_username = "azureuser1"
-        self.vm_1, session_1 = self._recreate_vm("disableprovision",
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "disableprovision",
                                                  connect=False,
                                                  vm_username=new_username)
         self.vm_1.vm_username = 'root'
@@ -630,7 +631,7 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         # 1. Provisioning.AllowResetSysUser=n
         self.log.info("Provisioning.AllowResetSysUser=n")
         self._modify_value("Provisioning.AllowResetSysUser", "n")
-        self._deprovision()
+        utils_azure.deprovision(self)
         # Set 400 uid to azureuser
         self.session.cmd_output("useradd -u 400 %s" % old_username)
         self.assertEqual(
@@ -638,7 +639,8 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
             "Fail to set uid to 400")
         self.session.cmd_output("echo {0}|passwd --stdin {1}".format(
             old_password, old_username))
-        self.vm_1, session_1 = self._recreate_vm(
+        self.vm_1, session_1 = utils_azure.recreate_vm(
+            self,
             tag="resetsysuser-n",
             authentication_type="password",
             vm_password=new_password,
@@ -654,7 +656,8 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         # 2. Provisioning.AllowResetSysUser=y
         self.log.info("Provisioning.AllowResetSysUser=y")
         self._modify_value("Provisioning.AllowResetSysUser", "y")
-        self.vm_2, session_2 = self._recreate_vm(
+        self.vm_2, session_2 = utils_azure.recreate_vm(
+            self,
             tag="resetsysuser-y",
             authentication_type="password",
             vm_password=new_password,
@@ -998,8 +1001,8 @@ and ssh configuration file")
         self.session.cmd_output("rm -f {0}/ssh_host_*".format(self.sshnew))
         self.log.info("2. Deprovision this VM and use this as a template \
 to create a new VM")
-        self._deprovision()
-        self.vm_1, session_1 = self._recreate_vm(tag="ssh-path")
+        utils_azure.deprovision(self)
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "ssh-path")
         session_1.cmd_output("sudo su -")
         self.log.info("3. After provisioning,login and check if dsa ssh keys \
 are generated in " + self.sshnew)
@@ -1034,8 +1037,8 @@ ssh key is removed under " + self.sshnew)
             "WALA-TC: [WALA conf] Customize ssh SshClientAliveInterval value")
         new_interval = 0
         self._modify_value("OS.SshClientAliveInterval", new_interval)
-        self._deprovision()
-        self.vm_1, session_1 = self._recreate_vm(tag="ssh-interval")
+        utils_azure.deprovision(self)
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "ssh-interval")
         session_1.cmd_output("sudo su -")
         self.assertEqual(
             session_1.cmd_status_output(
@@ -1067,12 +1070,12 @@ echo 'teststring' >> /tmp/test.log\
             # Provisioning.ExecuteCustomData
             self._modify_value("Provisioning.ExecuteCustomData", execute)
             # Capture VM and create new
-            self._deprovision()
+            utils_azure.deprovision(self)
             tag = "custom-{}{}".format(decode, execute)
             custom_data = None
             if invoke_customdata:
                 custom_data = "/tmp/customdata.sh"
-            vm, session_1 = self._recreate_vm(tag, custom_data=custom_data)
+            vm, session_1 = utils_azure.recreate_vm(self, tag, custom_data=custom_data)
             setattr(self, 'vm_' + decode + execute, vm)
             if execute == "y":
                 self.assertEqual(session_1.cmd_output("cat /tmp/test.log"),
@@ -1115,7 +1118,7 @@ echo 'teststring' >> /tmp/test.log\
             self._verify_value("Provisioning.RegenerateSshHostKeyPair", "y")
             self._modify_value("Provisioning.SshHostKeyPairType", key_type)
             # Generate all key files by sshd
-            self._deprovision()
+            utils_azure.deprovision(self)
             self.session.cmd_output("sudo service sshd restart")
             if key_type == "auto":
                 old_md5_list = self.session.cmd_output(
@@ -1125,7 +1128,7 @@ echo 'teststring' >> /tmp/test.log\
                 old_md5 = self.session.cmd_output(
                     "md5sum /etc/ssh/ssh_host_{0}_key".format(key_type))
             # Capture VM and create new
-            vm, session_1 = self._recreate_vm(key_type)
+            vm, session_1 = utils_azure.recreate_vm(self, key_type)
             setattr(self, 'vm_' + key_type, vm)
             # Check if regenerate the ssh host key pair
             if key_type == "auto":
@@ -1313,13 +1316,13 @@ fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
                          "Default value of Provisioning.Agent is not auto")
         # 3. Provisioning.Agent=waagent and provision with wala
         self._modify_value("Provisioning.Agent", "waagent")
-        self._deprovision()
-        self.vm_1, session_1 = self._recreate_vm("pa-wa")
+        utils_azure.deprovision(self)
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "pa-wa")
         self.assertEqual(session_1.cmd_output("hostname"), self.vm.vm_name + "-pa-wa",
             "Using waagent to provision failed with Provisioning.Agent=waagent")
         # 4. Provisioning.Agent=disabled
         self._modify_value("Provisioning.Agent", "disabled")
-        self.vm_2, session_2 = self._recreate_vm("pa-dis", connect=False)
+        self.vm_2, session_2 = utils_azure.recreate_vm(self, "pa-dis", connect=False)
         self.vm_2.vm_username = "root"
         session_2.connect()
         self.assertEqual(session_2.cmd_output("hostname"), self.vm.vm_name,
@@ -1331,14 +1334,14 @@ fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
             self._modify_value("Provisioning.Agent", "cloud-init")
             self.assertEqual(self.session.cmd_status_output("/tmp/{} all cloudinit_wala".format(script_name))[0], 0,
                              "Fail to deprovision VM with cloudinit_wala")
-            self.vm_3, session_3 = self._recreate_vm("pa-ci")
+            self.vm_3, session_3 = utils_azure.recreate_vm(self, "pa-ci")
             self.assertEqual(session_3.cmd_output("hostname"), self.vm.vm_name + "-pa-ci",
                 "Using cloud-init to provision failed with Provisioning.Agent=cloud-init")
             self.assertEqual(session_3.cmd_status_output("grep 'Using cloud-init for provisioning' /var/log/waagent.log")[0], 0,
                 "No such log in waagent.log: 'Using cloud-init for provisioning'")
             # 6. Provisioning.Agent=auto and provision with cloud-init
             self._modify_value("Provisioning.Agent", "cloud-init")
-            self.vm_4, session_4 = self._recreate_vm("pa-aci")
+            self.vm_4, session_4 = utils_azure.recreate_vm(self, "pa-aci")
             self.assertEqual(session_4.cmd_output("hostname"), self.vm.vm_name + "-pa-aci",
                 "Using cloud-init to provision failed with Provisioning.Agent=auto")
             self.assertEqual(session_4.cmd_status_output("grep 'Using cloud-init for provisioning' /var/log/waagent.log")[0], 0,

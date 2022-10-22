@@ -5,6 +5,7 @@ from distutils.version import LooseVersion
 from avocado import Test
 from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount
+from avocado_cloud.utils import utils_azure
 from avocado_cloud.utils.utils_azure import WalaConfig
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
@@ -757,8 +758,65 @@ whether wala normally running")
             self.log.warn("Some configurations are changed:\n===Add:\n{}\n===Del:\n{}".format(
                 '\n'.join(add), '\n'.join(rmv)))
 
+    def test_waagent_collect_logs(self):
+        """
+        :avocado: tags=tier2
+        VIRT-294561	WALA-TC: [func] waagent -collect-logs
+        """
+        self.log.info("VIRT-294561 - WALA-TC: [func] waagent -collect-logs")
+        # Clean up old files
+        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
+        # Normal log collector
+        exit_status, output = self.session.cmd_status_output(
+            "waagent -collect-logs")
+        self.assertEqual(0, exit_status,
+                         "Run waagent -collect-logs failed")
+        self.assertIn("Running log collector mode normal", output,
+            "Log collector mode is should be normal")
+        self.assertTrue(
+            utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
+            "logs.zip doesn't exist in normal mode collector")
+        self.assertIn('INFO /var/log/waagent.log', 
+            self.session.cmd_output("cat /var/lib/waagent/logcollector/results.txt"),
+            "/var/log/waagent.log is not collected in normal mode!"
+        )
+        # Full log collector
+        exit_status, output = self.session.cmd_status_output(
+            "waagent -collect-logs -full")
+        self.assertEqual(0, exit_status,
+                         "Run waagent -collect-logs -full failed")
+        self.assertIn("Running log collector mode full", output,
+            "Log collector mode is should be full")
+        self.assertTrue(
+            utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
+            "logs.zip doesn't exist in full mode collector")
+        self.assertIn('INFO /var/log/messages', 
+            self.session.cmd_output("cat /var/lib/waagent/logcollector/results.txt"),
+            "/var/log/messages is not collected in full mode!"
+        )
+
+    def test_waagent_setup_firewall(self):
+        """
+        :avocado: tags=tier2
+        VIRT-294600	WALA-TC: [func] waagent -setup-firewall
+        """
+        self.log.info("VIRT-294600 - WALA-TC: [func] waagent -setup-firewall")
+        # Clear iptables security table
+        self.session.cmd_output("iptables -t security -F")
+        # Verify new rules are added
+        self.session.cmd_output("waagent -setup-firewall --dst_ip=168.63.129.16 --uid=0 -w")
+        time.sleep(1)
+        output = self.session.cmd_output("iptables-save -t security|grep -A3 'OUTPUT ACCEPT'")
+        for line in [
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT",
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT",
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j DROP"
+        ]:
+            self.assertIn(line, output, "Setup firewall rules fail!")
+
     def test_interrupt_ctrl_c(self):
         """
+        :avocado: tags=tier3
         Interrupt "waagent -deprovision" by "ctrl -c"
         """
         self.log.info("Interrupt \"waagent -deprovision\" by \"ctrl -c\"")
@@ -850,6 +908,8 @@ whether wala normally running")
             except Exception as e:
                 self.log.error("Teardown failed. {0}".format(e))
                 self.vm.delete()
+        elif self.case_short_name == "test_waagent_collect_logs":
+            self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
         # Clean ssh sessions
         # utils_misc.host_command("ps aux|grep '[s]sh -o UserKnownHostsFile'\
         # |awk '{print $2}'|xargs kill -9", ignore_status=True)
