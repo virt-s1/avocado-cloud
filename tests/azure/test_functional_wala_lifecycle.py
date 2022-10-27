@@ -165,7 +165,7 @@ class LifeCycleTest(Test):
             self.session.cmd_output("sudo swapoff /dev/mapper/rhel-swap")
         # Retry 10 times (100s in total) to wait for the swap file created.
         max_retry = 10
-        for count in xrange(1, max_retry + 1):
+        for count in range(1, max_retry + 1):
             swapsize = self.session.cmd_output(
                 "free -m|grep Swap|awk '{print $2}'")
             if swapsize == "2047":
@@ -197,10 +197,41 @@ class LifeCycleTest(Test):
             self.fail("VM is not rebooted.")
         self.log.info("VM reboot inside guest successfully.")
 
+    def test_create_vm_without_deprovision(self):
+        """
+        :avocado: tags=tier3
+        VIRT-47119	WALA-TC: [life cycle] Create a VM without deprovision
+        1. Prepare a VM. Add a user with ssh_key. Set root password.
+        2. Don't deprovision. Capture as specialized image.
+        3. Use the new image to create a VM. Check the old user/ssh_key, root password and hostname.
+        """
+        self.log.info("VIRT-47119 - WALA-TC: [life cycle] Create a VM without deprovision")
+        self.session.cmd_output('sudo su -')
+        ### Test begin
+        root_pw = "RedHatTest1@"
+        self.session.cmd_output("echo '{}' | passwd root --stdin".format(root_pw))
+        old_username = self.vm.vm_username
+        new_username = old_username+'new'
+        # self.vm.vm_username = new_username
+        self.vm_1, session_1 = utils_azure.recreate_vm(self, "nodepro", vm_username=new_username, connect=False)
+        self.vm_1.vm_username = old_username
+        self.assertTrue(session_1.connect(timeout=60),
+            "Failed to use the old username to login")
+        self.assertNotIn("LOCK", self.session.cmd_output("getent shadow root"),
+            "root password should not be locked.")
+        self.assertNotEqual(0, self.session.cmd_status_output("id "+new_username)[0],
+            "The new user should not be created.")
+
+
     def tearDown(self):
-        if self.case_short_name == "test_create_vm_password" or \
-           self.case_short_name == "test_create_vm_all":
+        if self.case_short_name in [
+            "test_create_vm_password",
+            "test_create_vm_all",
+        ]:
             self.vm.delete(wait=False)
+        if self.case_short_name == "test_create_vm_without_deprovision":
+            self.session.cmd_output("sed -i -e '1i root:*LOCK*:14600::::::' -e '/root/d' /etc/shadow")
+            self.vm_1.delete(wait=False)
 
 
 if __name__ == "__main__":

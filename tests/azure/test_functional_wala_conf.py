@@ -6,7 +6,6 @@ from avocado import main
 from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount
 from distutils.version import LooseVersion
-from avocado_cloud.utils.utils_azure import file_exists
 from avocado_cloud.utils import utils_azure
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
@@ -31,6 +30,7 @@ class WALAConfTest(Test):
         if self.case_short_name != "test_self_update" and \
            not self.case_short_name.startswith("test_http_proxy"):
             self._modify_value("AutoUpdate.Enabled", "n")
+            self.session.cmd_output("sudo systemctl restart waagent")
         self.project = self.params.get("rhel_ver", "*/VM/*")
         self.username = self.vm.vm_username
         # if self.case_short_name.startswith("test_http_proxy"):
@@ -103,12 +103,20 @@ sudo chown -R root:root /root/.ssh")
                       key,
                       value,
                       conf_file="/etc/waagent.conf",
-                      sepr='='):
-        self.assertEqual(
-            0,
-            self.session.cmd_status_output("grep -R \'^{0}{1}{2}\' {3}".format(
-                key, sepr, value, conf_file))[0],
-            "{0}{1}{2} is not in {3}".format(key, sepr, value, conf_file))
+                      sepr='=',
+                      should_in=True):
+        if should_in:
+            self.assertEqual(
+                0,
+                self.session.cmd_status_output("grep -R \'^{0}{1}{2}\' {3}".format(
+                    key, sepr, value, conf_file))[0],
+                "{0}{1}{2} is not in {3}".format(key, sepr, value, conf_file))
+        else:
+            self.assertNotEqual(
+                0,
+                self.session.cmd_status_output("grep -R \'^{0}{1}{2}\' {3}".format(
+                    key, sepr, value, conf_file))[0],
+                "{0}{1}{2} should not in {3}".format(key, sepr, value, conf_file))
 
     # def _recreate_vm(self, tag, timeout=1200, **kwargs):
     #     osdisk_uri = self.vm.properties["storageProfile"]["osDisk"]["vhd"][
@@ -610,7 +618,7 @@ rhel-swap/s/^/#/' /etc/fstab")
         self.assertIn("no such user", session_1.cmd_output("id {}".format(
             new_username)))
         # Check if create provisioned file
-        self.assertTrue(file_exists("/var/lib/waagent/provisioned", session_1),
+        self.assertTrue(utils_azure.file_exists("/var/lib/waagent/provisioned", session_1),
                         "Fail to generate provisioned file")
 
     def test_reset_system_account(self):
@@ -1011,7 +1019,7 @@ are generated in " + self.sshnew)
                 self.sshnew + "/ssh_host_dsa_key.pub"
         ]:
             for retry in range(1, 11):
-                if file_exists(key, session_1):
+                if utils_azure.file_exists(key, session_1):
                     break
                 self.log.info("No file {}. Retry: {}/10".format(key, retry))
                 time.sleep(10)
@@ -1021,7 +1029,7 @@ are generated in " + self.sshnew)
 ssh key is removed under " + self.sshnew)
         session_1.cmd_output("waagent -deprovision -force")
         self.assertFalse(
-            file_exists("{}/ssh_host_dsa*".format(self.sshnew), session_1),
+            utils_azure.file_exists("{}/ssh_host_dsa*".format(self.sshnew), session_1),
             "Fail to remove ssh_host_dsa keys from new path")
 
     def test_customize_ssh_client_alive_interval(self):
@@ -1086,7 +1094,7 @@ echo 'teststring' >> /tmp/test.log\
                         "sudo grep '' /var/lib/waagent/CustomData"), script,
                     "The custom data is not decoded")
             else:
-                self.assertFalse(file_exists('/tmp/test.log', session_1),
+                self.assertFalse(utils_azure.file_exists('/tmp/test.log', session_1),
                                  "The custom script should not be executed")
                 if decode == "y":
                     self.assertEqual(
@@ -1177,14 +1185,14 @@ echo 'teststring' >> /tmp/test.log\
         except:
             self.log.info("Timeout. Kill process.")
         self.assertFalse(
-            file_exists("/etc/ssh/sshd_config_*", self.session),
+            utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session),
             "Should not install extension when Extensions.Enabled=n")
         self.log.info("2. Extensions.Enabled=y")
         self._modify_value("Extensions.Enabled", 'y')
         self.session.cmd_output("service waagent restart")
         time.sleep(10)
         for retry in range(1, 11):
-            if file_exists("/etc/ssh/sshd_config_*", self.session):
+            if utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session):
                 break
             self.log.info(
                 "Waiting for extension installed. Retry: {}/10".format(retry))
@@ -1194,7 +1202,7 @@ echo 'teststring' >> /tmp/test.log\
 
     def test_enable_fips(self):
         """
-        :avocado: tags=tier2
+        :avocado: tags=tier3
         Enable FIPS
         1.1 Ensure these packages are installed:
         fipscheck
@@ -1202,6 +1210,8 @@ echo 'teststring' >> /tmp/test.log\
         dracut-fips
         Disable prelink if exists
         1.2 Add fips=1 in kernel parameters
+        RHEL-8+:
+        # fips-mode-setup --enable
         RHEL-7:
         # grubby --update-kernel=$(grubby --default-kernel) --args=fips=1
         # uuid=$(findmnt -no uuid /boot)
@@ -1224,38 +1234,37 @@ echo 'teststring' >> /tmp/test.log\
         self.log.info("Enable FIPS")
         self.log.info("1. Environment prepare. Enable FIPS in RHEL")
         # 1.1 Check fips packages, disable prelink
-        if file_exists("ls /root/dracut-fips-*.rpm", self.session):
-            self.session.cmd_output("rpm -ivh /root/dracut-fips-*.rpm")
+        if LooseVersion(self.project) >= LooseVersion("8.0"):
+            self.session.cmd_output("fips-mode-setup --enable", timeout=600)
         else:
-            self.session.cmd_output("yum -y install dracut-fips")
-        time.sleep(10)
-        if not file_exists("/etc/system-fips", self.session):
-            self.fail("Fail to install dracut-fips")
-        for pkg in ["filscheck", "filscheck-lib"]:
-            self.assertEqual(
-                self.session.cmd_status_output("rpm -q {}".format(pkg))[0], 0,
-                "No {} package.".format(pkg))
-        if "is not installed" not in self.session.cmd_output("rpm -q \
-prelink && sed -i '/^PRELINKING/s,yes,no,' /etc/sysconfig/prelink"):
-            self.session.cmd_output("rpm -q prelink && prelink -uav")
-        # 1.2 Add fips=1 in kernel parameters
-        uuid = self.session.cmd_output("findmnt -no uuid /boot")
-        if LooseVersion(self.project) < LooseVersion("7.0"):
-            self.session.cmd_output("sed -i '/^\tkernel/s/$/ fips=1 \
-boot=UUID={0}/g' /etc/grub.conf".format(uuid))
-        else:
-            self.session.cmd_output("sed -i '/^GRUB_CMDLINE_LINUX=/s/\"$/ \
-fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
-            self.session.cmd_output("grub2-mkconfig -o /boot/grub/grub.cfg")
-            self.session.cmd_output(
-                "grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg")
-            # self.session.cmd_output("grubby --update-kernel=$(grubby \
-            # --default-kernel) --args=fips=1")
-            # self.session.cmd_output("[[ -n {0} ]] && grubby \
-            # --update-kernel=$(grubby --default-kernel) \
-            # --args=boot=UUID={0}".format(uuid))
+            if utils_azure.file_exists("ls /root/dracut-fips-*.rpm", self.session):
+                self.session.cmd_output("rpm -ivh /root/dracut-fips-*.rpm")
+            else:
+                self.session.cmd_output("yum -y install dracut-fips")
+            time.sleep(10)
+            if not utils_azure.file_exists("/etc/system-fips", self.session):
+                self.fail("Fail to install dracut-fips")
+            for pkg in ["filscheck", "filscheck-lib"]:
+                self.assertEqual(
+                    self.session.cmd_status_output("rpm -q {}".format(pkg))[0], 0,
+                    "No {} package.".format(pkg))
+            if "is not installed" not in self.session.cmd_output("rpm -q \
+    prelink && sed -i '/^PRELINKING/s,yes,no,' /etc/sysconfig/prelink"):
+                self.session.cmd_output("rpm -q prelink && prelink -uav")
+            # 1.2 Add fips=1 in kernel parameters
+            uuid = self.session.cmd_output("findmnt -no uuid /boot")
+            if LooseVersion(self.project) < LooseVersion("7.0"):
+                self.session.cmd_output("sed -i '/^\tkernel/s/$/ fips=1 \
+    boot=UUID={0}/g' /etc/grub.conf".format(uuid))
+            else:
+                self.session.cmd_output("sed -i '/^GRUB_CMDLINE_LINUX=/s/\"$/ \
+    fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
+                self.session.cmd_output("grub2-mkconfig -o /boot/grub/grub.cfg")
+                self.session.cmd_output(
+                    "grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg")
         # 1.3 Rebuild initramfs
-        self.session.cmd_output("dracut -f -v")
+        self.session.cmd_output("rm -f /boot/initramfs-*.img")
+        self.session.cmd_output("dracut -f -v", timeout=300)
         # Set EnableFIPS in waagent.conf
         self._modify_value("OS.EnableFIPS", "y")
         self.session.cmd_output("rm -f /var/log/waagent.log")
@@ -1264,20 +1273,28 @@ fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
         self.vm.reboot()
         self.session.connect()
         self.session.cmd_output("sudo su -")
-        # 1.5 Check /proc/sys/crypto/fips_enabled
-        self.assertEqual(
-            '1', self.session.cmd_output("cat /proc/sys/crypto/fips_enabled"),
-            "Fail to enable FIPS in RHEL")
+        # 1.5 Check if fips is enabled
+        if LooseVersion(self.project) >= LooseVersion("8.0"):
+            self.assertEqual(0, self.session.cmd_status_output("fips-mode-setup --is-enabled")[0],
+                "Fail to enable FIPS in RHEL")
+        else:
+            self.assertEqual(
+                '1', self.session.cmd_output("cat /proc/sys/crypto/fips_enabled"),
+                "Fail to enable FIPS in RHEL")
+        # 3. Run "reset remote access" to install an Extension to the VM.
         self.log.info(
-            "3. Run 'reset remote access' to install an Extension to the VM."
+            "Run 'reset remote access' to install an Extension to the VM."
             "Wait for the extension installed, check if there's error log in \
 /var/log/waagent.log")
-        self.session.cmd_output("rm -f /etc/ssh/sshd_config_*")
-        self.assertEqual(0, self.vm.user_reset_ssh(),
-                         "Fail to reset remote access")
-        time.sleep(60)
-        self.assertTrue(file_exists("/etc/ssh/sshd_config_*", self.session),
-                        "Reset remote access failed")
+        self.session.cmd_output("rm -f /etc/ssh/sshd_config_* /var/log/waagent.log")
+        try:
+            self.vm.user_reset_ssh(timeout=300)
+            time.sleep(60)
+            self.assertTrue(utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session))
+        except:
+            self.session.cmd_output("cat /var/log/waagent.log")
+            self.fail("Fail to reset remote access")
+        # Verify no error logs
         with open("{}/data/azure/ignore_waagent_messages".format(BASEPATH),
                   'r') as f:
             ignore_message_list = f.read().split('\n')
@@ -1347,6 +1364,190 @@ fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
             self.assertEqual(session_4.cmd_status_output("grep 'Using cloud-init for provisioning' /var/log/waagent.log")[0], 0,
                 "No such log in waagent.log: 'Using cloud-init for provisioning'")
 
+    def test_logs_collect(self):
+        """
+        :avocado: tags=tier2
+        VIRT-294560 - WALA-TC: [WALA conf] Logs.Collect and Logs.CollectPeriod
+        1. Verify default value: Logs.Collect=y, Logs.CollectPeriod=3600
+        2. Verify the description of these 2 parameters are correct
+        3. Verify the default value if no such parameter in waagent.conf
+        4. Verify feature: Logs.Collect=y and Logs.CollectPeriod=15
+        5. Verify feature: Logs.Collect=n
+        """
+        self.log.info("VIRT-294560 - WALA-TC: [WALA conf] Logs.Collect and Logs.CollectPeriod")
+        # Only available >= WALA-2.3.0.2
+        wala_version = self.session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
+        if LooseVersion(wala_version) < LooseVersion('2.3.0.2'):
+            self.cancel("This feature is only available after v2.3.0.2. Skip.")
+        ### Test begin
+        self.session.cmd_output("sudo su -")
+        # 1. Verify default value: Logs.Collect=y, Logs.CollectPeriod=3600
+        if LooseVersion(wala_version) >= LooseVersion('2.7.0.6'):
+            expect_value = 'y'
+        else:
+            expect_value = 'n'
+        self._verify_value("Logs.Collect", expect_value)
+        self._verify_value("Logs.CollectPeriod", "3600")
+        # 2. Verify the description of these 2 parameters are correct
+        waagent_conf = self.session.cmd_output("cat /etc/waagent.conf")
+        self.assertIn("Enable periodic log collection, default is {}".format(expect_value), waagent_conf,
+            "The description of Logs.Collect is incorrect.")
+        self.assertIn("How frequently to collect logs, default is each hour", waagent_conf,
+            "The description of Logs.CollectPeriod is incorrect.")
+        # 3. Verify the default value if no such parameter in waagent.conf
+        self.session.cmd_output("sed -i '/Logs.Collect/d' /etc/waagent.conf")
+        show_conf = self.session.cmd_output("waagent -show-configurations")
+        if LooseVersion(wala_version) >= LooseVersion('2.7.0.6'):
+            expect_value = 'True'
+        else:
+            expect_value = 'False'
+        self.assertIn("Logs.Collect = {}".format(expect_value), show_conf,
+            "Logs.Collect default value is not {}".format(expect_value))
+        self.assertIn("Logs.CollectPeriod = 3600", show_conf,
+            "Logs.CollectPeriod default value is not 3600")
+        # 4. Verify feature: Logs.Collect=y and Logs.CollectPeriod=15
+        self._modify_value("Logs.Collect", 'y')
+        self._modify_value("Logs.CollectPeriod", '15')
+        # Modify _INITIAL_LOG_COLLECTION_DELAY = 0 to skip 300s sleep
+        collect_logs = "/usr/lib/python3.6/site-packages/azurelinuxagent/ga/collect_logs.py"
+        self.session.cmd_output("/usr/bin/cp {} /tmp/".format(collect_logs))
+        self.session.cmd_output("sed -i 's/^_INITIAL_LOG_COLLECTION_DELAY.*$/_INITIAL_LOG_COLLECTION_DELAY = 0/g' " + collect_logs)
+        # Clean up old collected logs
+        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
+        self.session.cmd_output("systemctl restart waagent")
+        # Verify logs.zip is generated
+        time.sleep(20)
+        self.assertTrue(utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
+            "Cannot collect logs when Logs.Collect=y")
+        # Check logs.zip again after period
+        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
+        time.sleep(20)
+        self.assertTrue(utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
+            "Cannot collect logs when Logs.Collect=y")
+        # 5. Verify feature: Logs.Collect=n
+        self._modify_value("Logs.Collect", 'n')
+        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
+        self.session.cmd_output("systemctl restart waagent")
+        time.sleep(20)
+        self.assertFalse(utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
+            "Should not collect logs when Logs.Collect=n")
+
+    def test_enable_firewall(self):
+        """
+        :avocado: tags=tier2
+        VIRT-294601 - WALA-TC: [WALA conf] OS.EnableFirewall and OS.EnableFirewallPeriod
+        1. Verify value in waagent.conf: OS.EnableFirewall=y, OS.EnableFirewallPeriod=30
+        2. Verify the default value if no such parameter in waagent.conf
+        3. Verify feature: OS.EnableFirewall=y and OS.EnableFirewall=15
+        4. Verify feature: OS.EnableFirewall=n
+        """
+        self.log.info("VIRT-294601 - WALA-TC: [WALA conf] OS.EnableFirewall and OS.EnableFirewallPeriod")
+        self.session.cmd_output("sudo su -")
+        FIREWALL_RULES = [
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT",
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT",
+        ]
+        wala_version = self.session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
+        if LooseVersion(wala_version) > LooseVersion('2.3.0.2'):
+            FIREWALL_RULES.append("-A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j DROP")
+        # To check the rules exists or not
+        def _check_rules(should_in):
+            output = self.session.cmd_output("iptables-save -t security|grep -A3 'OUTPUT ACCEPT'")
+            for rule in FIREWALL_RULES:
+                if should_in:
+                    self.assertIn(rule, output, "Setup firewall rules fail!")
+                else:
+                    self.assertNotIn(rule, output, "Should not set firewall rules {}!".format(rule))
+        # 1. Verify value in waagent.conf: OS.EnableFirewall=y, OS.EnableFirewallPeriod=30
+        self._verify_value("OS.EnableFirewall", 'y')
+        self._verify_value("OS.EnableFirewallPeriod", "30")
+        # 2. Verify the default value if no such parameter in waagent.conf
+        self.session.cmd_output("sed -i 's/OS.EnableFirewall/d' /etc/waagent.conf")
+        show_conf = self.session.cmd_output("waagent -show-configurations")
+        self.assertIn("OS.EnableFirewall = True", show_conf,
+            "OS.EnableFirewall default value is not True")
+        self.assertIn("OS.EnableFirewallPeriod = 30", show_conf,
+            "OS.EnableFirewallPeriod default value is not 30")
+        # 3. Verify feature: OS.EnableFirewall=y and OS.EnableFirewallPeriod=15
+        self.session.cmd_output("iptables -t security -F")
+        self._modify_value("OS.EnableFirewall", 'y')
+        self._modify_value("OS.EnableFirewallPeriod", "15")
+        self.session.cmd_output("systemctl restart waagent")
+        time.sleep(20)
+        _check_rules(should_in=True)
+        self.session.cmd_output("iptables -t security -F")
+        time.sleep(20)
+        _check_rules(should_in=True)
+        # 4. Verify feature: OS.EnableFirewall=n
+        self.session.cmd_output("iptables -t security -F")
+        self._modify_value("OS.EnableFirewall", 'n')
+        self.session.cmd_output("systemctl restart waagent")
+        time.sleep(20)
+        _check_rules(should_in=False)
+
+    def test_monitor_dhcp_client_restart_period(self):
+        """
+        :avocado: tags=tier3
+        VIRT-294621 - WALA-TC: [WALA conf] OS.MonitorDhcpClientRestartPeriod
+        Set OS.MonitorDhcpClientRestartPeriod=10, verify feature
+        """
+        self.log.info("VIRT-294621 - WALA-TC: [WALA conf] OS.MonitorDhcpClientRestartPeriod")
+        self.session.cmd_output("sudo su -")
+        # If no dhclient process, enable it in NetworkManager
+        if self.session.cmd_status_output("pidof dhclient")[0] != 0:
+            nm_conf = "/etc/NetworkManager/NetworkManager.conf"
+            self.session.cmd_output("cp {} /tmp/".format(nm_conf))
+            self.session.cmd_output("sed -i '/\[main\]/a dhcp=dhclient' " + nm_conf)
+        ### Test begin
+        self._modify_value("OS.MonitorDhcpClientRestartPeriod", '10')
+        self.session.cmd_output("systemctl restart waagent")
+        time.sleep(5)
+        old_pid = self.session.cmd_output('pidof dhclient')
+        if old_pid == '':
+            self.error("No dhclient process! Exit.")
+        self.session.cmd_output("rm -f /var/log/waagent.log")
+        self.session.cmd_output("systemctl restart NetworkManager")
+        new_pid = self.session.cmd_output('pidof dhclient')
+        if old_pid == new_pid:
+            self.error("dhclient process is not restarted. Exit.")
+        time.sleep(15)
+        self.assertIn("Detected dhcp client restart", self.session.cmd_output("cat /var/log/waagent.log"),
+            "Cannot monitor dhclient restart")
+
+    def test_remove_persistent_net_rules_period(self):
+        """
+        :avocado: tags=tier3
+        VIRT-294620	WALA-TC: [WALA conf] OS.RemovePersistentNetRulesPeriod
+        Set OS.RemovePersistentNetRulesPeriod=10, verify feature
+        """
+        self.log.info("VIRT-294620 - WALA-TC: [WALA conf] OS.RemovePersistentNetRulesPeriod")
+        self.session.cmd_output("sudo su -")
+        ### Test begin
+        self._modify_value("OS.RemovePersistentNetRulesPeriod", '10')
+        self.session.cmd_output("systemctl restart waagent")
+        time.sleep(5)
+        self.session.cmd_output("rm -f /var/lib/waagent/*.rules /var/log/waagent.log")
+        self.session.cmd_output("touch /lib/udev/rules.d/75-persistent-net-generator.rules /etc/udev/rules.d/70-persistent-net.rules")
+        time.sleep(12)
+        for rule in [
+            "/etc/udev/rules.d/70-persistent-net.rules",
+            "/lib/udev/rules.d/75-persistent-net-generator.rules"
+        ]:
+            self.assertFalse(utils_azure.file_exists(rule, self.session),
+                "Failed to remove rule file "+rule)
+        for rule in [
+            "/var/lib/waagent/70-persistent-net.rules",
+            "/var/lib/waagent/75-persistent-net-generator.rules"
+        ]:
+            self.assertTrue(utils_azure.file_exists(rule, self.session),
+                "Failed to move rule file {} to /var/lib/waagent"+rule)
+        self.assertIn("Move rules file", self.session.cmd_output("cat /var/log/waagent.log"),
+            "No warning message of moving rules")
+
+
+        
+
+
 
     # def test_enable_cgroups_limits(self):
     #     """
@@ -1390,7 +1591,8 @@ fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
         delete_list = [
             "test_resource_disk_gpt_partition",
             "test_customize_ssh_key_conf_path",
-            "test_provision_agent"
+            "test_provision_agent",
+            "test_enable_fips"
         ]
         # Remove temporary VMs
         for i in [x for x in self.__dict__ if 'vm_' in x]:
@@ -1423,12 +1625,16 @@ fips=1 boot=UUID={0}\"/g' /etc/default/grub".format(uuid))
                 "sudo rm -rf /var/log/azure* /etc/ssh/sshd_config_*")
         if self.case_short_name == "test_customize_ssh_key_conf_path":
             self.session.cmd_output("sudo rm -rf {}".format(self.sshnew))
+        if self.case_short_name == "test_logs_collect":
+            self.session.cmd_output("/usr/bin/cp /tmp/collect_logs.py /usr/lib/python3.6/site-packages/azurelinuxagent/ga/")
+        if self.case_short_name == "test_monitor_dhcp_client_restart_period":
+            self.session.cmd_output("/usr/bin/cp /tmp/NetworkManager.conf /etc/NetworkManager/")
         if ("session" in self.__dict__) and self.session.connect():
             self.session.cmd_output(
                 "sudo /usr/bin/cp /etc/waagent.conf-bak /etc/waagent.conf")
             self.session.cmd_output("sudo service waagent restart")
             self.session.cmd_output("sudo tail -1 /etc/waagent.conf")
-            if file_exists("/tmp/deprovisioned", self.session):
+            if utils_azure.file_exists("/tmp/deprovisioned", self.session):
                 self._recovery()
             if self.case_short_name in reboot_list:
                 self.vm.reboot()
