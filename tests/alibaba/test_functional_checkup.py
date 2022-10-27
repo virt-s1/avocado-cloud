@@ -1397,6 +1397,42 @@ will not check kernel-devel package.')
             os.path.join(self.dest_dir, data_file))
         utils_alibaba.run_cmd(self, check_cmd, expect_output='')
 
+    def test_check_rhui_crt(self):
+        """ Check /etc/pki/rhui/product/content.crt exists in image and the end date doesn't expired.
+
+        case_name:
+            [Aliyun]GeneralTest.test_check_rhui_crt
+        description:
+            Check the rhui crt file /etc/pki/rhui/product/content.crt exists in image and the end date doesn't expired.
+        bugzilla_id:
+            n/a
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/\
+            RHELVIRT/workitems?query=title:"[Aliyun]GeneralTest.test_check_rhui_crt"
+        maintainer:
+            linl@redhat.com
+        case_priority:
+            0
+        case_component:
+            checkup
+        key_steps:
+            1. Launch an instance on Aliyun.
+            2. Get rhui crt information via command " rct cat-cert /etc/pki/rhui/product/content.crt".
+            3. Check the End Date of rhui crt.
+        pass_criteria:
+            The rhui crt End Date should be later than current date (Later than product support phase).
+        """
+
+        utils_alibaba.run_cmd(self,
+                        r'sudo rct cat-cert /etc/pki/rhui/product/content.crt',
+                        expect_ret=0,
+                        msg='Check the rhui crt information.')
+        cmd = "timestamp=$(sudo rct cat-cert /etc/pki/rhui/product/content.crt|grep 'End Date'|awk '{print $3}');date -d $timestamp +%s"
+        end_date = utils_alibaba.run_cmd(self, cmd, msg='get rhui cert end date')
+        cmd = 'sudo date +%s'
+        now_date = utils_alibaba.run_cmd(self, cmd, msg='get now date')
+        self.assertTrue(int(end_date) > int(now_date), "RHUI cert has expired")
+
     def test_check_boot_time_create(self):
         """ Check the boot time after instance first launch.
 

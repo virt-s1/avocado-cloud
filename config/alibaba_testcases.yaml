@@ -25,6 +25,7 @@ cases:
   test_functional_checkup.py:GeneralTest.test_kdump_function
   test_functional_checkup.py:GeneralTest.test_check_image_id
   test_functional_checkup.py:GeneralTest.test_check_vulnerabilities
+  test_functional_checkup.py:GeneralTest.test_check_rhui_crt
   test_functional_network.py:NetworkTest.test_hotplug_nics
   test_functional_network.py:NetworkTest.test_assign_unassign_secondary_private_ips
   test_functional_network.py:NetworkTest.test_coldplug_nics
