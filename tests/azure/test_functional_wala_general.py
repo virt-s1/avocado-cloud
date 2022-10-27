@@ -513,8 +513,15 @@ CPUQuota=75%
             "ls /usr/lib/systemd/system/waagent*")[0], "Some files left after package is removed!"
         )
         # rpm install
+        self.session.cmd_output("rm -f /usr/lib/udev/rules.d/66-azure-storage.rules /usr/lib/udev/rules.d/99-azure-product-uuid.rules")
         self.assertEqual(0, self.session.cmd_status_output(
             "cd /tmp;rpm -ivh {};cd ~".format(self.package.replace(',', ' ')))[0], "Fail to install package through rpm")
+        for rule in [
+            "/usr/lib/udev/rules.d/99-azure-product-uuid.rules",
+            "/usr/lib/udev/rules.d/66-azure-storage.rules"
+        ]:
+            self.assertTrue(utils_azure.file_exists(rule, self.session),
+                "{} is not installed".format(rule))
         # yum uninstall
         yum_remove = "yum remove WALinuxAgent WALinuxAgent-udev -y --disablerepo=*"
         if LooseVersion(self.project) >= LooseVersion("8.0"):
@@ -832,8 +839,15 @@ Retry: {0}/10".format(retry+1))
             "The {} in RHEL-{} is lower than {} in the RHEL-{}".format(new_wala_pkg, self.project, pre_wala_pkg, pre_project))
         self.log.info("The {} in RHEL-{} is newer than or equal to {} in the RHEL-{}".format(new_wala_pkg, self.project, pre_wala_pkg, pre_project))
 
-
-
+    def test_check_waagent_network_setup_service(self):
+        """
+        :avocado: tags=tier3
+        VIRT-294089	WALA-TC: [General] Check waagent-network-setup service
+        """
+        self.log.info("VIRT-294089 - WALA-TC: [General] Check waagent-network-setup service")
+        self.session.cmd_output("systemctl status waagent-network-setup.service")
+        self.assertEqual(0, self.session.cmd_status_output("systemctl is-active waagent-network-setup.service")[0],
+            "waagent-network-setup.service is not active")
 
     def tearDown(self):
         if self.case_short_name == "test_event_clean_up_when_above1000":

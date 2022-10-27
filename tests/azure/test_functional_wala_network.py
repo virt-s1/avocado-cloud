@@ -398,6 +398,8 @@ lo eth0\
         )
         # 1. Verify dhclient process exists. If not, enable it.
         if self.session.cmd_status_output("ps aux|grep [d]hclient")[0] != 0:
+            nm_conf = "/etc/NetworkManager/NetworkManager.conf"
+            self.session.cmd_output("cp {} /tmp/".format(nm_conf))
             self.session.cmd_output("sed -i '/\[main\]/a dhcp = dhclient' /etc/NetworkManager/NetworkManager.conf")
             self.session.cmd_output("systemctl restart NetworkManager")
             self.assertEqual(0, self.session.cmd_status_output("ps aux|grep [d]hclient")[0],
@@ -419,6 +421,8 @@ lo eth0\
             self.session.cmd_output(
                 "/usr/bin/cp /etc/waagent.conf-bak /etc/waagent.conf")
             self.session.cmd_output("systemctl restart waagent")
+        elif self.case_short_name == "test_verify_dhclient_not_in_waagent_cgroup":
+            self.session.cmd_output("/usr/bin/cp /tmp/NetworkManager.conf /etc/NetworkManager/")
         elif self.case_short_name in [
                 "test_provision_vm_with_multiple_nics",
                 "test_provision_vm_with_sriov_nic",
