@@ -430,7 +430,7 @@ lo eth0\
         ]:
             self.vm.delete(wait=False)
         elif self.case_short_name == "test_provision_vm_without_ifcfg":
-            self.vm.delete(wait=False)
+            self.vm.delete(wait=True)
             self.vm_1.delete(wait=False)
 
 

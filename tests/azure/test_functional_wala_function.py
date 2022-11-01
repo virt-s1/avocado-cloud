@@ -801,17 +801,20 @@ whether wala normally running")
         VIRT-294600	WALA-TC: [func] waagent -setup-firewall
         """
         self.log.info("VIRT-294600 - WALA-TC: [func] waagent -setup-firewall")
+        FIREWALL_RULES = [
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT",
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j DROP"
+        ]
+        wala_version = self.session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
+        if LooseVersion(wala_version) > LooseVersion('2.3.0.2'):
+            FIREWALL_RULES.append("-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT")
         # Clear iptables security table
         self.session.cmd_output("iptables -t security -F")
         # Verify new rules are added
         self.session.cmd_output("waagent -setup-firewall --dst_ip=168.63.129.16 --uid=0 -w")
         time.sleep(1)
         output = self.session.cmd_output("iptables-save -t security|grep -A3 'OUTPUT ACCEPT'")
-        for line in [
-            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT",
-            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT",
-            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j DROP"
-        ]:
+        for line in FIREWALL_RULES:
             self.assertIn(line, output, "Setup firewall rules fail!")
 
     def test_interrupt_ctrl_c(self):
