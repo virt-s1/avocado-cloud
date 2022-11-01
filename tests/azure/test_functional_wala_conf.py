@@ -1444,18 +1444,18 @@ echo 'teststring' >> /tmp/test.log\
         self.log.info("VIRT-294601 - WALA-TC: [WALA conf] OS.EnableFirewall and OS.EnableFirewallPeriod")
         self.session.cmd_output("sudo su -")
         FIREWALL_RULES = [
-            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT",
             "-A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT",
+            "-A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j DROP"
         ]
         wala_version = self.session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
         if LooseVersion(wala_version) > LooseVersion('2.3.0.2'):
-            FIREWALL_RULES.append("-A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j DROP")
+            FIREWALL_RULES.append("-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT")
         # To check the rules exists or not
         def _check_rules(should_in):
             output = self.session.cmd_output("iptables-save -t security|grep -A3 'OUTPUT ACCEPT'")
             for rule in FIREWALL_RULES:
                 if should_in:
-                    self.assertIn(rule, output, "Setup firewall rules fail!")
+                    self.assertIn(rule, output, "Setup firewall rule fail! {}".format(rule))
                 else:
                     self.assertNotIn(rule, output, "Should not set firewall rules {}!".format(rule))
         # 1. Verify value in waagent.conf: OS.EnableFirewall=y, OS.EnableFirewallPeriod=30
@@ -1599,7 +1599,8 @@ echo 'teststring' >> /tmp/test.log\
             vm = eval("self.{}".format(i))
             vm.delete(wait=False)
         if self.case_short_name in delete_list:
-            self.vm.delete(wait=False)
+            self.vm.delete(wait=True)
+            time.sleep(5)
             return
         # Recover VM
         if self.case_short_name == "test_reset_system_account":
