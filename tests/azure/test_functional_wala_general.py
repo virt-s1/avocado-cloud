@@ -846,8 +846,9 @@ Retry: {0}/10".format(retry+1))
         """
         self.log.info("VIRT-294089 - WALA-TC: [General] Check waagent-network-setup service")
         self.session.cmd_output("systemctl status waagent-network-setup.service")
-        self.assertEqual(0, self.session.cmd_status_output("systemctl is-active waagent-network-setup.service")[0],
-            "waagent-network-setup.service is not active")
+        if self.session.cmd_status_output("systemctl is-active waagent-network-setup.service")[0] != 0:
+            self.session.cmd_output("cat /var/log/waagent.log")
+            self.fail("waagent-network-setup.service is not active")
 
     def tearDown(self):
         if self.case_short_name == "test_event_clean_up_when_above1000":

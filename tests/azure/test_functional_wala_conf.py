@@ -1292,6 +1292,7 @@ echo 'teststring' >> /tmp/test.log\
             time.sleep(60)
             self.assertTrue(utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session))
         except:
+            time.sleep(1)
             self.session.cmd_output("cat /var/log/waagent.log")
             self.fail("Fail to reset remote access")
         # Verify no error logs
