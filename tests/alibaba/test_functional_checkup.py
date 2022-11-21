@@ -1194,6 +1194,208 @@ will not check kernel-devel package.')
         cmd = 'cat /var/crash/1*/vmcore-dmesg.txt|tail -50'
         utils_alibaba.run_cmd(self, cmd, expect_ret=0, expect_kw='write_sysrq_trigger')
 
+    def test_kexec_fastboot_systemctl(self):
+        """
+        case_name:
+            [Aliyun]GeneralTest.test_kexec_fastboot_systemctl
+        case_tags:
+            kdump
+        case_status:
+            Approved
+        title:
+            [Aliyun]GeneralTest.test_kexec_fastboot_systemctl
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/workitems?query=title:"[Aliyun]GeneralTest.test_kexec_fastboot_systemctl"
+        importance:
+            Critical
+        subsystem_team:
+            sst_virtualization_cloud
+        automation_drop_down:
+            Automated
+        linked_work_items:
+            polarion-VIRT-99338
+        automation_field:
+            https://github.com/virt-s1/avocado-cloud/tree/master/tests/alibaba/test_functional_checkup.py
+        setup_teardown:
+            n/a
+        environment:
+            n/a
+        component:
+            kernel
+        bug_id:
+            1758323, 1841578
+        is_customer_case:
+            False
+        testplan:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/wiki/Alibaba/Aliyun%20RHEL%20guest%20Test%20Plan
+        test_type:
+            Functional
+        test_level:
+            Component
+        maintainer:
+            linl@redhat.com
+        description:
+            Test fastboot kernel via systemctl kexec.
+        key_steps:
+            1. Start an instance (e.g., c6.xlarge) with RHEL image on Aliyun.
+            2. Check the kdump service is enabled and active.
+            3. Load each kernel with command "sudo kexec -l /boot/vmlinuz-$version --initrd=/boot/initramfs-$version.img --reuse-cmdline"
+            4. Fastboot via command "systemctl kexec".
+        expected_result:
+            Kernel is loaded successfully without panic or crash.
+        debug_want:
+            n/a
+
+        """
+
+        self.log.info("Checking kdump status")
+
+        if self.rhel_ver.split('.')[0] == '6':
+            check_cmd = 'sudo service kdump status'
+        else:
+            check_cmd = 'systemctl status kdump.service'
+
+        kdump_running = False
+
+        for i in range(10):
+            output = self.session.cmd_output(check_cmd)
+            self.log.debug("%s" % output)
+            if 'Active: active' in output:
+                self.log.info('kdump service is running.')
+                kdump_running = True
+                break
+            else:
+                if 'Active: inactive' in output:
+                    self.log.error('kdump service is inactive!')
+                    break
+                if 'Kdump is unsupported' in output:
+                    self.log.error('kdump service is unsupported!')
+                    break
+                self.log.info('Wait for another 20s (max = 200s)')
+                time.sleep(20)
+
+        if not kdump_running:
+            self.cancel('Cancel test as kdump is not running.')
+
+        self.log.info("Test fastboot via systemctl kexec")
+        self.session.connect()
+        utils_alibaba.run_cmd(self,'uname -r', cancel_not_kw='el7,el6', msg='Not full support earlier than el8, skip!')
+        cmd = 'sudo rpm -qa|grep -e "kernel-[0-9]"'
+        output = utils_alibaba.run_cmd(self, cmd, msg='Get kernel version')
+        kernels_list = output.split('\n')
+        for kernel in kernels_list:
+            kernel_vmlinuz = "/boot/" + kernel.replace('kernel','vmlinuz')
+            kernel_initramfs = "/boot/" + kernel.replace('kernel','initramfs') + ".img"
+            cmd = "sudo kexec -l %s --initrd=%s --reuse-cmdline" % (kernel_vmlinuz, kernel_initramfs)
+            utils_alibaba.run_cmd(self, cmd, msg='Switch kernel', expect_ret=0)
+            cmd = "sudo systemctl kexec"
+            self.log.info("CMD: %s", cmd)
+            self.session.session.sendline("%s" % cmd)
+            time.sleep(10)
+            self.session.connect()
+            utils_alibaba.run_cmd(self, 'uname -r', msg='check kernel', expect_ret=0, expect_kw=kernel[7:])
+
+    def test_kexec_fastboot_kexec_e(self):
+        """Test case for avocado framework.
+
+        case_name:
+            [Aliyun]GeneralTest.test_kexec_fastboot_kexec_e
+        case_tags:
+            kdump
+        case_status:
+            Approved
+        title:
+            [Aliyun]GeneralTest.test_kexec_fastboot_systemctl
+        polarion_id:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/workitems?query=title:"[Aliyun]GeneralTest.test_kexec_fastboot_kexec_e"
+        importance:
+            Critical
+        subsystem_team:
+            sst_virtualization_cloud
+        automation_drop_down:
+            Automated
+        linked_work_items:
+            polarion-VIRT-99338
+        automation_field:
+            https://github.com/virt-s1/avocado-cloud/tree/master/tests/alibaba/test_functional_checkup.py
+        setup_teardown:
+            n/a
+        environment:
+            n/a
+        component:
+            kernel
+        bug_id:
+            1758323, 1841578
+        is_customer_case:
+            False
+        testplan:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/wiki/Alibaba/Aliyun%20RHEL%20guest%20Test%20Plan
+        test_type:
+            Functional
+        test_level:
+            Component
+        maintainer:
+            linl@redhat.com
+        description:
+            Test fastboot kernel via systemctl kexec.
+        key_steps:
+            1. Start an instance (e.g., c6.xlarge) with RHEL image on Aliyun.
+            2. Check the kdump service is enabled and active.
+            3. Load each kernel with command "sudo kexec -l /boot/vmlinuz-$version --initrd=/boot/initramfs-$version.img --reuse-cmdline"
+            4. Fastboot via command "kexec -e".
+        expected_result:
+            Kernel can be loaded via kexec, and system will reboot into the loaded kernel via kexec -e without calling shutdown(8).
+        debug_want:
+            n/a
+
+        """
+
+        self.log.info("Checking kdump status")
+
+        if self.rhel_ver.split('.')[0] == '6':
+            check_cmd = 'sudo service kdump status'
+        else:
+            check_cmd = 'systemctl status kdump.service'
+
+        kdump_running = False
+
+        for i in range(10):
+            output = self.session.cmd_output(check_cmd)
+            self.log.debug("%s" % output)
+            if 'Active: active' in output:
+                self.log.info('kdump service is running.')
+                kdump_running = True
+                break
+            else:
+                if 'Active: inactive' in output:
+                    self.log.error('kdump service is inactive!')
+                    break
+                if 'Kdump is unsupported' in output:
+                    self.log.error('kdump service is unsupported!')
+                    break
+                self.log.info('Wait for another 20s (max = 200s)')
+                time.sleep(20)
+
+        if not kdump_running:
+            self.cancel('Cancel test as kdump is not running.')
+
+        self.log.info("Test fastboot via systemctl kexec")
+        self.session.connect()
+        utils_alibaba.run_cmd(self,'uname -r', cancel_not_kw='el7,el6', msg='Not full support earlier than el8, skip!')
+        cmd = 'sudo rpm -qa|grep -e "kernel-[0-9]"'
+        output = utils_alibaba.run_cmd(self, cmd, msg='Get kernel version')
+        kernels_list = output.split('\n')
+        for kernel in kernels_list:
+            kernel_vmlinuz = "/boot/" + kernel.replace('kernel','vmlinuz')
+            kernel_initramfs = "/boot/" + kernel.replace('kernel','initramfs') + ".img"
+            cmd = "sudo kexec -l %s --initrd=%s --reuse-cmdline" % (kernel_vmlinuz, kernel_initramfs)
+            utils_alibaba.run_cmd(self, cmd, msg='Switch kernel', expect_ret=0)
+            cmd = "sudo kexec -e"
+            self.log.info("CMD: %s", cmd)
+            self.session.session.sendline("%s" % cmd)
+            time.sleep(10)
+            self.session.connect()
+            utils_alibaba.run_cmd(self, 'uname -r', msg='check kernel', expect_ret=0, expect_kw=kernel[7:])
 
     def test_check_image_id(self):
         """Check the image label in Alibaba private image.
