@@ -22,6 +22,8 @@ failed to assign [io  size 0x
 failed to assign [mem size 0x
 : Failed to check link status
 KD_FONT_OP_GET failed while trying to get the font metadata
+skipped because of a failed condition check
+skipped because all trigger condition checks failed
 #################### KNOWN ISSUES BELOW ####################
 kernel: GPT: Use GNU Parted to correct GPT errors.
 org.freedesktop.DBus.Error.AccessDenied: Failed to restore old fd limit: Operation not permitted
@@ -33,3 +35,6 @@ util.py[WARNING]: Running module keys-to-console
 cloud-final.service: Failed with result 'exit-code'.
 Failed to start Execute cloud user/final scripts.
 kernel: unchecked MSR access error: WRMSR to 0x3a
+# BZ1956121
+dbus-:1.1-org.fedoraproject.SetroubleshootPrivileged@0.service: Failed with result 'signal'
+dbus-:1.1-org.fedoraproject.Setroubleshootd@0.service: Failed with result 'signal'

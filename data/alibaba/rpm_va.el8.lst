@@ -83,5 +83,8 @@ SM5..UGT.  c /etc/cloud/cloud.cfg
 .......T.    /boot/efi/EFI/redhat/shim.efi
 .......T.    /boot/efi/EFI/redhat/shimaa64-redhat.efi
 .......T.    /boot/efi/EFI/redhat/shimaa64.efi
+.M.......  c /boot/grub2/grub.cfg
+S.5....T.    /usr/share/authselect/default/sssd/password-auth
+S.5....T.    /usr/share/authselect/default/sssd/system-auth
 #################### KNOWN ISSUES BELOW ####################
 S.5....T.    /usr/lib/systemd/system/cloud-init.service
