@@ -20,7 +20,19 @@ class CloudinitTest(Test):
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         pre_delete = False
         pre_stop = False
-       
+        self.os = self.params.get("image_name", "*/VM/*")
+        if self.os.startswith("CentOS"):
+            if self.case_short_name in [
+                "test_cloudinit_package_upgrade",
+                "test_cloudinit_os_upgrade",
+                "test_cloudinit_auto_install_package_with_subscription_manager",
+                "test_cloudinit_verify_rh_subscription_enablerepo_disablerepo",
+                "test_cloudinit_check_ifcfg_no_startmode"
+            ]:
+                self.cancel(
+                    "Skip it because this case is not support for CentOS")
+            return
+
         if self.case_short_name in [
                 "test_cloudinit_package_upgrade",
                 "test_cloudinit_os_upgrade",
@@ -28,7 +40,7 @@ class CloudinitTest(Test):
                 "test_cloudinit_create_vm_config_drive",
                 "test_cloudinit_create_vm_two_nics",
                 "test_cloudinit_create_vm_stateless_ipv6",
-                "test_cloudinit_create_vm_stateful_ipv6",
+                "test_cloudinit_create_vm_stateful_ipv6"
         ]:
             return
         if self.case_short_name.endswith("test_cloudinit_login_with_password"):
