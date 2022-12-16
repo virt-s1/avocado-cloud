@@ -81,7 +81,7 @@ ssh_pwauth: 0
 
     def test_cloudinit_login_with_publickey(self):
         """
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier1,cloudinit,test_cloudinit_login_with_publickey
         RHEL7-103831 - CLOUDINIT-TC: VM can successfully login
         after provisioning(with public key authentication)
         1. Create a VM with only public key authentication
@@ -171,7 +171,7 @@ ssh_pwauth: 0
 
     def test_cloudinit_check_services_status(self):
         '''
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier1,cloudinit,test_cloudinit_check_services_status
         RHEL-188130 - CLOUDINIT-TC: Check cloud-init services status
         check if four cloud-init services are active
         '''
@@ -181,7 +181,7 @@ ssh_pwauth: 0
 
     def test_cloudinit_verify_services(self):
         '''
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier1,cloudinit,test_cloudinit_verify_services
         RHEL-284657 - CLOUDINIT-TC: Verify cloud-init services
         verify all cloud-init services with systemd-analyze command
         '''
@@ -363,7 +363,7 @@ ssh_pwauth: 0
 
     def test_cloudinit_check_random_password_len(self):
         '''
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_check_random_password_len
         RHEL-189226 - CLOUDINIT-TC: checking random password and its length
         '''
         self.log.info("RHEL-189226 - CLOUDINIT-TC: checking random password and its length")
@@ -406,7 +406,7 @@ ssh_pwauth: 0
            
     def test_cloudinit_check_runcmd(self):
         '''
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier1,cloudinit,test_cloudinit_check_runcmd
         RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands
         '''
         self.log.info("RHEL-186183 - CLOUDINIT-TC:runcmd module:execute commands")
@@ -437,7 +437,7 @@ ssh_pwauth: 0
 
     def test_check_hostkey_permissions(self):
         '''
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier1,cloudinit,test_check_hostkey_permissions
         RHEL7-103836 - CLOUDINIT-TC: Default configuration can regenerate sshd keypairs
         bz: 2013644
         This auto case only check host key permissions
@@ -745,7 +745,7 @@ during VM first boot")
 
     def test_cloudutils_growpart_auto_resize_partition_in_gpt(self):
         """
-        :avocado: tags=tier1,cloud_utils_growpart
+        :avocado: tags=tier1,cloud_utils_growpart,test_cloudutils_growpart_auto_resize_partition_in_gpt
         RHEL-171053 - CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
                      partition in gpt
         BZ#1695091
@@ -757,7 +757,7 @@ Auto resize partition in gpt")
 
     def test_cloudutils_growpart_auto_resize_partition_in_mbr(self):
         """
-        :avocado: tags=tier1,cloud_utils_growpart
+        :avocado: tags=tier1,cloud_utils_growpart,test_cloudutils_growpart_auto_resize_partition_in_mbr
         RHEL-188633 - CLOUDINIT-TC: [cloud-utils-growpart] Auto resize\
                      partition in MBR
         """
@@ -767,7 +767,7 @@ Auto resize partition in gpt")
 
     def test_cloudinit_lang_is_not_en_us_utf8(self):
         '''
-        :avocado: tags=tier2,cloud-utils-growpart
+        :avocado: tags=tier2,cloud-utils-growpart,test_cloudinit_lang_is_not_en_us_utf8
         RHEL-189273 CLOUDINIT-TC: [cloud-utils-growpart] growpart works when LANG is not en_US.UTF-8
         Verify cloud-utils-growpart works well when LANG is not en_US.UTF-8
         '''
@@ -802,7 +802,7 @@ Auto resize partition in gpt")
 
     def test_cloudinit_login_with_password(self):
         """
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier1,cloudinit,test_cloudinit_login_with_password
         RHEL7-103830 - CLOUDINIT-TC: VM can successfully login
         after provisioning(with password authentication)
         1. Create a VM with only password authentication
@@ -839,7 +839,7 @@ ssh_pwauth: 1
 
     def test_cloudinit_create_vm_config_drive(self):
         """
-        :avocado: tags=tier1,cloudinit
+        :avocado: tags=tier1,cloudinit,test_cloudinit_create_vm_config_drive
         RHEL-189225 - CLOUDINIT-TC: launch vm with config drive
         basic case of config drive
         1. Create a VM with datasource 'Config Drive'
@@ -874,7 +874,7 @@ ssh_pwauth: 1
 
     def test_cloudinit_create_vm_two_nics(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_create_vm_two_nics
         RHEL-186186 - CLOUDINIT-TC: launch an instance with 2 interfaces
         basic case of two nics, the second nic is default ipv6 mode slaac
         1. Create a VM with two nics
@@ -956,7 +956,7 @@ ssh_pwauth: 1
     
     def test_cloudinit_check_ifcfg_no_startmode(self):
         '''
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_check_ifcfg_no_startmode
         RHEL-199308 - CLOUDINIT-TC: Check the network config file ifcfg-xxx	
         bz#: 1931835,1930507
         check no STARTMODE in ifcfg-eth0, the case is for rhel > 8.2
@@ -982,7 +982,7 @@ ssh_pwauth: 1
 
     def test_cloudinit_no_duplicate_swap(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_no_duplicate_swap
         RHEL-205128 - CLOUDINIT-TC: Can deal with the conflict of having swap configured on /etc/fstab 
         *and* having cloud-init duplicating this configuration automatically
         1. Deploy a VM, attach an additional volume(or dd a file) to mkswap. 
@@ -1048,7 +1048,7 @@ mounts:
 
     def test_cloudinit_verify_multiple_files_in_authorizedkeysfile(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_verify_multiple_files_in_authorizedkeysfile
         RHEL-189026	CLOUDINIT-TC: Verify multiple files in AuthorizedKeysFile
         1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
         AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/userkeys/%u
@@ -1096,7 +1096,7 @@ mounts:
 
     def test_cloudinit_verify_customized_file_in_authorizedkeysfile(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_verify_customized_file_in_authorizedkeysfile
         RHEL-189027	CLOUDINIT-TC: Verify customized file in AuthorizedKeysFile
         1. Launch VM/instance with cloud-init. Modify /etc/ssh/sshd_config:
         AuthorizedKeysFile .ssh/authorized_keys2
@@ -1135,7 +1135,7 @@ mounts:
 
     def test_cloudinit_check_NOZEROCONF(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_check_NOZEROCONF
         RHEL-152730 - CLOUDINIT-TC: Check 'NOZEROCONF=yes' in /etc/sysconfig/network cannot be removed by cloud-init
         1. Create a VM with rhel-guest-image
         2. Login and check /etc/sysconfig/network
@@ -1155,7 +1155,7 @@ mounts:
 
     def test_cloudinit_check_groups_no_wheel(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_check_groups_no_wheel
         RHEL-185184 - CLOUDINIT-TC: "sudo" do not require passwd for user cloud-user
         1. Create a VM 
         2. Login and check "sudo" do not require passwd for default user
@@ -1190,7 +1190,7 @@ mounts:
 
     def test_cloudinit_check_ds_identify_found(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_check_ds_identify_found
         RHEL-188251 - CLOUDINIT-TC: check ds-identify path
         1. Create a VM 
         2. Check /run/cloud-init/cloud-init-generator.log, there should be "ds-identify _RET=found"
@@ -1220,7 +1220,7 @@ mounts:
 
     def test_cloudinit_check_resolv_conf_reboot(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_check_resolv_conf_reboot
         RHEL-196518 - CLOUDINIT-TC: check dns configuration on openstack instance
         RHEL-182309 - CLOUDINIT-TC: /etc/resolv.conf will not lose config after reboot
         1. check dns configuration in /etc/resolv.conf
@@ -1273,7 +1273,7 @@ mounts:
 
     def test_cloudinit_auto_install_package_with_subscription_manager(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_auto_install_package_with_subscription_manager
         RHEL-186182	CLOUDINIT-TC:auto install package with subscription manager
         1. Add content to user data config file
         rh_subscription:
@@ -1339,7 +1339,7 @@ packages:
 
     def test_cloudinit_verify_rh_subscription_enablerepo_disablerepo(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_verify_rh_subscription_enablerepo_disablerepo
         RHEL-189134 - CLOUDINIT-TC: Verify rh_subscription enable-repo and disable-repo
         1. Add content to user data config file
         rh_subscription:
@@ -1420,7 +1420,7 @@ rh_subscription:
 
     def test_cloudinit_boot_time(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_boot_time
         RHEL-189580 - CLOUDINIT-TC: Check VM first launch boot time and cloud-init startup time
         1. Launch a VM with cloud-init installed
         2. Login VM on the VM first boot
@@ -1464,7 +1464,7 @@ rh_subscription:
 
     def test_cloudinit_reboot_time(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_reboot_time
         RHEL-282359 - CLOUDINIT-TC: Check VM subsequent boot time and cloud-init startup time
         1. Launch a VM with cloud-init installed
         2. Login VM and reboot VM
@@ -1506,7 +1506,7 @@ rh_subscription:
 
     def test_cloudinit_root_exit_code(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_root_exit_code
         RHEL-287348 - CLOUDINIT-TC: Using root user error should cause a non-zero exit code
         1. Launch instance with cloud-init installed
         2. Check the /root/.ssh/authorized_keys, the exit code is 142
@@ -1526,7 +1526,7 @@ rh_subscription:
 
     def test_cloudinit_disable_cloudinit(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_disable_cloudinit
         RHEL-287483: CLOUDINIT-TC: cloud-init dhclient-hook script shoud exit
                      while cloud-init services are disabled
         1. Install cloud-init package in VM, disable cloud-init and related services:
@@ -1575,7 +1575,7 @@ rh_subscription:
 
     def test_cloudinit_ip_route_append(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_ip_route_append
         RHEL-288020 - CLOUDINIT-TC: Using "ip route append" when config static ip route via cloud-init
         1. Launch instance with cloud-init installed on OpenStack PSI
         2. Check /var/log/cloud-init.log
@@ -1594,7 +1594,7 @@ rh_subscription:
 
     def test_cloudinit_dependency(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_dependency
         RHEL-288482 - CLOUDINIT-TC: Check cloud-init dependency, openssl and gdisk 
         1. Launch instance with cloud-init installed
         2. Check the cloud-init denpendency
@@ -1620,7 +1620,7 @@ rh_subscription:
 
     def test_cloudinit_removed_dependency(self):
         """
-        :avocado: tags=tier2,cloudinit
+        :avocado: tags=tier2,cloudinit,test_cloudinit_removed_dependency
         RHEL-198795 - CLOUDINIT-TC: Check cloud-init removed dependency, net-tools, python3-mock, python3-nose, python3-tox 
         1. Launch instance with cloud-init installed
         2. Check the cloud-init denpendency
