@@ -14,6 +14,7 @@ VM:
     vm_name: cheshi-avocado-cloud-d00
     az: cn-qingdao-c
     region: cn-qingdao
+    ddh_id:
 Image:
     name: redhat_8_1_x64_20G_alibase_20200110_copied.vhd
     id: m-m5eeytldeh1323qpaxs7

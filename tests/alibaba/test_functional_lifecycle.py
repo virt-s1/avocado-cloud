@@ -64,9 +64,9 @@ ssh_pwauth: 1
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:
             if self.vm.boot_mode == 'uefi':
-                connect_timeout = 1200
-            else:
                 connect_timeout = 600
+            else:
+                connect_timeout = 300
         else:
             connect_timeout = 120
 

@@ -32,7 +32,11 @@ spectre_v2:Mitigation: Retpolines, STIBP: disabled, RSB filling
 spectre_v2:Mitigation: Retpolines, IBPB: conditional, STIBP: conditional, RSB filling
 spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: always-on, RSB filling
 spectre_v2:Mitigation: CSV2, BHB
+spectre_v2:Mitigation: Enhanced IBRS, RSB filling, PBRSB-eIBRS: SW sequence
+spectre_v2:Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling, PBRSB-eIBRS: SW sequence
 mmio_stale_data:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown
 mmio_stale_data:Mitigation: Clear CPU buffers; SMT vulnerable
 retbleed:Vulnerable
 retbleed:Mitigation: IBRS
+retbleed:Mitigation: Enhanced IBRS
+retbleed:Mitigation: untrained return thunk; SMT enabled with STIBP protection
