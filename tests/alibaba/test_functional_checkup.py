@@ -610,8 +610,10 @@ will not check kernel-devel package.')
                 data_file = "cmdline_params.el9.lst"
             elif self.vm.arch == "aarch64":
                 data_file = "cmdline_params.el9.arm64.lst"
-        else:
-            data_file = "cmdline_params.lst"
+        elif self.rhel_ver.split('.')[0] == '8':
+            data_file = "cmdline_params.el8.lst"
+        elif self.rhel_ver.split('.')[0] == '7':
+            data_file = "cmdline_params.el7.lst"
 
         lines = filter(None,
                        (line.rstrip()
@@ -1191,7 +1193,7 @@ will not check kernel-devel package.')
             self.log.info("trigger ret: %s, output: %s" % (status, output))
         except Exception as err:
             self.log.info("Error to read output as expected! %s" % err)
-        time.sleep(30)
+        time.sleep(120)
         self.session.connect()
         self.log.info("After system crash")
         utils_alibaba.run_cmd(self,

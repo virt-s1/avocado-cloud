@@ -106,6 +106,7 @@ class AlibabaSDK(object):
         self.vm_params["Password"] = params.get('password', '*/VM/*')
         self.vm_params["KeyPairName"] = params.get('keypair', '*/VM/*')
         self.vm_params["ZoneId"] = params.get('az', '*/VM/*')
+        self.vm_params["DedicatedHostId"] = params.get('ddh_id', '*/VM/*')
         self.vm_params["ImageName"] = params.get('name', '*/Image/*')
         self.vm_params["ImageId"] = params.get('id', '*/Image/*')
         self.vm_params["SecurityGroupId"] = params.get('id',
@@ -167,7 +168,7 @@ class AlibabaSDK(object):
             "InstanceChargeType", "ImageId", "InstanceType",
             "InternetChargeType", "SecurityGroupId", "VSwitchId",
             "SystemDiskCategory", "HostName", "InstanceName",
-            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn", "ZoneId"
+            "InternetMaxBandwidthOut", "InternetMaxBandwidthIn", "ZoneId", "DedicatedHostId"
         ]
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
         self.vm_params.setdefault("InternetChargeType", "PayByTraffic")
