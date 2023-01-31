@@ -31,7 +31,7 @@ class CloudinitTest(Test):
             ]:
                 self.cancel(
                     "Skip it because this case is not support for CentOS")
-            return
+                return
 
         if self.case_short_name in [
                 "test_cloudinit_package_upgrade",
