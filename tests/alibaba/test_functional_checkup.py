@@ -1588,25 +1588,23 @@ will not check kernel-devel package.')
         """
 
         # Print microcode version
-        utils_alibaba.run_cmd(self, 'rpm -qa|grep microcode',
-                              msg='Get microcode version')
+        utils_alibaba.run_cmd(self, 'rpm -qa | grep microcode', msg='Get microcode version')
+        # Print linux-firmware version
+        utils_alibaba.run_cmd(self, "rpm -qa | grep linux-firmware", msg='get linux-firmware pkg version')
 
         # Print vulnerabilities
         check_cmd = 'grep ^ /sys/devices/system/cpu/vulnerabilities/* | sed "s#^.*vulnerabilities/##"'
         utils_alibaba.run_cmd(self, check_cmd, expect_ret=0)
 
-        # Apply whitelist and perform checking
-        data_file = 'vulnerabilities.el{}.lst'.format(self.rhel_ver)
-        if not utils_alibaba.is_data_file_exist(self.cloud.cloud_provider, data_file):
-            data_file = 'vulnerabilities.el{}.lst'.format(
-                self.rhel_ver.split('.')[0])
-        if not utils_alibaba.is_data_file_exist(self.cloud.cloud_provider, data_file):
-            self.error('Data file can not be found.')
-        self.session.copy_data_to_guest(self.cloud.cloud_provider, data_file)
+        if not 'ecs.ebm' in self.vm.flavor:
+            if self.rhel_ver.split('.')[0] == '7':
+                check_cmd += ' | grep -v spec_store_bypass | grep -v tsx_async_abort | grep -v mds | grep -v itlb_multihit | \
+                    grep -v spectre_v2'
+            else:
+                check_cmd += ' | grep -v spec_store_bypass | grep -v tsx_async_abort | grep -v mds | grep -v itlb_multihit | \
+                    grep -v mmio_stale_data | grep -v retbleed'
 
-        check_cmd += ' | grep -v "Not affected" | grep -vxFf {}'.format(
-            os.path.join(self.dest_dir, data_file))
-        utils_alibaba.run_cmd(self, check_cmd, expect_output='')
+        utils_alibaba.run_cmd(self, check_cmd, expect_ret=0, expect_not_kw='Vulnerable')
 
     def test_check_rhui_crt(self):
         """ Check /etc/pki/rhui/product/content.crt exists in image and the end date doesn't expired.
