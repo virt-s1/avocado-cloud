@@ -273,7 +273,7 @@ lo eth0\
                 self.log.debug(
                     "Wait for hostname published... retry {}/{}".format(
                         retry, max_retry))
-                time.sleep(3)
+                time.sleep(5)
             else:
                 self.assertNotIn(
                     "NXDOMAIN",

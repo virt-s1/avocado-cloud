@@ -60,7 +60,7 @@ class GeneralTest(Test):
                 nvr = self.package.split(',')[0].replace('-udev', '')
                 utils_azure.command("brew download-build {}".format(nvr)) 
                 self.session.copy_files_to(
-                    local_path="{} {}".format(self.package.split(',', ' ')),
+                    local_path=' '.join(self.package.split(',')),
                     remote_path="/tmp/"
                 )
         if self.case_short_name.startswith("test_host_plugin"):
@@ -557,7 +557,7 @@ CPUQuota=75%
         self.session.cmd_output("echo '# teststring' >> /etc/logrotate.d/waagent.logrotate")
         # Upgrade through rpm
         self.assertEqual(0, self.session.cmd_status_output(
-            "cd /tmp/; rpm -Uvh {}".format(self.package.replace(',', ' ')))[0],
+            "cd /tmp/; rpm -Uvh --replacepkgs {}".format(self.package.replace(',', ' ')))[0],
             "Fail to upgrade package through rpm")
         self.assertEqual("enabled", self.session.cmd_output("systemctl is-enabled waagent"),
                          "After upgrade, the waagent service is not enabled")
@@ -828,7 +828,7 @@ Retry: {0}/10".format(retry+1))
             pre_project = '7.9'
             brew_tag = "extras-rhel-7.9-candidate"
         else:
-            compose_id = utils_azure.command("http://download.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{0}/COMPOSE_ID|echo".format(pre_x_version)).stdout
+            compose_id = utils_azure.command("curl http://download.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{0}/COMPOSE_ID;echo".format(pre_x_version)).stdout
             pre_project = compose_id.split('-')[1]
             brew_tag = "rhel-{}-pending".format(pre_project)
         pre_wala_pkg = utils_azure.command("brew latest-build %s WALinuxAgent --quiet|awk '{print $1}'" % brew_tag).stdout.rstrip('\n')
@@ -845,10 +845,18 @@ Retry: {0}/10".format(retry+1))
         VIRT-294089	WALA-TC: [General] Check waagent-network-setup service
         """
         self.log.info("VIRT-294089 - WALA-TC: [General] Check waagent-network-setup service")
+        self.session.cmd_output("sudo su -")
         self.session.cmd_output("systemctl status waagent-network-setup.service")
-        if self.session.cmd_status_output("systemctl is-active waagent-network-setup.service")[0] != 0:
-            self.session.cmd_output("cat /var/log/waagent.log")
-            self.fail("waagent-network-setup.service is not active")
+        self.session.cmd_output("rm -f /var/log/waagent.log /usr/lib/systemd/system/waagent-network-setup.service /var/lib/waagent/waagent-network-setup.py")
+        self.session.cmd_output("systemctl restart waagent")
+        time.sleep(5)
+        self.assertEqual(0, self.session.cmd_status_output("grep 'Successfully added and enabled the waagent-network-setup.service' /var/log/waagent.log")[0],
+            "waagent-network-setup fails to be added and enabled.")
+        self.session.cmd_output("rm -f /var/log/waagent.log")
+        self.session.cmd_output("systemctl restart waagent")
+        time.sleep(5)
+        self.assertEqual(0, self.session.cmd_status_output("grep 'waagent-network-setup.service already enabled' /var/log/waagent.log")[0],
+            "waagent-network-setup is not enabled.")
 
     def tearDown(self):
         if self.case_short_name == "test_event_clean_up_when_above1000":
