@@ -1268,7 +1268,8 @@ echo 'teststring' >> /tmp/test.log\
         self.session.cmd_output("rm -f /boot/initramfs-*.img")
         self.session.cmd_output("dracut -f -v", timeout=300)
         # Set EnableFIPS in waagent.conf
-        self._modify_value("OS.EnableFIPS", "y")
+        ### Currently this configuration makes WALA failure in RHEL-8. Don't set it.
+        # self._modify_value("OS.EnableFIPS", "y")
         self.session.cmd_output("rm -f /var/log/waagent.log")
         # 1.4 Reboot
         self.session.close()

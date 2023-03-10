@@ -101,6 +101,10 @@ class GeneralTest(Test):
             )
             self.assertEqual(0, self.session.cmd_status_output("ls /tmp/oldpkg/{}.noarch.rpm".format(old_nvr))[0],
                                 "No old pakcage in guest VM")
+        if self.case_short_name == "test_change_python_version":
+            if LooseVersion(self.project) >= LooseVersion('9.0'):
+                self.cancel(
+                    "Skip case because RHEL-{} doesn't have another python version".format(self.project))
 
 
     @property
@@ -858,6 +862,22 @@ Retry: {0}/10".format(retry+1))
         self.assertEqual(0, self.session.cmd_status_output("grep 'waagent-network-setup.service already enabled' /var/log/waagent.log")[0],
             "waagent-network-setup is not enabled.")
 
+    def test_change_python_version(self):
+        """
+        :avocado: tags=tier3
+        VIRT-296991 WALA-TC: [General] Change python version
+        """
+        self.log.info("VIRT-296991 WALA-TC: [General] Change python version")
+        self.session.cmd_output("sudo su -")
+        # The new python must be different from the old one
+        self.old_python = self.session.cmd_output("alternatives --display python3|grep 'link currently'|awk -F \'/\' \'{print $NF}\'")
+        self.new_python = "python3.9"
+        assert(self.session.cmd_status_output("yum install -y " + self.new_python)[0] == 0)
+        self.session.cmd_output("alternatives --set python3 /usr/bin/{}".format(self.new_python))
+        self.session.cmd_output("systemctl restart waagent")
+        self.assertEqual(self.session.cmd_output("systemctl is-active waagent"), 'active',
+            "Cannot start waagent service after changing python version")
+
     def tearDown(self):
         if self.case_short_name == "test_event_clean_up_when_above1000":
             self.session.cmd_output("rm -f /var/lib/waagent/events/test*")
@@ -875,6 +895,10 @@ Retry: {0}/10".format(retry+1))
             self.session.cmd_output("service waagent restart")
             if self.case_short_name == "test_host_plugin_extension":
                 self.vm.extension_delete("enablevmaccess")
+        if self.case_short_name == "test_change_python_version":
+            self.session.cmd_output("alternatives --set python3 /usr/bin/" + self.old_python)
+            self.session.cmd_output("yum remove -y " + self.new_python)
+            self.session.cmd_output("systemctl restart waagent")
         if self.case_short_name in [
                 "test_upgrade_downgrade_package",
                 "test_install_uninstall_package",
