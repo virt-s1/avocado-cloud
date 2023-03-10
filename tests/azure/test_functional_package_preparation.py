@@ -153,9 +153,9 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
 #                                 % (self.vm.public_ip, pkg))
                         command(_yum_install.format(pkg))
                 break
-        # If WALinuxAgent, install cloud-init and disable
+        # If WALinuxAgent, remove cloud-init
         if self.packages.startswith("WALinuxAgent"):
-            command(_yum_install.format("cloud-init"))
+            self.session.cmd_output("yum erase -y cloud-init")
         # Install other necessary packages
         _other_pkgs = "tar net-tools bind-utils dracut-fips dracut-fips-aesni \
 tcpdump"
