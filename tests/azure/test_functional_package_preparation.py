@@ -159,8 +159,8 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
         # Install other necessary packages
         _other_pkgs = "tar net-tools bind-utils dracut-fips dracut-fips-aesni \
 tcpdump"
-        if self.packages.startswith("cloud") and self.project.split('.')[0] == 8 and self.project.split('.')[1] <= 2:
-            _other_pkgs += "dhcp-client"
+        # if self.packages.startswith("cloud") and self.project.split('.')[0] == 8 and self.project.split('.')[1] <= 2:
+        _other_pkgs += " dhcp-client"
 #         command("ssh -o UserKnownHostsFile=/dev/null -o \
 # StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \"yum -y install %s\""
 #                 % (self.vm.public_ip, _other_pkgs))
