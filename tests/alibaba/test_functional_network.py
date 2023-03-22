@@ -283,19 +283,45 @@ class NetworkTest(Test):
         pass_criteria:
             All the functionality works well.
         """
-        # Assign multiple secondary private ips
+
         if self.vm.private_ip_quantity < 2:
             self.cancel('Only 1 primary private ip is supported. Skip this case.')
 
+        # Get the primary ip
+        for nic in self.vm.query_nics():
+            for private_ip_set in nic.get("PrivateIpSets").get("PrivateIpSet"):
+                if private_ip_set.get("Primary"):
+                    primary_ip = private_ip_set.get("PrivateIpAddress")
+        self.log.info("The primary ip: %s" % primary_ip)
+
+        # Assign multiple secondary private ips
         secondary_private_ip_count = self.vm.private_ip_quantity - 1
         ret = self.vm.assign_secondary_private_ips(self.primary_nic_id, secondary_private_ip_count)
         private_ip_list = ret.get("AssignedPrivateIpAddressesSet").get("PrivateIpSet").get("PrivateIpAddress")
         self.assertEqual(len(private_ip_list), secondary_private_ip_count,
                          "Fail to assign all secondary private ip addresses")
+        self.log.info("The secondary private ips: %s" % str(private_ip_list))
 
+        # Config and start nm-cloud-setup service
+        guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
+        self.session.cmd_output("mkdir -p {0}".format(guest_path))
+        self.session.copy_files_to(local_path="{0}/../../scripts/nm-cloud-setup.sh".format(self.pwd),
+                                    remote_path=guest_path)
+        self.session.cmd_output("bash {0}/nm-cloud-setup.sh ALIYUN".format(guest_path), timeout=30)
+
+        # Check the primary ip by `ip addr` command
+        primary_ip_by_ip_addr = self.session.cmd_output(
+            "ip addr | grep eth | grep inet | grep -v secondary | awk '{print $2}' | awk -F '/' '{print $1}'")
+        self.assertEqual(primary_ip_by_ip_addr, primary_ip, "The primary ip is wrong")
+
+        # Check the secondary private ips count by `ip addr` command
+        secondary_ips_count_by_ip_addr = self.session.cmd_output(
+            "ip addr | grep secondary | awk '{print $2}' | awk -F '/' '{print $1}' | wc -l")
+        self.assertEqual(int(secondary_ips_count_by_ip_addr), secondary_private_ip_count,
+                         "The secondary private ips found by 'ip addr' is incomplete")
+        
         # Unassign multiple secondary private ips
         self.vm.unassign_secondary_private_ips(self.primary_nic_id, private_ip_list)
-        time.sleep(10)
 
         private_ip_list = []
         for nic in self.vm.query_nics():
@@ -304,6 +330,10 @@ class NetworkTest(Test):
                     private_ip_list.append(private_ip_set.get("PrivateIpAddress"))
         self.assertEqual(len(private_ip_list), 0,
                          "Fail to unassign all secondary private ip addresses")
+        
+        self.session.cmd_output("systemctl start nm-cloud-setup.service")
+        self.assertEqual(self.session.cmd_output("ip addr | grep secondary | wc -l"), "0",
+                                                  "Not all the secondary private ips are released")
 
     def tearDown(self):
         if self.name.name.endswith("test_hotplug_nics") or \

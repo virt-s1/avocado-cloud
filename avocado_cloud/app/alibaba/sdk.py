@@ -233,7 +233,17 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
     def unassign_secondary_private_ips(self, nic_id, secondary_private_ip_list):
         """Unassign secondary private ip addresses from primary NIC"""
         logging.info("Unassigning secondary private ip addresses from primary NIC")
-        return self.ecs.unassign_private_ips(nic_id, secondary_private_ip_list)
+
+        secondary_private_ip_count = len(secondary_private_ip_list)
+        unassign_max_count =  10
+        if secondary_private_ip_count > unassign_max_count:
+            logging.debug("Unassigning first {0} from {1} secondary private ips...".format(
+                unassign_max_count, secondary_private_ip_count))
+            self.unassign_secondary_private_ips(nic_id, secondary_private_ip_list[:unassign_max_count])
+            self.unassign_secondary_private_ips(nic_id, secondary_private_ip_list[unassign_max_count:])
+        else:
+            self.ecs.unassign_private_ips(nic_id, secondary_private_ip_list)
+            time.sleep(10)
 
     def query_nics(self):
         """Get NIC list of the current instance."""
