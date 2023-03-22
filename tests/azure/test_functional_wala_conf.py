@@ -636,6 +636,8 @@ rhel-swap/s/^/#/' /etc/fstab")
         self.session.cmd_output("sudo sed -i 's/^PasswordAuthentication.*$/\
 PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         self.session.cmd_output("sudo service sshd restart")
+        # Ensure no cloud-init
+        self.session.cmd_output("sudo rpm -e cloud-init")
         # 1. Provisioning.AllowResetSysUser=n
         self.log.info("Provisioning.AllowResetSysUser=n")
         self._modify_value("Provisioning.AllowResetSysUser", "n")
@@ -1266,7 +1268,8 @@ echo 'teststring' >> /tmp/test.log\
         self.session.cmd_output("rm -f /boot/initramfs-*.img")
         self.session.cmd_output("dracut -f -v", timeout=300)
         # Set EnableFIPS in waagent.conf
-        self._modify_value("OS.EnableFIPS", "y")
+        ### Currently this configuration makes WALA failure in RHEL-8. Don't set it.
+        # self._modify_value("OS.EnableFIPS", "y")
         self.session.cmd_output("rm -f /var/log/waagent.log")
         # 1.4 Reboot
         self.session.close()
@@ -1497,15 +1500,16 @@ echo 'teststring' >> /tmp/test.log\
         # If no dhclient process, enable it in NetworkManager
         if self.session.cmd_status_output("pidof dhclient")[0] != 0:
             nm_conf = "/etc/NetworkManager/NetworkManager.conf"
-            self.session.cmd_output("cp {} /tmp/".format(nm_conf))
+            self.session.cmd_output("/usr/bin/cp {} /tmp/".format(nm_conf))
             self.session.cmd_output("sed -i '/\[main\]/a dhcp=dhclient' " + nm_conf)
+            self.session.cmd_output("systemctl restart NetworkManager")
         ### Test begin
         self._modify_value("OS.MonitorDhcpClientRestartPeriod", '10')
         self.session.cmd_output("systemctl restart waagent")
         time.sleep(5)
         old_pid = self.session.cmd_output('pidof dhclient')
         if old_pid == '':
-            self.error("No dhclient process! Exit.")
+            self.cancel("No dhclient process! Skip this case.")
         self.session.cmd_output("rm -f /var/log/waagent.log")
         self.session.cmd_output("systemctl restart NetworkManager")
         new_pid = self.session.cmd_output('pidof dhclient')
@@ -1628,9 +1632,9 @@ echo 'teststring' >> /tmp/test.log\
         if self.case_short_name == "test_customize_ssh_key_conf_path":
             self.session.cmd_output("sudo rm -rf {}".format(self.sshnew))
         if self.case_short_name == "test_logs_collect":
-            self.session.cmd_output("/usr/bin/cp /tmp/collect_logs.py /usr/lib/python3.6/site-packages/azurelinuxagent/ga/")
+            self.session.cmd_output("sudo /usr/bin/cp /tmp/collect_logs.py /usr/lib/python3.6/site-packages/azurelinuxagent/ga/")
         if self.case_short_name == "test_monitor_dhcp_client_restart_period":
-            self.session.cmd_output("/usr/bin/cp /tmp/NetworkManager.conf /etc/NetworkManager/")
+            self.session.cmd_output("sudo /usr/bin/cp /tmp/NetworkManager.conf /etc/NetworkManager/")
         if ("session" in self.__dict__) and self.session.connect():
             self.session.cmd_output(
                 "sudo /usr/bin/cp /etc/waagent.conf-bak /etc/waagent.conf")

@@ -1787,6 +1787,42 @@ ssh_pwauth: 1
                 "sudo cat /etc/sudoers.d/90-cloud-init-users"),
             "No sudo privilege")
 
+    def test_cloudinit_update_network_every_boot(self):
+        """
+        :avocado: tags=tier2,cloudinit
+        VIRT-296904: [Azure]cloud-init updates network config on every boot
+        1. Manually add DNS search example.com via nmcli
+        2. The DNS is over-written by cloud-init after reboot
+        """        
+        version = self.session.cmd_output("cloud-init -v|awk '{print $2}'")
+        if LooseVersion(version) < LooseVersion("22.1"):
+            self.cancel(
+                    "Skip case because cloud-init-{} doesn't support this feature".format(version)
+                    )
+        self.log.info(
+            "VIRT-296904: [Azure]cloud-init updates network config on every boot")
+        self.assertNotIn("search example.com",
+                    self.session.cmd_output("grep 'search example.com' /etc/resolv.conf"),
+                    "The dns already existed in resolv.conf before adding it")
+        self.assertNotIn("DOMAIN=example.com",
+                    self.session.cmd_output("grep -i DOMAIN=example.com /etc/sysconfig/network-scripts/ifcfg-eth0"),
+                    "The dns already existed in ifcfg-eth0 before adding it")
+        # Manually add DNS
+        self.session.cmd_output("sudo nmcli con modify 'System eth0' +ipv4.dns-search example.com")
+        self.assertIn("DOMAIN=example.com",
+                    self.session.cmd_output("grep -i DOMAIN=example.com /etc/sysconfig/network-scripts/ifcfg-eth0"),
+                    "The dns does not exist in ifcfg-eth0 after adding it")
+        # Reboot VM
+        self.vm.reboot()
+        time.sleep(10)
+        self.session.connect(timeout=60)
+        self.assertNotIn("search example.com",
+                    self.session.cmd_output("grep 'search example.com' /etc/resolv.conf"),
+                    "The manually added dns is in resolv.conf after reboot")
+        self.assertNotIn("DOMAIN=example.com",
+                    self.session.cmd_output("grep -i DOMAIN=example.com /etc/sysconfig/network-scripts/ifcfg-eth0"),
+                    "The manually added dns is in ifcfg-eth0 after reboot")        
+
     def tearDown(self):
         if not self.session.connect(timeout=10):
             self.vm.delete()

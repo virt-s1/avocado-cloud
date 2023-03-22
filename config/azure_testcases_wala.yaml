@@ -30,6 +30,7 @@ cases:
     test_functional_wala_general.py:GeneralTest.test_verify_agent_cgroup_enabled
     test_functional_wala_general.py:GeneralTest.test_wala_version_not_lower_than_old_rhel
     test_functional_wala_general.py:GeneralTest.test_check_waagent_network_setup_service
+    test_functional_wala_general.py:GeneralTest.test_change_python_version
     test_functional_wala_network.py:NetworkTest.test_connectivity_check
     test_functional_wala_network.py:NetworkTest.test_check_dns
     test_functional_wala_network.py:NetworkTest.test_change_hostname_check_dns

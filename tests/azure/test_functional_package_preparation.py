@@ -116,6 +116,10 @@ EOF
 StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
 \"yum -y install {}\"" % self.vm.public_ip
         self.session.cmd_output("yum clean all")
+        if "kernel" in self.packages:
+            # Delete debuginfo package in case no enough space in /boot
+            self.session.cmd_output("yum erase -y kernel-debug* $(rpm -qa|grep kernel|grep -v $(uname -r)|tr \"'\\n'\" \"' '\")||true", timeout=180)
+            self.session.cmd_output("df -h")
         if self.session.cmd_status_output("rpm -ivh --force /tmp/*.rpm",
                                           timeout=300)[0] != 0:
 #             command("ssh -o UserKnownHostsFile=/dev/null -o \
@@ -149,16 +153,12 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
 #                                 % (self.vm.public_ip, pkg))
                         command(_yum_install.format(pkg))
                 break
-        # If WALinuxAgent, install cloud-init and disable
+        # If WALinuxAgent, remove cloud-init
         if self.packages.startswith("WALinuxAgent"):
-            command(_yum_install.format("cloud-init"))
+            self.session.cmd_output("yum erase -y cloud-init")
         # Install other necessary packages
         _other_pkgs = "tar net-tools bind-utils dracut-fips dracut-fips-aesni \
 tcpdump"
-
-#         command("ssh -o UserKnownHostsFile=/dev/null -o \
-# StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \"yum -y install %s\""
-#                 % (self.vm.public_ip, _other_pkgs))
         command(_yum_install.format(_other_pkgs))
         # Delete rhel.repo
         self.session.cmd_output("rm -f /etc/yum.repos.d/rhel.repo")

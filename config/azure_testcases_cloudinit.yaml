@@ -45,3 +45,4 @@ cases:
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_growpart_over_2TB_gpt_disk
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_dhclient_hook_disable_cloudinit
     test_functional_cloudinit.py:CloudinitTest.test_cloudinit_update_existing_password
+    test_functional_cloudinit.py:CloudinitTest.test_cloudinit_update_network_every_boot
