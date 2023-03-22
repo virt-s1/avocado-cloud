@@ -838,8 +838,9 @@ will not check kernel-devel package.')
         elif 'x86_64' in lscpu_output and 'Hypervisor' not in lscpu_output:
             self.assertIn('alibaba_cloud-ebm', virt_what_output)
         elif 'aarch64' in lscpu_output and 'Hypervisor' not in lscpu_output:
-            # virt-what cannot print kvm on aarch64 instance at present
-            self.assertIn('alibaba_cloud\nkvm', virt_what_output)
+            # virt-what cannot print kvm on aarch64 instance at present until RHEL8.8 & RHEL9.2
+            #self.assertIn('alibaba_cloud\nkvm', virt_what_output)
+            self.assertIn('alibaba_cloud', virt_what_output)
         else:
             self.cancel("Unknown hypervisor and skip this case.")
 
@@ -1300,7 +1301,7 @@ will not check kernel-devel package.')
             cmd = "sudo systemctl kexec"
             self.log.info("CMD: %s", cmd)
             self.session.session.sendline("%s" % cmd)
-            time.sleep(10)
+            time.sleep(30)
             self.session.connect()
             utils_alibaba.run_cmd(self, 'uname -r', msg='check kernel', expect_ret=0, expect_kw=kernel[7:])
 
@@ -1402,7 +1403,7 @@ will not check kernel-devel package.')
             cmd = "sudo kexec -e"
             self.log.info("CMD: %s", cmd)
             self.session.session.sendline("%s" % cmd)
-            time.sleep(10)
+            time.sleep(30)
             self.session.connect()
             utils_alibaba.run_cmd(self, 'uname -r', msg='check kernel', expect_ret=0, expect_kw=kernel[7:])
 
