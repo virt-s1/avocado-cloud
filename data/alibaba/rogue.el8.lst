@@ -233,6 +233,8 @@
 /initrd.root.sqsh
 /etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target
 /etc/cloud/cloud.cfg.d/aliyun_cloud.cfg
+/etc/dracut.conf.d/nvme.conf
+/etc/kernel/cmdline
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
