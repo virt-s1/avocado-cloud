@@ -611,7 +611,10 @@ will not check kernel-devel package.')
             elif self.vm.arch == "aarch64":
                 data_file = "cmdline_params.el9.arm64.lst"
         elif self.rhel_ver.split('.')[0] == '8':
-            data_file = "cmdline_params.el8.lst"
+            if self.vm.arch == "x86_64":
+                data_file = "cmdline_params.el8.lst"
+            elif self.vm.arch == "aarch64":
+                data_file = "cmdline_params.el8.arm64.lst"
         elif self.rhel_ver.split('.')[0] == '7':
             data_file = "cmdline_params.el7.lst"
 
@@ -1606,6 +1609,59 @@ will not check kernel-devel package.')
                     grep -v mmio_stale_data | grep -v retbleed'
 
         utils_alibaba.run_cmd(self, check_cmd, expect_ret=0, expect_not_kw='Vulnerable')
+
+    def test_check_file_mode(self):
+        """
+        case_name:
+            [Aliyun]GeneralTest.test_check_file_mode
+        case_tags:
+            N/A
+        case_status:
+            Approved
+        title:
+            [Aliyun]GeneralTest.test_check_file_mode
+        importance:
+            low
+        subsystem_team:
+            sst_virtualization_cloud
+        automation_drop_down:
+            automated
+        linked_work_items:
+            polarion-VIRT-99338
+        automation_field:
+            https://github.com/virt-s1/avocado-cloud/tree/master/tests/alibaba/test_functional_checkup.py
+        setup_teardown:
+            N/A
+        environment:
+            N/A
+        component:
+            N/A
+        bug_id:
+            N/A
+        is_customer_case:
+            False
+        testplan:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/wiki/Alibaba/Aliyun%20RHEL%20guest%20Test%20Plan
+        test_type:
+            functional
+        test_level:
+            Component
+        maintainer:
+            yoguo@redhat.com
+        description:
+            Check file mode (test /dev/null firstly)
+        key_steps:
+            1. Start an instance (e.g., c6.xlarge) with RHEL image on Aliyun
+            2. Check the mode of /dev/null file
+        expected_result:
+            The mode is 666
+        debug_want:
+            N/A
+        """
+        cmd = "stat -c '%a' /dev/null"
+        file_mode = utils_alibaba.run_cmd(self, cmd, msg='get file mode')
+        self.assertEqual("666", file_mode, "The current file mode is: %s" % file_mode)
+
 
     def test_check_rhui_crt(self):
         """ Check /etc/pki/rhui/product/content.crt exists in image and the end date doesn't expired.
