@@ -1205,15 +1205,15 @@ mounts:
         :avocado: tags=tier2,cloudinit,test_cloudinit_check_ds_identify_found
         RHEL-188251 - CLOUDINIT-TC: check ds-identify path
         1. Create a VM 
-        2. Check /run/cloud-init/cloud-init-generator.log, there should be "ds-identify _RET=found"
+        2. Check /run/cloud-init/cloud-init-generator.log, there should be "ds-identify rc=0"
         """
         self.session.connect(timeout=self.ssh_wait_timeout)
         cmd = 'cat /run/cloud-init/cloud-init-generator.log'
         utils_lib.run_cmd(self,
                           cmd,
                           expect_ret=0,
-                          expect_kw='ds-identify _RET=found',
-                          msg='check if there is ds-identify _RET=found',
+                          expect_kw='ds-identify rc=0',
+                          msg='check if there is ds-identify rc=0',
                           is_get_console=False)
 
     def _reboot_inside_vm(self):
