@@ -447,9 +447,17 @@ cloud_config_modules:
         # (There should be 6 modules ran in cloud-init.log)
         output = self.session.cmd_output(
             "sudo grep 'running modules for config' "
-            "/var/log/cloud-init.log -B 10")
-        self.assertIn("Ran 6 modules", output,
-                      "The custom data is not handled correctly")
+            "/var/log/cloud-init.log -B 100")
+        version = self.session.cmd_output("cloud-init -v|awk '{print $2}'")
+        if LooseVersion(version) < LooseVersion("23.1"):
+            self.assertIn("Ran 6 modules", output,
+                        "The user data is not handled correctly")
+        else:
+            self.assertIn("Ran 3 modules", output,
+                        "The user data is not handled correctly")
+            self.assertIn("Skipping modules 'yum-add-repo,disable-ec2-metadata,runcmd' because no applicable config is provided",
+                        output,
+                        "The user data is not handled correctly")
 
     def test_cloudinit_save_and_handle_userdata_script(self):
         """
@@ -510,9 +518,17 @@ cloud_config_modules:
         # (There should be 6 modules ran in cloud-init.log)
         output = self.session.cmd_output(
             "sudo grep 'running modules for config' "
-            "/var/log/cloud-init.log -B 10")
-        self.assertIn("Ran 6 modules", output,
-                      "The user data is not handled correctly")
+            "/var/log/cloud-init.log -B 100")
+        version = self.session.cmd_output("cloud-init -v|awk '{print $2}'")
+        if LooseVersion(version) < LooseVersion("23.1"):
+            self.assertIn("Ran 6 modules", output,
+                        "The user data is not handled correctly")
+        else:
+            self.assertIn("Ran 3 modules", output,
+                        "The user data is not handled correctly")
+            self.assertIn("Skipping modules 'yum-add-repo,disable-ec2-metadata,runcmd' because no applicable config is provided",
+                        output,
+                        "The user data is not handled correctly")
 
     def test_cloudinit_auto_extend_root_partition_and_filesystem(self):
         """
@@ -1446,7 +1462,7 @@ runcmd:
         RHEL-188251 CLOUDINIT-TC: check ds-identify path
         1. Verify /usr/libexec/cloud-init/ds-identify (>=cloud-init-19.4) or 
         /usr/lib/cloud-init/ds-identify (<cloud-init-19.4) exists
-        2. Verify "ds-identify _RET=found" in /usr/libexec/cloud-init/ds-identify
+        2. Verify "ds-identify rc=0" in /usr/libexec/cloud-init/ds-identify
         """
         self.log.info("RHEL-188251 CLOUDINIT-TC: check ds-identify path")
         self.session.cmd_output("sudo su -")
@@ -1461,8 +1477,8 @@ runcmd:
         self.assertEqual(self.session.cmd_status_output("[ -f {} ]".format(ds_identify))[0], 0,
             "{} doesn't exist!".format(ds_identify))
         self.assertEqual(self.session.cmd_status_output(
-            "grep 'ds-identify _RET=found' /run/cloud-init/cloud-init-generator.log")[0], 0,
-            "Cannot find 'ds-identify _RET=found' in /run/cloud-init/cloud-init-generator.log")
+            "grep 'ds-identify rc=0' /run/cloud-init/cloud-init-generator.log")[0], 0,
+            "Cannot find 'ds-identify rc=0' in /run/cloud-init/cloud-init-generator.log")
 
     def test_cloudinit_enable_swap_in_temporary_disk(self):
         """
