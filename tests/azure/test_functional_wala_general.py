@@ -842,6 +842,11 @@ Retry: {0}/10".format(retry+1))
         self.assertTrue(LooseVersion(new_wala_version) >= LooseVersion(pre_wala_version),
             "The {} in RHEL-{} is lower than {} in the RHEL-{}".format(new_wala_pkg, self.project, pre_wala_pkg, pre_project))
         self.log.info("The {} in RHEL-{} is newer than or equal to {} in the RHEL-{}".format(new_wala_pkg, self.project, pre_wala_pkg, pre_project))
+        # Compare WALA version against RHEL
+        wala_version_el = float(new_wala_pkg.split('-')[2].split('.')[1].replace('_','.'))
+        self.assertTrue(wala_version_el <= float(self.project),
+            "WALA version %s is greater than RHEL-%s" % (wala_version_el, self.project))
+        self.log.info("wALA version %s is lower than RHEL-%s" % (wala_version_el, self.project))
 
     def test_check_waagent_network_setup_service(self):
         """
