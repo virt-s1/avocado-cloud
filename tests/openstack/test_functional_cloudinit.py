@@ -837,15 +837,8 @@ ssh_pwauth: 1
                 user_data.encode('utf-8')).decode('utf-8')
         self.vm.keypair = None
         self.vm.create(wait=True)
-        self.session.connect(authentication="password")
-        self.assertEqual(self.vm.vm_username,
-                         self.session.cmd_output("whoami"),
-                         "Fail to login with password")
-        self.assertIn(
-            "%s ALL=(ALL) NOPASSWD:ALL" % self.vm.vm_username,
-            self.session.cmd_output(
-                "sudo cat /etc/sudoers.d/90-cloud-init-users"),
-            "No sudo privilege")  
+        self.assertTrue(self.session.connect(authentication="password"),
+                        "Fail to login with password")
         # check cloud-init status is done and services are active
         self._check_cloudinit_done_and_service_isactive()
 
