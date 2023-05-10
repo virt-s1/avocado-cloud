@@ -1589,7 +1589,7 @@ rh_subscription:
         self.log.info(
             "RHEL-288020 - CLOUDINIT-TC: Check ip route append when config static ip route")
         self.session.connect(timeout=self.ssh_wait_timeout)
-        cmd = 'cat /var/log/cloud-init.log | grep append'
+        cmd = 'sudo cat /var/log/cloud-init.log | grep append'
         utils_lib.run_cmd(self,
                           cmd,
                           expect_ret=0,
