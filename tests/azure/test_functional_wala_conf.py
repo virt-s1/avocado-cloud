@@ -1580,7 +1580,6 @@ echo 'teststring' >> /tmp/test.log\
     def tearDown(self):
         if not self.session.connect(timeout=20):
             self.vm.delete()
-            return
         # recover_list = ["test_delete_root_passwd",
         #                 "test_monitor_hostname",
         #                 "test_reset_system_account",

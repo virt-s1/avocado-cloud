@@ -511,7 +511,7 @@ CPUQuota=75%
         self.session.cmd_output("[ -d {0} ] || ( mkdir -p {0}; echo '{1}' > {0}/12-CPUQuota.conf )".format(serviced_path, cpuquota))
         # rpm uninstall
         self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -e WALinuxAgent WALinuxAgent-udev")[0], "Fail to uninstall package through rpm")
+            "rpm -e WALinuxAgent WALinuxAgent-udev", timeout=120)[0], "Fail to uninstall package through rpm")
         # Verify no /usr/lib/systemd/system/waagent* left
         self.assertNotEqual(0, self.session.cmd_status_output(
             "ls /usr/lib/systemd/system/waagent*")[0], "Some files left after package is removed!"
@@ -872,7 +872,7 @@ Retry: {0}/10".format(retry+1))
         # The new python must be different from the old one
         self.old_python = self.session.cmd_output("alternatives --display python3|grep 'link currently'|awk -F \'/\' \'{print $NF}\'")
         self.new_python = "python3.9"
-        assert(self.session.cmd_status_output("yum install -y " + self.new_python)[0] == 0)
+        assert(self.session.cmd_status_output("yum install -y " + self.new_python, timeout=300)[0] == 0)
         self.session.cmd_output("alternatives --set python3 /usr/bin/{}".format(self.new_python))
         self.session.cmd_output("systemctl restart waagent")
         self.assertEqual(self.session.cmd_output("systemctl is-active waagent"), 'active',
