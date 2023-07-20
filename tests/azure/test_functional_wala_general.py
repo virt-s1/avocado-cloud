@@ -510,8 +510,9 @@ CPUQuota=75%
 '''
         self.session.cmd_output("[ -d {0} ] || ( mkdir -p {0}; echo '{1}' > {0}/12-CPUQuota.conf )".format(serviced_path, cpuquota))
         # rpm uninstall
+        pkgs = self.package.replace(',', ' ')
         self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -e WALinuxAgent WALinuxAgent-udev", timeout=120)[0], "Fail to uninstall package through rpm")
+            "rpm -e {}".format(pkgs.replace('.noarch.rpm', '')), timeout=120)[0], "Fail to uninstall package through rpm")
         # Verify no /usr/lib/systemd/system/waagent* left
         self.assertNotEqual(0, self.session.cmd_status_output(
             "ls /usr/lib/systemd/system/waagent*")[0], "Some files left after package is removed!"
@@ -519,15 +520,21 @@ CPUQuota=75%
         # rpm install
         self.session.cmd_output("rm -f /usr/lib/udev/rules.d/66-azure-storage.rules /usr/lib/udev/rules.d/99-azure-product-uuid.rules")
         self.assertEqual(0, self.session.cmd_status_output(
-            "cd /tmp;rpm -ivh {};cd ~".format(self.package.replace(',', ' ')))[0], "Fail to install package through rpm")
-        for rule in [
+            "cd /tmp;rpm -ivh --force {};cd ~".format(pkgs))[0], "Fail to install package through rpm")
+        file_list = [
             "/usr/lib/udev/rules.d/99-azure-product-uuid.rules",
             "/usr/lib/udev/rules.d/66-azure-storage.rules"
-        ]:
-            self.assertTrue(utils_azure.file_exists(rule, self.session),
-                "{} is not installed".format(rule))
+        ]
+        if 'WALinuxAgent-cvm' in self.package:
+            file_list += [
+            "/usr/lib/udev/rules.d/90-tpm2-import.rules",
+            "/usr/sbin/tpm2-luks-import.sh"
+        ]
+        for filename in file_list:
+            self.assertTrue(utils_azure.file_exists(filename, self.session),
+                "{} is not installed".format(filename))
         # yum uninstall
-        yum_remove = "yum remove WALinuxAgent WALinuxAgent-udev -y --disablerepo=*"
+        yum_remove = "yum remove {} -y --disablerepo=*".format(pkgs.replace('.noarch.rpm', ''))
         if LooseVersion(self.project) >= LooseVersion("8.0"):
             # Don't remove dependencies
             yum_remove += " --noautoremove"
@@ -535,7 +542,7 @@ CPUQuota=75%
             yum_remove)[0], "Fail to uninstall package through yum")
         # yum install
         self.assertEqual(0, self.session.cmd_status_output(
-            "cd /tmp;yum install -y {} --disablerepo=*;cd ~".format(self.package.replace(',', ' ')))[0], "Fail to install package through yum")
+            "cd /tmp;yum install -y {} --disablerepo=*;cd ~".format(pkgs))[0], "Fail to install package through yum")
 
     def test_upgrade_downgrade_package(self):
         """
