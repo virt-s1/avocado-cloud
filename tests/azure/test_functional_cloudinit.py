@@ -1291,7 +1291,7 @@ rh_subscription:
         self.session.cmd_output("parted /dev/sdc rm 1 -s")
         self.session.cmd_output("parted /dev/sdc mklabel msdos -s")
         self.session.cmd_output("parted /dev/sdc mkpart primary xfs 1048k 4000M -s")
-        self.session.cmd_output("mkfs.xfs /dev/sdc1")
+        self.session.cmd_output("mkfs.xfs -f /dev/sdc1")
         self.session.cmd_output("mkdir -p /datatest")
         self.session.cmd_output("mount /dev/sdc1 /datatest")
         self.assertEqual(self.session.cmd_status_output("mount|grep /datatest")[0], 0,
@@ -1869,8 +1869,8 @@ ssh_pwauth: 1
         elif self.case_short_name in [
                 "test_cloudinit_swapon_with_xfs_filesystem"
         ]:
-            self.session.cmd_output("swapoff -a")
-            self.session.cmd_output("umount -l /dev/sdc1")
+            self.session.cmd_output("sudo swapoff -a")
+            self.session.cmd_output("sudo umount -l /dev/sdc1")
             self.vm.unmanaged_disk_detach(self.disk_name)
             self.session.cmd_output("sed -i '/.*datatest.*/d' /etc/fstab")
             self.session.cmd_output("rm -f /etc/cloud/cloud.cfg.d/test_*.cfg")
