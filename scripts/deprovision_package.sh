@@ -49,6 +49,8 @@ function deprovision_wala() {
     fi
     # Create ifcfg-eth0 to workaround BZ#2092002
     touch /etc/sysconfig/network-scripts/ifcfg-eth0
+    # Remove 50-cloud-init.conf
+    rm -f /etc/ssh/sshd_config.d/50-cloud-init.conf
 }
 
 function deprovision_cloudinit_wala() {
@@ -84,6 +86,8 @@ function deprovision_cloudinit_wala() {
     if [ ${release%%.*} == '8' ];then
         sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
     fi
+    # Remove 50-cloud-init.conf
+    rm -f /etc/ssh/sshd_config.d/50-cloud-init.conf
 }
 
 function deprovision_cloudinit() {
@@ -109,6 +113,8 @@ function deprovision_cloudinit() {
     if [ ${release%%.*} == '8' ];then
         sed -i -e '/\[main\]/a\dhcp = dhclient' -e '/dhcp *= *dhclient/d' /etc/NetworkManager/NetworkManager.conf
     fi
+    # Remove 50-cloud-init.conf
+    rm -f /etc/ssh/sshd_config.d/50-cloud-init.conf
 }
 
 function format_echo() {
@@ -280,7 +286,7 @@ function verify_cloudinit_disabled() {
 }
 
 function verify_cloudinit_removed() {
-    rpm -q cloud-init 2>&1
+    rpm -q cloud-init > /dev/null 2>&1
     if [[ $? -eq 0 ]];then
         format_echo "Verify cloud-init is removed: FAIL"
         ret=1
@@ -290,6 +296,19 @@ function verify_cloudinit_removed() {
     fi
     return $ret
 }
+
+function verify_50cloudinitconf_removed() {
+    ls /etc/ssh/sshd_config.d/50-cloud-init.conf > /dev/null 2>&1 
+    if [[ $? -eq 0 ]];then
+        format_echo "Verify 50-cloud-init.conf is removed: FAIL"
+        ret=1
+    else
+        format_echo "Verify 50-cloud-init.conf is removed: PASS"
+        ret=0
+    fi
+    return $ret
+}
+
 
 function verify_waagent_enabled() {
     output=`systemctl is-enabled waagent`
@@ -413,6 +432,8 @@ function verify_wala() {
     verify_wala_resourcedisk_swapsize||((rflag=rflag+1))
     # Verify cloud-init package is removed
     verify_cloudinit_removed||((rflag=rflag+1))
+    # Verify 50-cloud-init.conf is removed
+    verify_50cloudinitconf_removed||((rflag=rflag+1))
     # Verify waagent is enabled
     verify_waagent_enabled||((rflag=rflag+1))
     # Verify no azure line in /etc/fstab
@@ -436,6 +457,8 @@ function verify_cloudinit_wala() {
     verify_wala_resourcedisk_disableformat||((rflag=rflag+1))
     # Verify cloud-init is enabled
     verify_cloudinit_enabled||((rflag=rflag+1))
+    # Verify 50-cloud-init.conf is removed
+    verify_50cloudinitconf_removed||((rflag=rflag+1))
     # Verify waagent is enabled
     verify_waagent_enabled||((rflag=rflag+1))
     # Verify no azure line in /etc/fstab
@@ -462,6 +485,8 @@ function verify_cloudinit() {
     verify_cloudinit_enabled||((rflag=rflag+1))
     # Verify waagent is removed
     verify_wala_removed||((rflag=rflag+1))
+    # Verify 50-cloud-init.conf is removed
+    verify_50cloudinitconf_removed||((rflag=rflag+1))
     # Verify no azure line in /etc/fstab
     verify_fstab_clean||((rflag=rflag+1))
     # Verify no DHCP_HOSTNAME in ifcfg-eth0
