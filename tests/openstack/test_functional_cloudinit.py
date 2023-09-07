@@ -73,7 +73,7 @@ class CloudinitTest(Test):
                 "test_cloudinit_boot_time"):
             pre_delete = True
         #below data is used for the login case and other cases except above specific cases.
-        #set ssh_pwauth: 0 to trigger sshd service restart, bz#
+        #set ssh_pwauth: false to trigger sshd service restart, bz#
         #remove user: {0}, to test the default user
         user_data = """\
 #cloud-config
@@ -82,8 +82,8 @@ runcmd:
   - [ sh, -xc, "echo $(date) ': hello today!'" ]
 
 password: {0}
-chpasswd: {{ expire: False }}
-ssh_pwauth: 0
+chpasswd: {{ expire: false }}
+ssh_pwauth: false
 """.format('R')# test random password
         self.vm.user_data = base64.b64encode(
         user_data.encode('utf-8')).decode('utf-8')
@@ -830,8 +830,8 @@ Auto resize partition in gpt")
 
 user: {0}
 password: {1}
-chpasswd: {{ expire: False }}
-ssh_pwauth: 1
+chpasswd: {{ expire: false }}
+ssh_pwauth: true
 """.format(self.vm.vm_username, self.vm.vm_password)
         self.vm.user_data = base64.b64encode(
                 user_data.encode('utf-8')).decode('utf-8')
