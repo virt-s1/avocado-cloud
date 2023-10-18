@@ -540,6 +540,12 @@ cloud_config_modules:
         4. Start VM and login. Check os disk and fs capacity
         """
         self.log.info("RHEL7-103839 - CLOUDINIT-TC: Auto extend root partition and filesystem")
+        # Skip the case if this is LVM root partition, as not support it currently
+        boot_dev = self._get_boot_temp_devices()[0].split('/')[-1]
+        if self.session.cmd_status_output(
+                "lsblk /dev/{} --output NAME,TYPE -r|grep 'lvm'".format(boot_dev))[0] == 0:
+            self.session.cmd_output("lsblk /dev/{}".format(boot_dev))
+            self.cancel("Skip this case as cloud-init not support LVM root partition")
         # 1. Install cloud-utils-growpart gdisk
         if self.session.cmd_status_output(
                 "rpm -q cloud-utils-growpart gdisk")[0] != 0:
