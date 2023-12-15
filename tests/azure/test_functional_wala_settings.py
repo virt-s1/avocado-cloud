@@ -6,6 +6,7 @@ from avocado import main
 from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount
 from distutils.version import LooseVersion
+from avocado_cloud.utils.utils_azure import WalaConfig
 
 
 class SettingsTest(Test):
@@ -28,6 +29,8 @@ class SettingsTest(Test):
         self.session.cmd_output("sudo su -")
         self.username = self.vm.vm_username
         self.new_username = self.username + "new"
+        # Backup origin sshd_config
+        self.session.cmd_output("sudo /usr/bin/cp /etc/ssh/sshd_config /tmp/sshd_config")
 
     def test_reset_existing_sshkey(self):
         """
@@ -88,10 +91,15 @@ class SettingsTest(Test):
             "/PasswordAuthentication=no/g' /etc/ssh/sshd_config")
         self.session.cmd_output("rm -f /etc/ssh/sshd_config_*")
         self.session.cmd_output("service sshd restart")
+        # Remove the old sshd_config backup
+        self.session.cmd_output("rm -f /var/cache/vmaccess/backup")
+        # Must change ChallengeResponseAuthentication or it won't trigger backup
+        sshdconfig = WalaConfig(self.session, "/etc/ssh/sshd_config")
+        sshdconfig.modify_value("ChallengeResponseAuthentication", "yes", ' ')
         # Reset remote access
         self.vm.user_reset_ssh()
         self.assertEqual(
-            self.session.cmd_status_output("[ -f /etc/ssh/sshd_config_* ]")[0],
+            self.session.cmd_status_output("[ -f /var/cache/vmaccess/backup ]")[0],
             0, "Did not make a backup of sshd_config file")
         self.vm.vm_username = self.new_username
         self.assertTrue(
@@ -232,11 +240,8 @@ class SettingsTest(Test):
             self.vm.delete()
             return
         self.session.cmd_output("sudo userdel -rf {}new".format(self.username))
-        if self.case_short_name == "test_reset_existing_password":
-            self.session.cmd_output(
-                "sudo sed -i 's/^PasswordAuthentication.*"
-                "/PasswordAuthentication=no/g' /etc/ssh/sshd_config")
-            self.session.cmd_output("sudo service sshd restart")
+        self.session.cmd_output("sudo /usr/bin/cp /tmp/sshd_config /etc/ssh/sshd_config")
+        self.session.cmd_output("sudo service sshd restart")
 
 
 '''

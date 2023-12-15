@@ -1181,20 +1181,23 @@ echo 'teststring' >> /tmp/test.log\
         self.log.info("1. Extensions.Enabled=n")
         self._modify_value("Extensions.Enabled", 'n')
         self.session.cmd_output("service waagent restart")
-        self.session.cmd_output("rm -f /etc/ssh/sshd_config_*")
+        # Remove the old sshd_config backup
+        self.session.cmd_output("rm -f /var/cache/vmaccess/*")
+        # Must change ChallengeResponseAuthentication or it won't trigger backup
+        self._modify_value("ChallengeResponseAuthentication", "yes", "/etc/ssh/sshd_config", ' ')
         try:
-            self.vm.user_reset_ssh(timeout=60)
+            self.vm.user_reset_ssh(timeout=180)
         except:
             self.log.info("Timeout. Kill process.")
         self.assertFalse(
-            utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session),
+            utils_azure.file_exists("/var/cache/vmaccess/backup", self.session),
             "Should not install extension when Extensions.Enabled=n")
         self.log.info("2. Extensions.Enabled=y")
         self._modify_value("Extensions.Enabled", 'y')
         self.session.cmd_output("service waagent restart")
         time.sleep(10)
         for retry in range(1, 11):
-            if utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session):
+            if utils_azure.file_exists("/var/cache/vmaccess/backup", self.session):
                 break
             self.log.info(
                 "Waiting for extension installed. Retry: {}/10".format(retry))
@@ -1417,8 +1420,9 @@ echo 'teststring' >> /tmp/test.log\
         self.session.cmd_output("/usr/bin/cp {} /tmp/".format(collect_logs))
         self.session.cmd_output("sed -i 's/^_INITIAL_LOG_COLLECTION_DELAY.*$/_INITIAL_LOG_COLLECTION_DELAY = 0/g' " + collect_logs)
         # Clean up old collected logs
-        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
         self.session.cmd_output("systemctl restart waagent")
+        time.sleep(3)
+        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
         # Verify logs.zip is generated
         time.sleep(20)
         self.assertTrue(utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
@@ -1430,8 +1434,9 @@ echo 'teststring' >> /tmp/test.log\
             "Cannot collect logs when Logs.Collect=y")
         # 5. Verify feature: Logs.Collect=n
         self._modify_value("Logs.Collect", 'n')
-        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
         self.session.cmd_output("systemctl restart waagent")
+        time.sleep(3)
+        self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
         time.sleep(20)
         self.assertFalse(utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
             "Should not collect logs when Logs.Collect=n")
