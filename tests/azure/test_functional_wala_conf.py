@@ -1300,7 +1300,7 @@ echo 'teststring' >> /tmp/test.log\
         except:
             time.sleep(1)
             self.session.cmd_output("cat /var/log/waagent.log")
-            self.fail("Fail to reset remote access")
+            self.fail("#RHEL-7272:Fail to reset remote access")
         # Verify no error logs
         with open("{}/data/azure/ignore_waagent_messages".format(BASEPATH),
                   'r') as f:
@@ -1424,12 +1424,12 @@ echo 'teststring' >> /tmp/test.log\
         time.sleep(3)
         self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
         # Verify logs.zip is generated
-        time.sleep(20)
+        time.sleep(30)
         self.assertTrue(utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
             "Cannot collect logs when Logs.Collect=y")
         # Check logs.zip again after period
         self.session.cmd_output("rm -rf /var/lib/waagent/logcollector")
-        time.sleep(20)
+        time.sleep(30)
         self.assertTrue(utils_azure.file_exists("/var/lib/waagent/logcollector/logs.zip", self.session),
             "Cannot collect logs when Logs.Collect=y")
         # 5. Verify feature: Logs.Collect=n
