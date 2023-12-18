@@ -555,7 +555,7 @@ CPUQuota=75%
 
         # Downgrade through rpm
         self.assertEqual(0, self.session.cmd_status_output(
-            "rpm -Uvh --oldpackage /tmp/oldpkg/*.rpm")[0],
+            "rpm -Uvh --oldpackage /tmp/oldpkg/*.rpm", timeout=300)[0],
             "Fail to downgrade package through rpm")
         # Verify can restart service after rpm downgrade
         self.assertEqual(0, self.session.cmd_status_output(
@@ -568,7 +568,7 @@ CPUQuota=75%
         self.session.cmd_output("echo '# teststring' >> /etc/logrotate.d/waagent.logrotate")
         # Upgrade through rpm
         self.assertEqual(0, self.session.cmd_status_output(
-            "cd /tmp/; rpm -Uvh --replacepkgs {}".format(self.package.replace(',', ' ')))[0],
+            "cd /tmp/; rpm -Uvh --replacepkgs {}".format(self.package.replace(',', ' ')), timeout=300)[0],
             "Fail to upgrade package through rpm")
         self.assertEqual("enabled", self.session.cmd_output("systemctl is-enabled waagent"),
                          "After upgrade, the waagent service is not enabled")
@@ -589,13 +589,13 @@ CPUQuota=75%
 
         # Downgrade through yum
         self.assertEqual(0, self.session.cmd_status_output(
-            "yum downgrade /tmp/oldpkg/* --disablerepo=* -y")[0],
+            "yum downgrade /tmp/oldpkg/* --disablerepo=* -y", timeout=300)[0],
             "Fail to downgrade package through yum")
         old_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
         # Upgrade through yum
         self.assertEqual(0, self.session.cmd_status_output(
-            "cd /tmp; yum upgrade -y {} --disablerepo=*".format(self.package.replace(',', ' ')))[0],
+            "cd /tmp; yum upgrade -y {} --disablerepo=*".format(self.package.replace(',', ' ')), timeout=300)[0],
             "Fail to upgrade package through yum")
         new_pid = self.session.cmd_output(
             "ps aux|grep '[w]aagent -daemon'|awk '{print $2}'")
@@ -823,7 +823,7 @@ Retry: {0}/10".format(retry+1))
         # Verify Agent CGroups is enabled
         self.assertIn('True', 
             self.session.cmd_output("grep 'Agent cgroups enabled' /var/log/waagent.log"),
-            "Agent cgroups is not enabled")
+            "#RHEL-7274(RHEL-9):Agent cgroups is not enabled")
 
     def test_wala_version_not_lower_than_old_rhel(self):
         """
