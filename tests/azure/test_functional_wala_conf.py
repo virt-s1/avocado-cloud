@@ -20,6 +20,11 @@ class WALAConfTest(Test):
         account = AzureAccount(self.params)
         account.login()
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
+        self.project = self.params.get("rhel_ver", "*/VM/*")
+        if self.case_short_name == "test_logs_collect":
+            # RHEL-9 doesn't support CGroup so cannot collect logs
+            if LooseVersion(self.project) >= LooseVersion("9.0"):
+                self.cancel("Cannot support RHEL-9 now. Skip.")
         if self.case_short_name == "test_resource_disk_gpt_partition":
             cloud = Setup(self.params, self.name, size="M64ls")
         else:
@@ -31,7 +36,6 @@ class WALAConfTest(Test):
            not self.case_short_name.startswith("test_http_proxy"):
             self._modify_value("AutoUpdate.Enabled", "n")
             self.session.cmd_output("sudo systemctl restart waagent")
-        self.project = self.params.get("rhel_ver", "*/VM/*")
         self.username = self.vm.vm_username
         # if self.case_short_name.startswith("test_http_proxy"):
         #     proxy = Setup(self.params, self.name, size="D1_v2")
@@ -1583,7 +1587,7 @@ echo 'teststring' >> /tmp/test.log\
     #     self.session.cmd_output("cat /sys/fs/cgroup/cpu/WALinuxAgent/WALinuxAgent/cpu.cfs_quota_us")
 
     def tearDown(self):
-        if not self.session.connect(timeout=20):
+        if ("session" in self.__dict__) and not self.session.connect(timeout=20):
             self.vm.delete()
         # recover_list = ["test_delete_root_passwd",
         #                 "test_monitor_hostname",
@@ -1635,7 +1639,7 @@ echo 'teststring' >> /tmp/test.log\
                 "sudo rm -rf /var/log/azure* /etc/ssh/sshd_config_*")
         if self.case_short_name == "test_customize_ssh_key_conf_path":
             self.session.cmd_output("sudo rm -rf {}".format(self.sshnew))
-        if self.case_short_name == "test_logs_collect":
+        if self.case_short_name == "test_logs_collect" and ("session" in self.__dict__):
             self.session.cmd_output("sudo /usr/bin/cp /tmp/collect_logs.py /usr/lib/python3.6/site-packages/azurelinuxagent/ga/")
         if self.case_short_name == "test_monitor_dhcp_client_restart_period":
             self.session.cmd_output("sudo /usr/bin/cp /tmp/NetworkManager.conf /etc/NetworkManager/")
@@ -1648,8 +1652,6 @@ echo 'teststring' >> /tmp/test.log\
                 self._recovery()
             if self.case_short_name in reboot_list:
                 self.vm.reboot()
-        else:
-            self.vm.delete(wait=True)
 
 
 '''

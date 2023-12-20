@@ -634,82 +634,22 @@ to login as root"
         :avocado: tags=tier2
         WALA-TC: [WALA function] the path of configuration file can be
                  customized
-        1. Modify waagent.service; Move "/etc/waagent.conf" to
-           "/root/waagent.conf"; Systemd daemon reload
-        2. Deprovision this VM and use this as a template to create a new VM
-        3. After the VM finishing provisioning,login and Check whether wala
-           normally running
+        1. Move "/etc/waagent.conf" to "/root/waagent.conf". Stop waagent service. 
+        2. Run "waagent -start", verify no waagent process is running.
+        3. Run "waagent -start -configuration-path:/root/waagent.conf", verify waagent process is running
         """
-        self.log.info(
-            "WALA-TC: [func] the path of configuration file can be customized")
-        self.log.info(
-            "1. Modify waagent.service; Move /etc/waagent.conf to /root/\
-waagent.conf; Systemd daemon reload")
-        cmd_stop_waagent = "service waagent stop"
-        status, output = self.session.cmd_status_output(cmd_stop_waagent)
-        self.assertEqual(
-            status, 0,
-            "Fail to stop waagent service before test\n{}".format(str(output)))
-        self.session.cmd_output("rm -f /var/log/waagent.log")
-        self.session.cmd_output("mv /etc/waagent.conf /root/waagent.conf")
-        if LooseVersion(self.vm.rhel_version) < LooseVersion("7.0"):
-            waagent_service_file = "/etc/init.d/waagent"
-            self.session.cmd_output(
-                "sed -i '19s/-start/-configuration-path:\/root\/waagent.conf \
--start/' {0}".format(waagent_service_file))
-            self.assertIn(
-                "/root/waagent.conf",
-                self.session.cmd_output(
-                    "grep '$WAZD_BIN -configuration-path' {0}".format(
-                        waagent_service_file)),
-                "Fail to modify ConditionPathExists in waagent.service")
-        else:
-            waagent_service_file = "/usr/lib/systemd/system/waagent.service"
-            self.session.cmd_output(
-                "sed -i -e '/ExecStart/s/$/ -configuration-path:\/root\/\
-waagent.conf&/g' -e 's/\/etc\/waagent.conf/\/root\/waagent.conf/g' {0}\
-".format(waagent_service_file))
-            self.assertIn(
-                "-configuration-path:/root/waagent.conf",
-                self.session.cmd_output(
-                    "grep ExecStart {0}".format(waagent_service_file)),
-                "Fail to modify ExecStart in waagent.service")
-            self.assertIn(
-                "/root/waagent.conf",
-                self.session.cmd_output("grep ConditionPathExists {0}".format(
-                    waagent_service_file)),
-                "Fail to modify ConditionPathExists in waagent.service")
-            self.session.cmd_output("systemctl daemon-reload")
-        # Perform sync to let os write the file to disk right now.
-        self.session.cmd_output("sync")
-        self.log.info("2. Deprovision this VM and use this as a template to \
-create a new VM")
-        self.session.cmd_output("waagent -deprovision+user -configuration-path\
-:/root/waagent.conf -force")
-        # vm is running state is acceptable, ARM only.
-        image_uri = self.vm.properties.get("storageProfile").get("osDisk").get(
-            "vhd").get("uri")
-        #
-        self.old_vm = self.vm
-        cloud = Setup(self.params, self.name)
-        self.vm = cloud.vm
-        self.vm.vm_name += "-recreate"
-        self.vm.image = image_uri
-        self.session = cloud.init_vm()
-        del output, status
-        status, output = self.session.cmd_status_output('sudo su -')
-        self.assertEqual(status, 0,
-                         "User [root] login failed\n{}".format(str(output)))
-        self.log.info("3. After the VM finishing provisioning,login and Check \
-whether wala normally running")
-        del output
-        output = self.session.cmd_output("ps aux|grep -E '(waagent|WAL)'")
-        self.assertIn("waagent -daemon -configuration-path:/root/waagent.conf",
-                      output,
-                      "New waagent.conf file doesn't work for daemon process")
-        self.assertIn(
-            "-run-exthandlers -configuration-path:/root/waagent.conf", output,
-            "New waagent.conf file doesn't work for run-exthandlers process")
+        self.log.info("WALA-TC: [func] the path of configuration file can be customized")
+        self.log.info("1. Move /etc/waagent.conf to /root/waagent.conf. Restart waagent service")
+        self.session.cmd_output("systemctl stop waagent;sleep 3")
+        self.session.cmd_output("/usr/bin/mv /etc/waagent.conf /root/waagent.conf")
+        self.log.info('2. Run "waagent -start", verify no waagent process is running.')
+        self.session.cmd_output("waagent -start;sleep 3")
+        self.assertNotEqual(self.session.cmd_status_output("ps aux|grep [w]aagent")[0], 0,
+                            "Should not have running waagent process if not specify configuration path.")
+        self.log.info('3. Run "waagent -start -configuration-path:/root/waagent.conf", verify waagent process is running')
+        self.session.cmd_output("waagent -start -configuration-path:/root/waagent.conf;sleep 3")
+        self.assertEqual(self.session.cmd_status_output("ps aux|grep [w]aagent")[0], 0,
+                        "Should have running waagent process if specify configuration path.")
 
     def test_waagent_daemon(self):
         """
@@ -884,13 +824,14 @@ whether wala normally running")
 
     def tearDown(self):
         self.log.info("Do teardown")
-        cmd_stop_waagent = "service waagent stop"
-        cmd_start_waagent = "service waagent start"
+        cmd_stop_waagent = "systemctl stop waagent"
+        cmd_start_waagent = "systemctl start waagent;sleep 5"
         if "depro" in self.case_short_name:
             self.vm.delete()
         elif self.case_short_name == "test_customize_waagent_conf_path":
-            self.old_vm.delete()
-            self.vm.delete()
+            self.session.cmd_output("kill -9 $(ps aux|grep [w]aagent|awk '{print $2}')")
+            self.session.cmd_output("/usr/bin/mv /root/waagent.conf /etc/waagent.conf;sleep 1")
+            self.session.cmd_output(cmd_start_waagent)
         elif self.case_short_name == "test_waagent_verbose" or \
                 self.case_short_name == "test_waagent_run_exthandlers" or \
                 self.case_short_name == "test_waagent_daemon":
@@ -916,3 +857,91 @@ whether wala normally running")
         # Clean ssh sessions
         # utils_misc.host_command("ps aux|grep '[s]sh -o UserKnownHostsFile'\
         # |awk '{print $2}'|xargs kill -9", ignore_status=True)
+
+
+'''
+    def test_customize_waagent_conf_path(self):
+        """
+        :avocado: tags=tier2
+        WALA-TC: [WALA function] the path of configuration file can be
+                 customized
+        1. Modify waagent.service; Move "/etc/waagent.conf" to
+           "/root/waagent.conf"; Systemd daemon reload
+        2. Deprovision this VM and use this as a template to create a new VM
+        3. After the VM finishing provisioning,login and Check whether wala
+           normally running
+        """
+        self.log.info(
+            "WALA-TC: [func] the path of configuration file can be customized")
+        self.log.info(
+            "1. Modify waagent.service; Move /etc/waagent.conf to /root/\
+waagent.conf; Systemd daemon reload")
+        cmd_stop_waagent = "service waagent stop"
+        status, output = self.session.cmd_status_output(cmd_stop_waagent)
+        self.assertEqual(
+            status, 0,
+            "Fail to stop waagent service before test\n{}".format(str(output)))
+        self.session.cmd_output("rm -f /var/log/waagent.log")
+        self.session.cmd_output("mv /etc/waagent.conf /root/waagent.conf")
+        if LooseVersion(self.vm.rhel_version) < LooseVersion("7.0"):
+            waagent_service_file = "/etc/init.d/waagent"
+            self.session.cmd_output(
+                "sed -i '19s/-start/-configuration-path:\/root\/waagent.conf \
+-start/' {0}".format(waagent_service_file))
+            self.assertIn(
+                "/root/waagent.conf",
+                self.session.cmd_output(
+                    "grep '$WAZD_BIN -configuration-path' {0}".format(
+                        waagent_service_file)),
+                "Fail to modify ConditionPathExists in waagent.service")
+        else:
+            waagent_service_file = "/usr/lib/systemd/system/waagent.service"
+            self.session.cmd_output(
+                "sed -i -e '/ExecStart/s/$/ -configuration-path:\/root\/\
+waagent.conf&/g' -e 's/\/etc\/waagent.conf/\/root\/waagent.conf/g' {0}\
+".format(waagent_service_file))
+            self.assertIn(
+                "-configuration-path:/root/waagent.conf",
+                self.session.cmd_output(
+                    "grep ExecStart {0}".format(waagent_service_file)),
+                "Fail to modify ExecStart in waagent.service")
+            self.assertIn(
+                "/root/waagent.conf",
+                self.session.cmd_output("grep ConditionPathExists {0}".format(
+                    waagent_service_file)),
+                "Fail to modify ConditionPathExists in waagent.service")
+            self.session.cmd_output("systemctl daemon-reload")
+        # Perform sync to let os write the file to disk right now.
+        self.session.cmd_output("sync")
+        self.log.info("2. Deprovision this VM and use this as a template to \
+create a new VM")
+        self.session.cmd_output("waagent -deprovision+user -configuration-path\
+:/root/waagent.conf -force")
+        time.sleep(20)
+        # vm is running state is acceptable, ARM only.
+        image_uri = self.vm.properties.get("storageProfile").get("osDisk").get(
+            "vhd").get("uri")
+        self.old_vm = self.vm
+        cloud = Setup(self.params, self.name)
+        self.vm = cloud.vm
+        self.vm.vm_name += "-recreate"
+        self.vm.image = image_uri
+        self.vm.create(wait=True)
+        # self.session = cloud.init_vm()
+        self.session = cloud.init_session()
+        self.session.connect(timeout=180)
+        del output, status
+        status, output = self.session.cmd_status_output('sudo su -')
+        self.assertEqual(status, 0,
+                         "User [root] login failed\n{}".format(str(output)))
+        self.log.info("3. After the VM finishing provisioning,login and Check \
+whether wala normally running")
+        del output
+        output = self.session.cmd_output("ps aux|grep -E '(waagent|WAL)'")
+        self.assertIn("waagent -daemon -configuration-path:/root/waagent.conf",
+                      output,
+                      "New waagent.conf file doesn't work for daemon process")
+        self.assertIn(
+            "-run-exthandlers -configuration-path:/root/waagent.conf", output,
+            "New waagent.conf file doesn't work for run-exthandlers process")
+'''

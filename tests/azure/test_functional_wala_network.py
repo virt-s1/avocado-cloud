@@ -109,7 +109,7 @@ class NetworkTest(Test):
             status, output = walaconfig.verify_value("AutoUpdate.Enabled", "n")
             self.assertEqual(status, 0, output)
             del status, output
-            self.session.cmd_output("systemctl restart waagent")
+            self.session.cmd_output("systemctl restart waagent;sleep 10")
 
     def test_connectivity_check(self):
         """
@@ -275,6 +275,11 @@ lo eth0\
                         retry, max_retry))
                 time.sleep(5)
             else:
+                if "NXDOMAIN" in self.session.cmd_output("nslookup {}".format(new_hostname)):
+                    self.log.info("WALA published hostname: " + self.session.cmd_output("cat /var/lib/waagent/published_hostname"))
+                    self.log.info("VM hostname: " + self.session.cmd_output("hostname"))
+                    self.log.info("Logs:\n" + self.session.cmd_output("tail -100 /var/log/waagent.log"))
+                    self.fail("New hostname {} is not in DNS list".format(new_hostname))
                 self.assertNotIn(
                     "NXDOMAIN",
                     self.session.cmd_output(
@@ -420,7 +425,7 @@ lo eth0\
                 self.vm.vm_name))
             self.session.cmd_output(
                 "/usr/bin/cp /etc/waagent.conf-bak /etc/waagent.conf")
-            self.session.cmd_output("systemctl restart waagent")
+            self.session.cmd_output("systemctl restart waagent;sleep 10")
         elif self.case_short_name == "test_verify_dhclient_not_in_waagent_cgroup":
             self.session.cmd_output("/usr/bin/cp /tmp/NetworkManager.conf /etc/NetworkManager/")
         elif self.case_short_name in [
