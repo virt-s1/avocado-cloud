@@ -707,6 +707,11 @@ disk mount point")
         RHEL-170749 - CLOUDINIT-TC: [Azure]Check NetworkManager dispatcher
         BZ#1707725
         """
+        version = self.session.cmd_output("cloud-init -v|awk '{print $2}'")
+        if LooseVersion(version) >= LooseVersion("23.2"):
+            self.cancel(
+                    "Skip case because cloud-init-{} doesn't support this feature".format(version)
+                    )
         self.log.info(
             "RHEL-170749 - CLOUDINIT-TC: [Azure]Check NetworkManager dispatcher"
         )
