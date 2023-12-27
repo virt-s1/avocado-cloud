@@ -38,3 +38,25 @@ kernel: unchecked MSR access error: WRMSR to 0x3a
 # BZ1956121
 dbus-:1.1-org.fedoraproject.SetroubleshootPrivileged@0.service: Failed with result 'signal'
 dbus-:1.1-org.fedoraproject.Setroubleshootd@0.service: Failed with result 'signal'
+Calling 'http://100.100.100.200/2016-01-01/meta-data/instance-id' failed
+# BZ2154732
+sys-module-fuse.device: Failed to enqueue SYSTEMD_WANTS= job
+# BZ1951176
+Failed to look up module alias 'msr'
+systemd-modules-load.service: Main process exited, code=exited, status=1/FAILURE
+systemd-modules-load.service: Failed with result 'exit-code'
+Failed to start Load Kernel Modules
+# https://lore.kernel.org/lkml/20180821211528.8575-1-eduval@amazon.com/
+Failed to initialize perfmon. No PMU support: -19
+# https://yhbt.net/lore/all/20200113101403.GD13310@zn.tnic/T/
+user: probe of wq0.0 failed with error -95
+user: probe of wq1.0 failed with error -95
+user: probe of wq2.0 failed with error -95
+user: probe of wq3.0 failed with error -95
+fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge
+fail to add MMCONFIG information, can't access extended configuration space under this bridge
+# RHEL-17610
+util.py[WARNING]: Running interface command ['nmcli', 'connection', 'up', 'filename', '/etc/NetworkManager/system-connections/cloud-init-eth0.nmconnection'] failed
+# BZ2227532
+affinity: Input/output error
+nm-cloud-setup.service: Failed with result 'signal'
