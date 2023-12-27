@@ -84,8 +84,14 @@ S.5....T.  c /etc/containers/registries.conf
 .......T.    /boot/efi/EFI/redhat/shimaa64-redhat.efi
 .......T.    /boot/efi/EFI/redhat/shimaa64.efi
 .M.......  c /boot/grub2/grub.cfg
+.M.......  c /boot/efi/EFI/redhat/grub.cfg
 .M.......    /boot/grub2/fonts/unicode.pf2
 S.5....T.    /usr/share/authselect/default/sssd/password-auth
 S.5....T.    /usr/share/authselect/default/sssd/system-auth
+.......T.    /usr/share/authselect/default/sssd/password-auth
+.......T.    /usr/share/authselect/default/sssd/system-auth
+..5....T.  c /etc/rhsm/rhsm.conf
+.......T.    /usr/lib/systemd/system/sshd.service
+.......T.    /usr/lib/systemd/system/nm-cloud-setup.service
 #################### KNOWN ISSUES BELOW ####################
 S.5....T.    /usr/lib/systemd/system/cloud-init.service

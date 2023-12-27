@@ -235,6 +235,13 @@
 /etc/cloud/cloud.cfg.d/aliyun_cloud.cfg
 /etc/dracut.conf.d/nvme.conf
 /etc/kernel/cmdline
+/boot/efi/EFI/redhat/grub.cfg.aliyun_backup
+/etc/nsswitch.conf.save_by_rpm
+/etc/rhsm/rhsm.conf.save
+/etc/systemd/system/NetworkManager.service.wants/nm-cloud-setup.service
+/etc/systemd/system/timers.target.wants/nm-cloud-setup.timer
+/etc/systemd/system/sysinit.target.wants/systemd-pstore.service
+/etc/systemd/system/nm-cloud-setup.service.d/override.conf
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id

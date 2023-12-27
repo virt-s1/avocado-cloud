@@ -59,7 +59,7 @@ user: {0}
 password: {1}
 chpasswd: {{ expire: False }}
 
-ssh_pwauth: 1
+ssh_pwauth: True
 """.format(self.vm.vm_username, self.vm.vm_password)
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:

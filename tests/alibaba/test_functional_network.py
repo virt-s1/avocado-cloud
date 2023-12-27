@@ -303,12 +303,13 @@ class NetworkTest(Test):
         self.log.info("The secondary private ips: %s" % str(private_ip_list))
 
         # Config and start nm-cloud-setup service
-        guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
-        self.session.cmd_output("mkdir -p {0}".format(guest_path))
-        self.session.copy_files_to(local_path="{0}/../../scripts/nm-cloud-setup.sh".format(self.pwd),
-                                    remote_path=guest_path)
-        self.session.cmd_output("bash {0}/nm-cloud-setup.sh ALIYUN".format(guest_path), timeout=30)
+        # guest_path = self.session.cmd_output("echo $HOME") + "/workspace"
+        # self.session.cmd_output("mkdir -p {0}".format(guest_path))
+        # self.session.copy_files_to(local_path="{0}/../../scripts/nm-cloud-setup.sh".format(self.pwd),
+        #                             remote_path=guest_path)
+        # self.session.cmd_output("bash {0}/nm-cloud-setup.sh ALIYUN".format(guest_path), timeout=30)
 
+        time.sleep(310)
         # Check the primary ip by `ip addr` command
         primary_ip_by_ip_addr = self.session.cmd_output(
             "ip addr | grep eth | grep inet | grep -v secondary | awk '{print $2}' | awk -F '/' '{print $1}'")
@@ -331,7 +332,8 @@ class NetworkTest(Test):
         self.assertEqual(len(private_ip_list), 0,
                          "Fail to unassign all secondary private ip addresses")
         
-        self.session.cmd_output("systemctl start nm-cloud-setup.service")
+        #self.session.cmd_output("systemctl start nm-cloud-setup.service")
+        time.sleep(310)
         self.assertEqual(self.session.cmd_output("ip addr | grep secondary | wc -l"), "0",
                                                   "Not all the secondary private ips are released")
 
