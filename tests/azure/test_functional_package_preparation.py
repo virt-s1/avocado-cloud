@@ -155,7 +155,7 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
                 break
         # If WALinuxAgent, remove cloud-init
         if self.packages.startswith("WALinuxAgent"):
-            self.session.cmd_output("yum erase -y cloud-init")
+            self.session.cmd_output("yum erase -y cloud-init", timeout=180)
         # Install other necessary packages
         _other_pkgs = "tar net-tools bind-utils dracut-fips dracut-fips-aesni \
 tcpdump"
