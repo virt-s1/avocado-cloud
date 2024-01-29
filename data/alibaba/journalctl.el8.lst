@@ -37,3 +37,18 @@ util.py[WARNING]: Running module keys-to-console
 cloud-final.service: Failed with result 'exit-code'.
 Failed to start Execute cloud user/final scripts.
 kernel: unchecked MSR access error: WRMSR to 0x3a
+Calling 'http://100.100.100.200/2016-01-01/meta-data/instance-id' failed
+# https://lore.kernel.org/lkml/20180821211528.8575-1-eduval@amazon.com/
+Failed to initialize perfmon. No PMU support: -19
+# https://yhbt.net/lore/all/20200113101403.GD13310@zn.tnic/T/
+user: probe of wq0.0 failed with error -95
+user: probe of wq1.0 failed with error -95
+user: probe of wq2.0 failed with error -95
+user: probe of wq3.0 failed with error -95
+# https://bugzilla.kernel.org/show_bug.cgi?id=211765
+fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge
+# RHEL-17610
+util.py[WARNING]: Running interface command ['nmcli', 'connection', 'up', 'filename', '/etc/NetworkManager/system-connections/cloud-init-eth0.nmconnection'] failed
+# BZ2227532
+affinity: Input/output error
+nm-cloud-setup.service: Failed with result 'signal'

@@ -32,6 +32,7 @@ from aliyunsdkecs.request.v20140526 import GetInstanceConsoleOutputRequest
 from aliyunsdkecs.request.v20140526 import DescribeAvailableResourceRequest
 from aliyunsdkecs.request.v20140526 import AssignPrivateIpAddressesRequest
 from aliyunsdkecs.request.v20140526 import UnassignPrivateIpAddressesRequest
+from aliyunsdkecs.request.v20140526 import RunInstancesRequest
 
 class AliyunConfig(object):
 
@@ -162,6 +163,7 @@ class AlibabaSDK(object):
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
 
+    #def run_instances(self, authentication="publickey"):
     def create_instance(self, authentication="publickey"):
         request = CreateInstanceRequest.CreateInstanceRequest()
         key_list = [
@@ -173,7 +175,7 @@ class AlibabaSDK(object):
         self.vm_params.setdefault("InstanceChargeType", "PostPaid")
         self.vm_params.setdefault("InternetChargeType", "PayByTraffic")
         self.vm_params.setdefault("SystemDiskCategory",
-                                  self.vm_params['DiskCategory'])
+                                  self.vm_params['SystemDiskCategory'])
         self.vm_params.setdefault("InternetMaxBandwidthIn", "5")
         self.vm_params.setdefault("InternetMaxBandwidthOut", "5")
         if authentication == "publickey":
