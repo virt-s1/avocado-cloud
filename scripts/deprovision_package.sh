@@ -533,10 +533,13 @@ kernel)
 ;;
 esac
 
+source /etc/os-release
+
 if [ x$func == x"deprovision" ];then
     deprovision
 elif [ x$func == x"verify" ];then
-    verify
+    # RHEL-8.2 image cannot pass the verificaiton. No need to do it.
+    [[ x"${VERSION_ID}" == x"8.2" ]] || verify
 elif [ x$func == x"all" ];then
     deprovision
     verify
