@@ -38,3 +38,4 @@ retbleed:Mitigation: IBRS
 retbleed:Mitigation: Enhanced IBRS
 spectre_v2:Mitigation: Enhanced IBRS, RSB filling, PBRSB-eIBRS: SW sequence
 spectre_v2:Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling, PBRSB-eIBRS: SW sequence
+spec_rstack_overflow:Vulnerable: Safe RET, no microcode

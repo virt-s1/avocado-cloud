@@ -40,3 +40,4 @@ retbleed:Vulnerable
 retbleed:Mitigation: IBRS
 retbleed:Mitigation: Enhanced IBRS
 retbleed:Mitigation: untrained return thunk; SMT enabled with STIBP protection
+spec_rstack_overflow:Vulnerable: Safe RET, no microcode

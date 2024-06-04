@@ -233,6 +233,8 @@
 /initrd.root.sqsh
 /etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target
 /etc/cloud/cloud.cfg.d/aliyun_cloud.cfg
+/etc/cloud/cloud.cfg.d/aliyun_ebm.cfg.bak
+/etc/cloud/cloud.cfg.d/aliyun_ebm.cfg
 /etc/dracut.conf.d/nvme.conf
 /etc/kernel/cmdline
 /boot/efi/EFI/redhat/grub.cfg.aliyun_backup
