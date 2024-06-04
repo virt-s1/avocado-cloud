@@ -130,8 +130,7 @@ class AlibabaSDK(object):
         request.set_accept_format('json')
         try:
             logging.debug("Run: {0}".format(request.__class__.__name__))
-            #            logging.debug(
-            #               "Request: %s" % request.get_query_params())
+            logging.debug("Request: %s" % request.get_query_params())
             response_str = self.clt.do_action_with_exception(request)
             response_detail = json.loads(response_str)
             #            logging.debug("Response: %s" % response_detail)
@@ -163,9 +162,10 @@ class AlibabaSDK(object):
         request = self._add_params(request, key_list, self.vm_params)
         return self._send_request(request)
 
-    #def run_instances(self, authentication="publickey"):
-    def create_instance(self, authentication="publickey"):
-        request = CreateInstanceRequest.CreateInstanceRequest()
+    def run_instances(self, authentication="publickey"):
+    # def create_instance(self, authentication="publickey"):
+        # request = CreateInstanceRequest.CreateInstanceRequest()
+        request = RunInstancesRequest.RunInstancesRequest()
         key_list = [
             "InstanceChargeType", "ImageId", "InstanceType",
             "InternetChargeType", "SecurityGroupId", "VSwitchId",
@@ -183,6 +183,7 @@ class AlibabaSDK(object):
         elif authentication == "password":
             key_list.append("Password")
         request = self._add_params(request, key_list, self.vm_params)
+        # request.set_ImageOptions({"LoginAsNonRoot":True})
         response = self._send_request(request)
         if isinstance(response, Exception):
             raise response
@@ -197,8 +198,9 @@ class AlibabaSDK(object):
 
     def stop_instance(self, instance_id, force=False):
         request = StopInstanceRequest.StopInstanceRequest()
-        key_list = ["InstanceId", "ForceStop"]
+        key_list = ["InstanceId", "ForceStop", "StoppedMode"]
         self.vm_params["InstanceId"] = instance_id
+        self.vm_params["StoppedMode"] = "KeepCharging"
         if force:
             self.vm_params["ForceStop"] = force
         request = self._add_params(request, key_list, self.vm_params)

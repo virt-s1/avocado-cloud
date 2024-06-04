@@ -68,9 +68,9 @@ class AlibabaVM(VM):
                 return True
 
             # Exceptions (detect wrong status to save time)
-            # if status == 'Running' and current_status not in ('Pending','Stopping','Starting'):
-            if status == 'Running' and current_status not in ('Stopping',
-                                                              'Starting'):
+            if status == 'Running' and current_status not in ('Pending','Stopping','Starting'):
+            # if status == 'Running' and current_status not in ('Stopping',
+            #                                                   'Starting'):
                 logging.error('While waiting for the server to get Running, \
 its status cannot be {0} rather than Stopping or Starting.'.format(
                     current_status))
@@ -88,18 +88,18 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         authentication = "publickey"
         if self.keypair is None:
             authentication = "password"
-        self.ecs.create_instance(authentication=authentication)
-        if wait:
-            time.sleep(10)
-            self.wait_for_status(status="Stopped")
-        self._data = None
-        self.ecs.allocate_public_ip_address(self.id)
-        time.sleep(5)
-        # self.ecs.run_instances(authentication=authentication)
+        # self.ecs.create_instance(authentication=authentication)
         # if wait:
-        #     time.sleep(20)
-        #     self.wait_for_status(status="Running")
+        #     time.sleep(10)
+        #     self.wait_for_status(status="Stopped")
         # self._data = None
+        # self.ecs.allocate_public_ip_address(self.id)
+        # time.sleep(5)
+        self.ecs.run_instances(authentication=authentication)
+        if wait:
+            time.sleep(20)
+            self.wait_for_status(status="Running")
+        self._data = None
 
     def start(self, wait=False):
         """

@@ -207,6 +207,7 @@ password: output of cmd `who` unexpected -> %s" % output)
             connect_timeout = 300
 
         before = self.session.cmd_output('last reboot')
+        self.session.send_line('sudo sync')
         self.vm.reboot(wait=True)
         self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
@@ -251,6 +252,7 @@ password: output of cmd `who` unexpected -> %s" % output)
             connect_timeout = 120
 
         before = self.session.cmd_output('last reboot')
+        self.session.send_line('sudo sync')
         self.session.send_line('sudo reboot')
         time.sleep(10)
         self.session.connect(timeout=connect_timeout)
@@ -288,7 +290,11 @@ password: output of cmd `who` unexpected -> %s" % output)
         pass_criteria: 
             Instance status is stopped.
         """
-
+        if 'ecs.ebm' in self.vm.flavor:
+            time.sleep(120)
+        else:
+            time.sleep(60)
+        self.session.cmd_output('sudo sync')
         self.vm.stop(wait=True)
         self.assertTrue(self.vm.is_stopped(),
                         "Stop VM error: VM status is not SHUTOFF")

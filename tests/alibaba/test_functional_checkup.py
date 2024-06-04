@@ -836,14 +836,14 @@ will not check kernel-devel package.')
         utils_alibaba.run_cmd(self, "rpm -q virt-what", expect_ret=0, msg='get virt-what version')
         virt_what_output = utils_alibaba.run_cmd(self, "sudo virt-what", expect_ret=0)
         lscpu_output = utils_alibaba.run_cmd(self, 'lscpu', expect_ret=0)
-        if 'KVM' in lscpu_output:
-            self.assertIn('alibaba_cloud\nkvm', virt_what_output)
-        elif 'x86_64' in lscpu_output and 'Hypervisor' not in lscpu_output:
+        if 'x86_64' in lscpu_output and 'Hypervisor' not in lscpu_output:
             self.assertIn('alibaba_cloud-ebm', virt_what_output)
         elif 'aarch64' in lscpu_output and 'Hypervisor' not in lscpu_output:
             # virt-what cannot print kvm on aarch64 instance at present until RHEL8.8 & RHEL9.2
             #self.assertIn('alibaba_cloud\nkvm', virt_what_output)
             self.assertIn('alibaba_cloud', virt_what_output)
+        elif 'KVM' in lscpu_output:
+            self.assertIn('alibaba_cloud\nkvm', virt_what_output)
         else:
             self.cancel("Unknown hypervisor and skip this case.")
 
