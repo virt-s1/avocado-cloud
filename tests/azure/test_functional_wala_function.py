@@ -42,6 +42,10 @@ class WALAFuncTest(Test):
         if "test_waagent_depro" in self.case_short_name:
             self.session.cmd_output("systemctl stop NetworkManager")
 
+    @property
+    def wala_version(self):
+        return LooseVersion(self.session.cmd_output("rpm -q WALinuxAgent").split("-")[1])
+
     def test_waagent_verbose(self):
         """
         :avocado: tags=tier2
@@ -602,7 +606,11 @@ to login as root"
         # waagent -run-exthandlers
         # It doesn't check the process, but only check the log.
         output = self.session.cmd_output("timeout 3 waagent -run-exthandlers")
-        self.assertIn("is running as the goal state agent", output,
+        if self.wala_version >= LooseVersion('2.9.1.1'):
+            keyword = "Goal State Agent version"
+        else:
+            keyword = "is running as the goal state agent"
+        self.assertIn(keyword, output,
                       "Fail to run exthandlers")
         self.assertIn("is an orphan -- exiting", output,
                       "Fail to exit as orphan")
