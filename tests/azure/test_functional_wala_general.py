@@ -67,11 +67,18 @@ class GeneralTest(Test):
             self.session.cmd_output(
                 "sudo /usr/bin/cp /etc/waagent.conf{,-bak}")
         if self.case_short_name == "test_upgrade_downgrade_package":
+            new_nvr = self.package.split(',')[0].replace('-udev', '').replace('.noarch.rpm', '')
+            if self.session.cmd_status_output("ls /tmp/{}".format(self.package.split(',')[0]))[0] != 0:
+                self.log.info("No new package in guest VM. Trying to download it.")
+                utils_azure.command("mkdir -p newpkg;cd newpkg;brew download-build {};rm -f oldpkg/*.src.*".format(new_nvr))
+                self.session.copy_files_to(
+                    local_path="{}".format('./newpkg/*'),
+                    remote_path="/tmp/"
+                )
             self.assertEqual(0, self.session.cmd_status_output("ls /tmp/{}".format(self.package.split(',')[0]))[0],
-                                "No new pakcage in guest VM")
+                                "No new package in guest VM")
             # Get the previous version to get the old package
             # rhel7 project has 2 units(7.9), rhel8+ has 3 units(8.7.0). Need to handle both formats
-            new_nvr = self.package.split(',')[0].replace('-udev', '').replace('.noarch.rpm', '')
             xyz_list = self.project.split('.')
             y_version = int(xyz_list[1])
             def get_old_pkg(y):
@@ -91,7 +98,11 @@ class GeneralTest(Test):
                     return get_old_pkg(int(y)-1)
                 else:
                     return old_nvr
-            old_nvr = get_old_pkg(y_version)
+            # There's no previous version for 10.0. So hardcode the old version
+            if str(self.project) == '10.0':
+                old_nvr = 'WALinuxAgent-2.9.1.1-3.el10'
+            else:
+                old_nvr = get_old_pkg(y_version)
             if not os.path.exists("./oldpkg/{}.noarch.rpm".format(old_nvr)):
                 utils_azure.command('mkdir oldpkg;cd oldpkg;brew download-build {}'.format(old_nvr))
                 utils_azure.command('rm -f oldpkg/*.src.*')
@@ -468,7 +479,7 @@ be removed and a new *_waagent.pid file is generated")
             "RHEL-178728	WALA-TC: [General] Verify provision Gen2 VM")
         error_msg = ""
         # Verify is Gen2
-        if self.session.cmd_status_output("dmesg|grep -w EFI")[0] != 0:
+        if self.session.cmd_status_output("sudo dmesg|grep -w EFI")[0] != 0:
             self.error('This is not Gen2 VM! Abort the test.')
         # Verify hostname is correct
         try:
@@ -682,7 +693,7 @@ auto-update packages. Special string should be in waagent.log")
         self.session.cmd_output("service waagent start")
         time.sleep(50)
         for retry in range(0, 30):
-            if self.session.cmd_status_output("ll /var/lib/waagent/WALinuxAgent-*.zip")[0] == 0:
+            if self.session.cmd_status_output("ll -d /var/lib/waagent/WALinuxAgent-*")[0] == 0:
                 break
             self.log.info("Waiting for auto-update package downloaded. \
 Retry: {0}/30".format(retry+1))

@@ -21,10 +21,6 @@ class WALAConfTest(Test):
         account.login()
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         self.project = self.params.get("rhel_ver", "*/VM/*")
-        if self.case_short_name == "test_logs_collect":
-            # RHEL-9 doesn't support CGroup so cannot collect logs
-            if LooseVersion(self.project) >= LooseVersion("9.0"):
-                self.cancel("Cannot support RHEL-9 now. Skip.")
         if self.case_short_name == "test_resource_disk_gpt_partition":
             cloud = Setup(self.params, self.name, size="M64ls")
         else:
@@ -1380,6 +1376,7 @@ echo 'teststring' >> /tmp/test.log\
         :avocado: tags=tier2
         VIRT-294560 - WALA-TC: [WALA conf] Logs.Collect and Logs.CollectPeriod
         1. Verify default value: Logs.Collect=y, Logs.CollectPeriod=3600
+        * If >= WALinuxAgent-2.7.0.6-10.el9, the default value is n
         2. Verify the description of these 2 parameters are correct
         3. Verify the default value if no such parameter in waagent.conf
         4. Verify feature: Logs.Collect=y and Logs.CollectPeriod=15
@@ -1387,13 +1384,13 @@ echo 'teststring' >> /tmp/test.log\
         """
         self.log.info("VIRT-294560 - WALA-TC: [WALA conf] Logs.Collect and Logs.CollectPeriod")
         # Only available >= WALA-2.3.0.2
-        wala_version = self.session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
+        wala_version, minor_version = self.session.cmd_output("rpm -q WALinuxAgent").split('.el')[0].split('-')[1:3]
         if LooseVersion(wala_version) < LooseVersion('2.3.0.2'):
             self.cancel("This feature is only available after v2.3.0.2. Skip.")
         ### Test begin
         self.session.cmd_output("sudo su -")
         # 1. Verify default value: Logs.Collect=y, Logs.CollectPeriod=3600
-        if LooseVersion(wala_version) >= LooseVersion('2.7.0.6'):
+        if LooseVersion(wala_version) >= LooseVersion('2.7.0.6') and minor_version < 10:
             expect_value = 'y'
         else:
             expect_value = 'n'
@@ -1416,7 +1413,10 @@ echo 'teststring' >> /tmp/test.log\
             "Logs.Collect default value is not {}".format(expect_value))
         self.assertIn("Logs.CollectPeriod = 3600", show_conf,
             "Logs.CollectPeriod default value is not 3600")
-        # 4. Verify feature: Logs.Collect=y and Logs.CollectPeriod=15
+        # 4. Verify feature: Logs.Collect=y and Logs.CollectPeriod=15(RHEL-8 only now)
+        # RHEL-9 doesn't support CGroup so cannot collect logs
+        if LooseVersion(self.project) >= LooseVersion("9.0"):
+            self.warn("Cannot support RHEL-9 now. Skip feature verification.")
         self._modify_value("Logs.Collect", 'y')
         self._modify_value("Logs.CollectPeriod", '15')
         # Modify _INITIAL_LOG_COLLECTION_DELAY = 0 to skip 300s sleep
