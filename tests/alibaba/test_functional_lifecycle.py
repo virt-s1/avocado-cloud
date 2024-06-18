@@ -73,8 +73,8 @@ ssh_pwauth: True
         self.vm.user_data = base64.b64encode(user_data.encode())
         self.vm.keypair = None
         self.vm.create(wait=True)
-        if self.vm.is_stopped():
-            self.vm.start(wait=True)
+        if 'ecs.ebm' in self.vm.flavor:
+            time.sleep(300)
         self.session.connect(authentication="password",
                              timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
@@ -86,7 +86,10 @@ output of cmd `who` unexpected -> %s" % output)
         self.vm.vm_password = "Redhat123$"
         self.vm.reset_password(new_password=self.vm.vm_password)
         self.vm.reboot(wait=True)
-        self.session = self.cloud.init_session()
+        if 'ecs.ebm' in self.vm.flavor:
+            time.sleep(300)
+        # self.session.close()
+        # self.session = self.cloud.init_session()
         self.session.connect(authentication="password",
                              timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
