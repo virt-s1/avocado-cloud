@@ -233,15 +233,11 @@ def recreate_vm(instance, tag, timeout=300, **kwargs):
         cloud.vm.delete(wait=True)
     session = None
     wait = kwargs.get("wait", True)
-    try:
-        cloud.vm.create(wait=wait)
-        session = cloud.init_session()
-        if kwargs.get("connect", True) is True:
-            session.connect(timeout=timeout)
-    except Exception:
-        raise
-    finally:
-        return (cloud.vm, session)
+    cloud.vm.create(wait=wait)
+    session = cloud.init_session()
+    if kwargs.get("connect", True) is True:
+        session.connect(timeout=timeout)
+    return (cloud.vm, session)
 
 
 class WalaConfig(object):

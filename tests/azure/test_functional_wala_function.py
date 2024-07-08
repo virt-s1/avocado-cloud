@@ -28,6 +28,7 @@ class WALAFuncTest(Test):
     def setUp(self):
         account = AzureAccount(self.params)
         account.login()
+        self.project = self.params.get("rhel_ver", "*/VM/*")
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         cloud = Setup(self.params, self.name)
         self.vm = cloud.vm
@@ -118,12 +119,17 @@ class WALAFuncTest(Test):
         del status, output
         wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         # In case there's no /root/.bash_history
-        self.session.cmd_output("touch /var/lib/dhclient/walatest")
+        # RHEL-10 doesn't have dhclient
+        if LooseVersion(self.project) < LooseVersion('10.0'):
+            self.session.cmd_output("touch /var/lib/dhclient/walatest")
         self.session.cmd_output("touch /root/.bash_history")
         check_list = [
-            "/etc/ssh/ssh_host_*", "/etc/resolv.conf", "/var/lib/dhclient/*",
+            "/etc/ssh/ssh_host_*", "/etc/resolv.conf",
             "/root/.bash_history", "/var/log/waagent.log"
         ]
+        # RHEL-10 doesn't have dhclient
+        if LooseVersion(self.project) < LooseVersion('10.0'):
+            check_list.append("/var/lib/dhclient/*")
         message_list = [
             "WARNING! The waagent service will be stopped",
             "WARNING! All SSH host key pairs will be deleted",
@@ -215,9 +221,12 @@ to login as root"
                          "Fail to set password for user root")
         wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         check_list = [
-            "/etc/ssh/ssh_host_*", "/etc/resolv.conf", "/var/lib/dhclient/*",
+            "/etc/ssh/ssh_host_*", "/etc/resolv.conf",
             "/root/.bash_history", "/var/log/waagent.log"
         ]
+        # RHEL-10 doesn't have dhclient
+        if LooseVersion(self.project) < LooseVersion('10.0'):
+            check_list.append("/var/lib/dhclient/*")
         message_list = [
             "WARNING! The waagent service will be stopped",
             "WARNING! All SSH host key pairs will be deleted",
@@ -335,9 +344,12 @@ to login as root", deprovision_output,
         del status, output
         wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         check_list = [
-            "/etc/ssh/ssh_host_*", "/etc/resolv.conf", "/var/lib/dhclient/*",
+            "/etc/ssh/ssh_host_*", "/etc/resolv.conf",
             "/root/.bash_history", "/var/log/waagent.log"
         ]
+        # RHEL-10 doesn't have dhclient
+        if LooseVersion(self.project) < LooseVersion('10.0'):
+            check_list.append("/var/lib/dhclient/*")
         message_list = [
             "WARNING! The waagent service will be stopped",
             "WARNING! All SSH host key pairs will be deleted",
@@ -361,7 +373,9 @@ deleted", "WARNING! root password will be disabled. You will not be able to \
 login as root"
             ]
         # Make files for checking
-        self.session.cmd_output("touch /var/lib/dhclient/walatest")
+        # RHEL-10 doesn't have dhclient
+        if LooseVersion(self.project) < LooseVersion('10.0'):
+            self.session.cmd_output("touch /var/lib/dhclient/walatest")
         self.session.cmd_output("touch /root/.bash_history")
         # 1.1. waagent -deprovision+user [n]
         deprovision_status, deprovision_output = \
@@ -460,9 +474,12 @@ login as root"
                          "Fail to set password for user root")
         wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         check_list = [
-            "/etc/ssh/ssh_host_*", "/etc/resolv.conf", "/var/lib/dhclient/*",
+            "/etc/ssh/ssh_host_*", "/etc/resolv.conf",
             "/root/.bash_history", "/var/log/waagent.log"
         ]
+        # RHEL-10 doesn't have dhclient
+        if LooseVersion(self.project) < LooseVersion('10.0'):
+            check_list.append("/var/lib/dhclient/*")
         message_list = [
             "WARNING! The waagent service will be stopped",
             "WARNING! All SSH host key pairs will be deleted",

@@ -19,9 +19,12 @@ class NetworkTest(Test):
         account.login()
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         self.project = self.params.get("rhel_ver", "*/VM/*")
-        if self.case_short_name == "test_connectivity_check":
-            if LooseVersion(self.project) >= LooseVersion("8.0"):
+        if self.case_short_name == "test_connectivity_check" and \
+            LooseVersion(self.project) >= LooseVersion("8.0"):
                 self.cancel("RHEL-8 doesn't have network service. Skip.")
+        if self.case_short_name == "test_verify_dhclient_not_in_waagent_cgroup" and \
+            LooseVersion(self.project) >= LooseVersion("10.0"):
+                self.cancel("RHEL-10 doesn't have dhclient. Skip")
         cloud = Setup(self.params, self.name)
         self.vm = cloud.vm
         if self.case_short_name == "test_provision_vm_with_multiple_nics":
@@ -387,7 +390,10 @@ lo eth0\
         self.session.cmd_output("rm -f /etc/sysconfig/network-scripts/ifcfg-eth0")
         # Delete and recreate the VM
         utils_azure.deprovision(self)
-        self.vm_1, session_1 = utils_azure.recreate_vm(self, "noifcfg")
+        try:
+            self.vm_1, session_1 = utils_azure.recreate_vm(self, "noifcfg")
+        except:
+            self.fail("[RHEL-40966]Fail to provision VM without ifcfg-eth0")
         self.assertTrue(
             session_1.connect(), "Fail to connect to VM without ifcfg file for primary NIC")
 

@@ -483,10 +483,10 @@ class AzureVM(VM):
     def create(self, wait=True):
         cmd = 'az vm create --name "{}" --resource-group "{}" --image "{}" '\
             '--size "{}" --admin-username "{}" --authentication-type "{}" '\
-            ' --os-disk-name "{}"'\
+            ' --os-disk-name "{}" --boot-diagnostics-storage {}'\
             .format(self.vm_name, self.resource_group, self.image,
                     self.size, self.vm_username, self.authentication_type,
-                    self.os_disk_name)
+                    self.os_disk_name, self.storage_account)
         if self.ssh_key_value:
             cmd += ' --ssh-key-value {}'.format(self.ssh_key_value)
         elif self.generate_ssh_keys:

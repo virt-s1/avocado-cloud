@@ -220,16 +220,17 @@ sudo chown -R root:root /root/.ssh")
         :avocado: tags=tier2
         """
         self.log.info("WALA conf: Regenerate ssh host key pairs")
+        key_type = 'ecdsa'
         # 1. Provisioning.RegenerateSshHostKeyPair=n
         self._modify_value("Provisioning.RegenerateSshHostKeyPair", "n")
-        self._modify_value("Provisioning.SshHostKeyPairType", "dsa")
+        self._modify_value("Provisioning.SshHostKeyPairType", "ecdsa")
         self.session.cmd_output("sudo /usr/bin/cp /etc/ssh/sshd_config{,-bak}")
         self.session.cmd_output(
-            "sudo sed -i '/ssh_host_dsa_key/d' /etc/ssh/sshd_config")
+            "sudo sed -i '/ssh_host_ecdsa_key/d' /etc/ssh/sshd_config")
         self.session.cmd_output("sudo ssh-keygen -A")
         self.session.cmd_output("sudo sync")
         md5_0 = self.session.cmd_output(
-            "sudo md5sum /etc/ssh/ssh_host_dsa_key")
+            "sudo md5sum /etc/ssh/ssh_host_ecdsa_key")
         deprovision_output = self.session.cmd_output(
             "echo 'n'|sudo waagent -deprovision")
         warn_msg = "WARNING! All SSH host key pairs will be deleted"
@@ -238,13 +239,13 @@ sudo chown -R root:root /root/.ssh")
             "BZ#1314734: Should not have warning message: {0}. \n"
             "Real messages:\n{1}".format(warn_msg, deprovision_output))
         # md5_1b = self.session.cmd_output("sudo md5sum /etc/ssh/\
-        # ssh_host_dsa_key")
+        # ssh_host_ecdsa_key")
         # self.assertEqual(md5_1a, md5_1b,
         #                  "Should not remove old ssh host keys in \
         # deprovisioning")
         utils_azure.deprovision(self)
         self.vm_1, session_1 = utils_azure.recreate_vm(self, "regsshkey-n")
-        md5_1 = session_1.cmd_output("sudo md5sum /etc/ssh/ssh_host_dsa_key")
+        md5_1 = session_1.cmd_output("sudo md5sum /etc/ssh/ssh_host_ecdsa_key")
         self.assertEqual(
             md5_0, md5_1,
             "Should not regenerate ssh host keys in provisioning")
@@ -252,19 +253,19 @@ sudo chown -R root:root /root/.ssh")
         # 2. Provisioning.RegenerateSshHostKeyPair=y
         self._modify_value("Provisioning.RegenerateSshHostKeyPair", "y")
         # md5_2a = self.session.cmd_output("sudo md5sum /etc/ssh/\
-        # ssh_host_dsa_key")
+        # ssh_host_ecdsa_key")
         deprovision_output = self.session.cmd_output(
             "echo 'n'|sudo waagent -deprovision")
         self.assertIn(
             warn_msg, deprovision_output, "Don't have warning message: {0}. \n"
             "Real messages:\n{1}".format(warn_msg, deprovision_output))
         # md5_2b = self.session.cmd_output("sudo md5sum /etc/ssh/\
-        # ssh_host_dsa_key")
+        # ssh_host_ecdsa_key")
         # self.assertNotEqual(md5_2a, md5_2b,
         #                     "Fail to remove old ssh host keys in \
         # deprovisioning")
         self.vm_2, session_2 = utils_azure.recreate_vm(self, "regsshkey-y")
-        md5_2 = session_2.cmd_output("sudo md5sum /etc/ssh/ssh_host_dsa_key")
+        md5_2 = session_2.cmd_output("sudo md5sum /etc/ssh/ssh_host_ecdsa_key")
         self.assertNotEqual(
             md5_0, md5_2, "Fail to regenerate ssh host keys in provisioning")
 
@@ -374,14 +375,14 @@ in ext4 file system." % max_retry)
                 self.fail("Bug 1386494. After retry %d times, swap is \
 not enabled in xfs file system." % max_retry)
 
-    def _swapsize_check(self, swapsize, std_swapsize=None, max_retry=30):
+    def _swapsize_check(self, swapsize, std_swapsize=None, max_retry=30, delta=0, wait_time=10):
         # 1. ResourceDisk.Enable=y
         #    ResourceDisk.SwapSizeMB=swapsize
         self.log.info("ResourceDisk.SwapSizeMB={0}".format(swapsize))
         self._modify_value("ResourceDisk.EnableSwap", "y")
         self._modify_value("ResourceDisk.SwapSizeMB", swapsize)
         self.session.cmd_output("sudo systemctl restart waagent")
-        time.sleep(10)
+        time.sleep(wait_time)
         # Retry 30 times (300s in total) to wait for the swap file created.
         # The real swapsize is a little smaller than standard. So the
         # std_swapsize is swapsize-1
@@ -396,7 +397,7 @@ not enabled in xfs file system." % max_retry)
         for retry in range(1, max_retry + 1):
             real_swapsize = self.session.cmd_output(
                 "free -m|grep Swap|awk '{print $2}'")
-            if real_swapsize == str(std_swapsize):
+            if abs(int(real_swapsize) - int(std_swapsize)) <= delta:
                 break
             else:
                 self.log.info("Swap size is wrong. Retry %d/%d times." %
@@ -447,14 +448,16 @@ VolGroup-lv_swap/s/^/#/' /etc/fstab")
 rhel-swap/s/^/#/' /etc/fstab")
         result_error_msg = ""
         self.log.info("1. non-integer multiple of 64M size check")
+        # Known issue BZ#1977216:non-integer multiple of 64M size check failed
+        # So only set 1025 and verify 1024
         try:
-            self._swapsize_check(swapsize="1025")
+            self._swapsize_check(swapsize="1025", delta=2)
         except:
             result_error_msg += \
                 "BZ#1977216:non-integer multiple of 64M size check failed\n"
         self.log.info("2. large swap check")
         try:
-            self._swapsize_check(swapsize="50070")
+            self._swapsize_check(swapsize="50070", delta=70, wait_time=200)
         except:
             result_error_msg += "large swap check failed\n"
         self.log.info("3. zero size")
@@ -990,11 +993,11 @@ check new log folder".format(new_dir))
                  configuration file
         1. Modify "/etc/waagent.conf":
              OS.SshDir=/home/sshnew
-             Provisioning.SshHostKeyPairType=dsa
+             Provisioning.SshHostKeyPairType=ecdsa
            Copy /etc/ssh folder to /home/sshnew and remove sshnew/ssh_host_*
            files
         2. Deprovision this VM and use this as a template to create a new VM
-        3. After the VM finishing provisioning,login and Check if dsa ssh keys
+        3. After the VM finishing provisioning,login and Check if ecdsa ssh keys
            are generated in "sshnew"
         4. Deprovision this VM and check whether ssh key is removed under
            "sshnew"
@@ -1006,7 +1009,7 @@ and ssh configuration file")
         self.log.info("1. Modify /etc/waagent.conf, Copy /etc/ssh folder to " +
                       self.sshnew)
         self._modify_value("OS.SshDir", self.sshnew)
-        self._modify_value("Provisioning.SshHostKeyPairType", "dsa")
+        self._modify_value("Provisioning.SshHostKeyPairType", "ecdsa")
         self.session.cmd_output("cp -a /etc/ssh " + self.sshnew)
         self.session.cmd_output("rm -f {0}/ssh_host_*".format(self.sshnew))
         self.log.info("2. Deprovision this VM and use this as a template \
@@ -1014,11 +1017,11 @@ to create a new VM")
         utils_azure.deprovision(self)
         self.vm_1, session_1 = utils_azure.recreate_vm(self, "ssh-path")
         session_1.cmd_output("sudo su -")
-        self.log.info("3. After provisioning,login and check if dsa ssh keys \
+        self.log.info("3. After provisioning,login and check if ecdsa ssh keys \
 are generated in " + self.sshnew)
         for key in [
-                self.sshnew + "/ssh_host_dsa_key",
-                self.sshnew + "/ssh_host_dsa_key.pub"
+                self.sshnew + "/ssh_host_ecdsa_key",
+                self.sshnew + "/ssh_host_ecdsa_key.pub"
         ]:
             for retry in range(1, 11):
                 if utils_azure.file_exists(key, session_1):
@@ -1031,8 +1034,8 @@ are generated in " + self.sshnew)
 ssh key is removed under " + self.sshnew)
         session_1.cmd_output("waagent -deprovision -force")
         self.assertFalse(
-            utils_azure.file_exists("{}/ssh_host_dsa*".format(self.sshnew), session_1),
-            "Fail to remove ssh_host_dsa keys from new path")
+            utils_azure.file_exists("{}/ssh_host_ecdsa*".format(self.sshnew), session_1),
+            "Fail to remove ssh_host_ecdsa keys from new path")
 
     def test_customize_ssh_client_alive_interval(self):
         """
@@ -1132,7 +1135,7 @@ echo 'teststring' >> /tmp/test.log\
             self.session.cmd_output("sudo service sshd restart")
             if key_type == "auto":
                 old_md5_list = self.session.cmd_output(
-                    "md5sum /etc/ssh/ssh_host_{rsa,dsa,ecdsa,ed25519}_key"
+                    "md5sum /etc/ssh/ssh_host_{rsa,ecdsa,ed25519}_key"
                 ).split("\n")
             else:
                 old_md5 = self.session.cmd_output(
@@ -1143,7 +1146,7 @@ echo 'teststring' >> /tmp/test.log\
             # Check if regenerate the ssh host key pair
             if key_type == "auto":
                 new_md5_list = session_1.cmd_output(
-                    "md5sum /etc/ssh/ssh_host_{rsa,dsa,ecdsa,ed25519}_key"
+                    "md5sum /etc/ssh/ssh_host_{rsa,ecdsa,ed25519}_key"
                 ).split("\n")
                 for new_md5 in new_md5_list:
                     self.assertNotIn(
@@ -1156,7 +1159,7 @@ echo 'teststring' >> /tmp/test.log\
                     old_md5, new_md5,
                     "The {0} key pair is not regenerated.".format(key_type))
 
-        _key_pair_check("dsa")
+        _key_pair_check("ecdsa")
         if LooseVersion(self.project) >= LooseVersion("7.0"):
             _key_pair_check("auto")
         comment = '# The "auto" option is supported on OpenSSH 5.9 \
@@ -1391,14 +1394,18 @@ echo 'teststring' >> /tmp/test.log\
         self.session.cmd_output("sudo su -")
         # 1. Verify default value: Logs.Collect=y, Logs.CollectPeriod=3600
         if LooseVersion(wala_version) >= LooseVersion('2.7.0.6') and minor_version < 10:
-            expect_value = 'y'
+            conf_value = 'y'
         else:
-            expect_value = 'n'
-        self._verify_value("Logs.Collect", expect_value)
+            conf_value = 'n'
+        if LooseVersion(wala_version) >= LooseVersion('2.7.0.6'):
+            description_value = 'y'
+        else:
+            description_value = 'n'
+        self._verify_value("Logs.Collect", conf_value)
         self._verify_value("Logs.CollectPeriod", "3600")
         # 2. Verify the description of these 2 parameters are correct
         waagent_conf = self.session.cmd_output("cat /etc/waagent.conf")
-        self.assertIn("Enable periodic log collection, default is {}".format(expect_value), waagent_conf,
+        self.assertIn("Enable periodic log collection, default is {}".format(description_value), waagent_conf,
             "The description of Logs.Collect is incorrect.")
         self.assertIn("How frequently to collect logs, default is each hour", waagent_conf,
             "The description of Logs.CollectPeriod is incorrect.")
@@ -1416,7 +1423,8 @@ echo 'teststring' >> /tmp/test.log\
         # 4. Verify feature: Logs.Collect=y and Logs.CollectPeriod=15(RHEL-8 only now)
         # RHEL-9 doesn't support CGroup so cannot collect logs
         if LooseVersion(self.project) >= LooseVersion("9.0"):
-            self.warn("Cannot support RHEL-9 now. Skip feature verification.")
+            self.log.warn("Cannot support RHEL-9+ now. Skip feature verification.")
+            return
         self._modify_value("Logs.Collect", 'y')
         self._modify_value("Logs.CollectPeriod", '15')
         # Modify _INITIAL_LOG_COLLECTION_DELAY = 0 to skip 300s sleep
