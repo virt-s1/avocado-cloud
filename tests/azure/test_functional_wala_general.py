@@ -54,6 +54,8 @@ class GeneralTest(Test):
         self.session = cloud.init_vm(pre_delete=pre_delete)
         self.username = self.vm.vm_username
         self.package = self.params.get("packages", "*/Other/*")
+        if not self.package:
+            self.package = self.session.cmd_output("rpm -q WALinuxAgent")
         if self.case_short_name == "test_install_uninstall_package":
             if self.session.cmd_status_output("ls /tmp/{}".format(self.package.split(',')[0]))[0] != 0:
                 self.log.info("Package doesn't exist. Download from brew.")
@@ -703,9 +705,9 @@ Retry: {0}/30".format(retry+1))
         if self.wala_version < LooseVersion('2.3.0.2'):
             keywords = "Setting host plugin as default channel"
         else:
-            keywords = "Default channel changed to HostGA channel"
+            keywords = "Default channel changed to HostGA.* channel"
         self.assertEqual(0, self.session.cmd_status_output(
-            "grep '{}' /var/log/waagent.log".format(keywords))[0],
+            "grep -E '{}' /var/log/waagent.log".format(keywords))[0],
             "No '{}' notice in waagent.log".format(keywords))
 
     def test_host_plugin_extension(self):
@@ -740,9 +742,9 @@ Retry: {0}/10".format(retry+1))
         if self.wala_version < LooseVersion('2.3.0.2'):
             keywords = "Setting host plugin as default channel"
         else:
-            keywords = "Default channel changed to HostGA channel"
+            keywords = "Default channel changed to HostGA.* channel"
         self.assertEqual(0, self.session.cmd_status_output(
-            "grep '{}' /var/log/waagent.log".format(keywords))[0],
+            "grep -E '{}' /var/log/waagent.log".format(keywords))[0],
             "No '{}' notice in waagent.log".format(keywords))
 
     def test_host_plugin_blob_status_upload(self):
