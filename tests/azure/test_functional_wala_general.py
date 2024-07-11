@@ -55,7 +55,7 @@ class GeneralTest(Test):
         self.username = self.vm.vm_username
         self.package = self.params.get("packages", "*/Other/*")
         if not self.package:
-            self.package = self.session.cmd_output("rpm -q WALinuxAgent")
+            self.package = self.session.cmd_output("rpm -qa|grep WALinuxAgent|sed 's/$/.rpm/g'|paste -sd ',' -")
         if self.case_short_name == "test_install_uninstall_package":
             if self.session.cmd_status_output("ls /tmp/{}".format(self.package.split(',')[0]))[0] != 0:
                 self.log.info("Package doesn't exist. Download from brew.")
@@ -487,18 +487,13 @@ be removed and a new *_waagent.pid file is generated")
         try:
             self.test_check_hostname()
         except:
-            error_msg += "Verify hostname failed\n"
+            error_msg += "Verify hostname correctess failed\n"
         # Verify hostname is published to DNS
-        try:
-            self.assertIn(".internal.cloudapp.net",
-                          self.session.cmd_output("hostname -f"),
-                          "Cannot get whole FQDN")
-            self.assertNotIn(
-                "NXDOMAIN",
-                self.session.cmd_output("nslookup {0}".format(
-                    self.vm.vm_name)), "Fail to publish hostname to DNS")
-        except:
-            error_msg += "Verify publish to DNS failed\n"
+        fqdn = self.session.cmd_output("hostname -f")
+        if ".internal.cloudapp.net" not in fqdn:
+            error_msg += "#RHEL-39537(RHEL-10):Cannot get whole FQDN: {}\n".format(fqdn)
+        if "NXDOMAIN" in self.session.cmd_output("nslookup {0}".format(self.vm.vm_name)):
+            error_msg += "Fail to publish hostname to DNS"
         # Verify mountpoint
         try:
             self.test_check_mountpoint()
@@ -528,7 +523,7 @@ CPUQuota=75%
             "rpm -e {}".format(pkgs.replace('.noarch.rpm', '')), timeout=120)[0], "Fail to uninstall package through rpm")
         # Verify no /usr/lib/systemd/system/waagent* left
         self.assertNotEqual(0, self.session.cmd_status_output(
-            "ls /usr/lib/systemd/system/waagent*")[0], "Some files left after package is removed!"
+            "ls /usr/lib/systemd/system/waagent*")[0], "#RHEL-40966(RHEL-10):Some files are left after package is removed!"
         )
         # rpm install
         self.session.cmd_output("rm -f /usr/lib/udev/rules.d/66-azure-storage.rules /usr/lib/udev/rules.d/99-azure-product-uuid.rules")
@@ -836,7 +831,7 @@ Retry: {0}/10".format(retry+1))
         # Verify Agent CGroups is enabled
         self.assertIn('True', 
             self.session.cmd_output("grep 'Agent cgroups enabled' /var/log/waagent.log"),
-            "#RHEL-7274(RHEL-9):Agent cgroups is not enabled")
+            "#RHEL-7274(RHEL-9+):Agent cgroups is not enabled")
 
     def test_wala_version_not_lower_than_old_rhel(self):
         """

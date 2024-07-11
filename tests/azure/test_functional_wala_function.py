@@ -42,6 +42,11 @@ class WALAFuncTest(Test):
         # Must stop NetworkManager or it will regenerate /etc/resolv.conf in RHEL-8.4
         if "test_waagent_depro" in self.case_short_name:
             self.session.cmd_output("systemctl stop NetworkManager")
+        if "test_waagent_collect_logs" == self.case_short_name:
+            if LooseVersion(self.project) >= LooseVersion('9.0') and \
+                LooseVersion(self.wala_version) >= LooseVersion('2.9.1.1'):
+                self.cancel("waagent -collect-logs cannot be enabled in RHEL-9+ and WALA-2.9.1.1+")
+
 
     @property
     def wala_version(self):
@@ -735,7 +740,7 @@ to login as root"
         exit_status, output = self.session.cmd_status_output(
             "waagent -collect-logs")
         self.assertEqual(0, exit_status,
-                         "Run waagent -collect-logs failed")
+                         "#RHEL-46713(RHEL-10):Run waagent -collect-logs failed")
         self.assertIn("Running log collector mode normal", output,
             "Log collector mode is should be normal")
         self.assertTrue(
