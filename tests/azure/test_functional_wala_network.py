@@ -393,7 +393,7 @@ lo eth0\
         try:
             self.vm_1, session_1 = utils_azure.recreate_vm(self, "noifcfg")
         except:
-            self.fail("[RHEL-40966]Fail to provision VM without ifcfg-eth0")
+            self.fail("#RHEL-40966:Fail to provision VM without ifcfg-eth0")
         self.assertTrue(
             session_1.connect(), "Fail to connect to VM without ifcfg file for primary NIC")
 
