@@ -44,7 +44,7 @@ class WALAFuncTest(Test):
             self.session.cmd_output("systemctl stop NetworkManager")
         if "test_waagent_collect_logs" == self.case_short_name:
             if LooseVersion(self.project) >= LooseVersion('9.0') and \
-                LooseVersion(self.wala_version) >= LooseVersion('2.9.1.1'):
+                self.wala_version >= LooseVersion('2.9.1.1'):
                 self.cancel("waagent -collect-logs cannot be enabled in RHEL-9+ and WALA-2.9.1.1+")
 
 
