@@ -42,7 +42,7 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
             command("netstat -tln|grep 3128").exit_status, 0,
             "Fail to enable squid in host")
         self.session.cmd_output("rm -f /etc/yum.repos.d/*")
-        self.session.cmd_output("yum clean all")
+        self.session.cmd_output("yum clean all", timeout=300)
         import re
         x_match = re.findall("el([0-9]+).*", self.package_list[0])
         if x_match:
