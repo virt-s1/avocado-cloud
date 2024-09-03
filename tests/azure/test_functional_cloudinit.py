@@ -1369,6 +1369,7 @@ swap:
         3. Verify if cloud-init can handle these passwords
         """
         self.log.info("RHEL-172679 CLOUDINIT-TC: chpasswd in cloud-init should support hashed passwords")
+        self.cancel("Move this case to os-tests. Skip.")
         self.session.cmd_output("sudo su -")
         # Enable boot diagnostic
         utils_azure.command("az vm boot-diagnostics enable -n {} -g {} --storage https://{}.blob.core.windows.net/"\
