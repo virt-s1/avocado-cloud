@@ -145,7 +145,8 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
             cloudinit_pkgs = [
                 'cloud-init', 'python-jsonpatch', 'cloud-utils-growpart',
                 'python-jsonschema', 'python-httpretty', 'pyserial',
-                'python-prettytable',
+                'python-prettytable', 'python-configobj', 'python-distro',
+                'python-jsonschema-specifications',
                 'python3-jsonpatch', 'python3-jsonschema', 'python3-httpretty',
                 'python3-prettytable', 'python3-configobj', 'python3-distro',
                 'python3-jsonschema-specifications'
