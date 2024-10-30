@@ -147,7 +147,8 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
                 'python-jsonschema', 'python-httpretty', 'pyserial',
                 'python-prettytable',
                 'python3-jsonpatch', 'python3-jsonschema', 'python3-httpretty',
-                'python3-prettytable'
+                'python3-prettytable', 'python3-configobj', 'python3-distro',
+                'python3-jsonschema-specifications'
             ]
         for cloudinit_pkg in cloudinit_pkgs:
             if cloudinit_pkg in self.packages:
