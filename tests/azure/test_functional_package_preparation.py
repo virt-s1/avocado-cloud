@@ -133,8 +133,8 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
 # \"yum -y install /tmp/*.rpm\"" % self.vm.public_ip,
 #                     timeout=300)
             command(_yum_install.format("/tmp/*.rpm"), timeout=300)
-        # Install cloud-init cloud-utils-growpart gdisk for cloud-init related
-        # packages
+        # Install cloud-init cloud-utils-growpart gdisk(RHEL-8,9) for
+        # cloud-init related packages
         if x_version > 7:
             cloudinit_pkgs = [
                 'cloud-init', 'python3-jsonpatch', 'cloud-utils-growpart',
@@ -151,7 +151,11 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
             ]
         for cloudinit_pkg in cloudinit_pkgs:
             if cloudinit_pkg in self.packages:
-                for pkg in ["cloud-init", "cloud-utils-growpart", "gdisk"]:
+                # RHEL-10 removes gdisk
+                dep_list = ["cloud-init", "cloud-utils-growpart"]
+                if x_version < 10:
+                    dep_list.append('gdisk')
+                for pkg in dep_list:
                     if self.session.cmd_status_output(
                             "rpm -q %s" % pkg)[0] != 0:
 #                         command("ssh -o UserKnownHostsFile=/dev/null -o \
