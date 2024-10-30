@@ -92,7 +92,7 @@ function deprovision_cloudinit_wala() {
 
 function deprovision_cloudinit() {
     systemctl stop waagent
-    rpm -e WALinuxAgent
+    rpm -e WALinuxAgent WALinuxAgent-udev
     systemctl enable cloud-{init-local,init,config,final} > /dev/null 2>&1
     swapoff -a
     for i in "${delete_arr[@]}";
