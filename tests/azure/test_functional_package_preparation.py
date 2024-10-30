@@ -153,7 +153,7 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
             if cloudinit_pkg in self.packages:
                 # RHEL-10 removes gdisk
                 dep_list = ["cloud-init", "cloud-utils-growpart"]
-                if x_version > 9:
+                if x_version < 10:
                     dep_list.append('gdisk')
                 for pkg in dep_list:
                     if self.session.cmd_status_output(
