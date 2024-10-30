@@ -139,17 +139,16 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
             cloudinit_pkgs = [
                 'cloud-init', 'python3-jsonpatch', 'cloud-utils-growpart',
                 'python3-jsonschema', 'python3-httpretty', 'python3-pyserial',
-                'python3-prettytable'
+                'python3-prettytable', 'python3-configobj', 'python3-distro',
+                'python3-jsonschema-specifications'
             ]
         else:
             cloudinit_pkgs = [
                 'cloud-init', 'python-jsonpatch', 'cloud-utils-growpart',
                 'python-jsonschema', 'python-httpretty', 'pyserial',
-                'python-prettytable', 'python-configobj', 'python-distro',
-                'python-jsonschema-specifications',
+                'python-prettytable', 
                 'python3-jsonpatch', 'python3-jsonschema', 'python3-httpretty',
-                'python3-prettytable', 'python3-configobj', 'python3-distro',
-                'python3-jsonschema-specifications'
+                'python3-prettytable'
             ]
         for cloudinit_pkg in cloudinit_pkgs:
             if cloudinit_pkg in self.packages:
@@ -204,6 +203,8 @@ tcpdump"
         self.session.copy_files_to(local_path="{0}/../../scripts/{1}".format(
             self.pwd, script),
                                    remote_path="/tmp")
+        import time
+        time.sleep(100)                           
         ret, output = self.session.cmd_status_output(
             "/bin/bash /tmp/{} all {} {}".format(script, depro_type,
                                                  origin_username))
