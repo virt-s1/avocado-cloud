@@ -538,6 +538,7 @@ cloud_config_modules:
         2. Check os disk and fs capacity
         3. Stop VM. Enlarge os disk
         4. Start VM and login. Check os disk and fs capacity
+        Note: cloud-utils removes dependecy gdisk since rhel-10.0 (RHEL-36095)
         """
         self.log.info("RHEL7-103839 - CLOUDINIT-TC: Auto extend root partition and filesystem")
         # Skip the case if this is LVM root partition, as not support it currently
@@ -547,14 +548,24 @@ cloud_config_modules:
             self.session.cmd_output("lsblk /dev/{}".format(boot_dev))
             self.cancel("Skip this case as cloud-init not support LVM root partition")
         # 1. Install cloud-utils-growpart gdisk
-        if self.session.cmd_status_output(
-                "rpm -q cloud-utils-growpart gdisk")[0] != 0:
-            self.session.cmd_output("sudo rpm -ivh /root/rhui-azure-*.rpm")
-            self.session.cmd_output(
-                "sudo yum install -y cloud-utils-growpart gdisk")
+        if self.project.split('.')[0] < 10:
             if self.session.cmd_status_output(
                     "rpm -q cloud-utils-growpart gdisk")[0] != 0:
-                self.fail("Cannot install cloud-utils-growpart gdisk packages")
+                self.session.cmd_output("sudo rpm -ivh /root/rhui-azure-*.rpm")
+                self.session.cmd_output(
+                    "sudo yum install -y cloud-utils-growpart gdisk")
+                if self.session.cmd_status_output(
+                        "rpm -q cloud-utils-growpart gdisk")[0] != 0:
+                    self.fail("Cannot install cloud-utils-growpart gdisk packages")
+        else:
+            if self.session.cmd_status_output(
+                    "rpm -q cloud-utils-growpart")[0] != 0:
+                self.session.cmd_output("sudo rpm -ivh /root/rhui-azure-*.rpm")
+                self.session.cmd_output(
+                    "sudo yum install -y cloud-utils-growpart")
+                if self.session.cmd_status_output(
+                        "rpm -q cloud-utils-growpart")[0] != 0:
+                    self.fail("Cannot install cloud-utils-growpart packages")
         # 2. Check os disk and fs capacity
         boot_dev = self._get_boot_temp_devices()[0].split('/')[-1]
         partition = self.session.cmd_output(
