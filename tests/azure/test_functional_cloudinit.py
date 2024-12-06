@@ -1834,7 +1834,7 @@ ssh_pwauth: 1
         2. The DNS is over-written by cloud-init after reboot
         """        
         version = self.session.cmd_output("cloud-init -v|awk '{print $2}'")
-        if LooseVersion(version) < LooseVersion("22.1"):
+        if (LooseVersion(version) < LooseVersion("22.1") or LooseVersion(version) > LooseVersion("24.1")):
             self.cancel(
                     "Skip case because cloud-init-{} doesn't support this feature".format(version)
                     )
