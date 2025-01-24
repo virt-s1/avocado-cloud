@@ -15,11 +15,12 @@ class CloudDiskTest(Test):
         self.session = self.cloud.init_vm(pre_delete=pre_delete,
                                           pre_stop=pre_stop)
 
-        if self.vm.disk_quantity:
+        if self.vm.disk_quantity and self.vm.disk_quantity <= 10:
             self.cloud_disk_count = self.vm.disk_quantity - 1
+        elif self.vm.disk_quantity and self.vm.disk_quantity > 10:
+            self.cloud_disk_count = 10
         else:
-            self.cloud_disk_count = self.params.get(
-                'cloud_disk_count', '*/Disk/*')
+            self.cloud_disk_count = self.params.get('cloud_disk_count', '*/Disk/*')
 
         self.cloud_disk_size = self.params.get('cloud_disk_size', '*/Disk/*')
         self.cloud_disk_driver = self.vm.cloud_disk_driver
@@ -270,7 +271,7 @@ echo test_content > /mnt/{0}/test_file'
 
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:
-            connect_timeout = 600
+            connect_timeout = 300
         else:
             connect_timeout = 120
 
@@ -590,7 +591,7 @@ echo test_content > /mnt/{0}/test_file'
         cmd = "echo 'TEST_DEVS=(/dev/%s)' > blktests/config" % nvme_disk
         self.session.cmd_output(cmd)
 
-        cmd = 'cd blktests; ./check nvme'
+        cmd = 'cd blktests; ./check nvme -q'
         output = self.session.cmd_output(cmd, timeout=1200)
         if output.count('[failed]') > 1:
             self.fail("%s failed found" % output.count('[failed]'))

@@ -68,12 +68,11 @@ class AlibabaVM(VM):
                 return True
 
             # Exceptions (detect wrong status to save time)
-            if status == 'Running' and current_status not in ('Pending','Stopping','Starting'):
+            if status == 'Running' and current_status not in ('Pending','Stopping','Stopped','Starting'):
             # if status == 'Running' and current_status not in ('Stopping',
             #                                                   'Starting'):
                 logging.error('While waiting for the server to get Running, \
-its status cannot be {0} rather than Stopping or Starting.'.format(
-                    current_status))
+                            its status cannot be {0}.'.format(current_status))
                 return False
 
     @property
@@ -96,8 +95,8 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         # self.ecs.allocate_public_ip_address(self.id)
         # time.sleep(5)
         self.ecs.run_instances(authentication=authentication)
+        time.sleep(40)
         if wait:
-            time.sleep(20)
             self.wait_for_status(status="Running")
         self._data = None
 
@@ -117,6 +116,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         """
         logging.info("Stop VM")
         self.ecs.stop_instance(self.id, force=force)
+        time.sleep(30)
         if wait:
             self.wait_for_status(status="Stopped")
 
@@ -126,6 +126,7 @@ its status cannot be {0} rather than Stopping or Starting.'.format(
         """
         logging.info("Restart VM")
         self.ecs.reboot_instance(self.id, force=force)
+        time.sleep(60)
         if wait:
             self.wait_for_status(status="Running")
 

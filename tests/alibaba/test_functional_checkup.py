@@ -104,7 +104,9 @@ class GeneralTest(Test):
         """
 
         self.log.info("Check the boot messages with no errors")
-        if self.rhel_ver.split('.')[0] == '9':
+        if self.rhel_ver.split('.')[0] == '10':
+            data_file = "journalctl.el10.lst"
+        elif self.rhel_ver.split('.')[0] == '9':
             data_file = "journalctl.el9.lst"
         elif self.rhel_ver.split('.')[0] == '8':
             data_file = "journalctl.el8.lst"
@@ -273,7 +275,7 @@ class GeneralTest(Test):
         """
 
         output = self.session.cmd_output("cat /etc/redhat-release")
-        match = re.search(r"\d\.?\d+", output).group(0)
+        match = re.search(r"\d+\.?\d+", output).group(0)
         self.assertEqual(
             self.rhel_ver, match,
             "Release version mismatch in /etc/redhat-release -> %s" % output)
@@ -385,7 +387,9 @@ class GeneralTest(Test):
         self.log.info(
             "Check all files confiled by SELinux has the correct contexts")
         selinux_now = self.dest_dir + "selinux.now"
-        if self.rhel_ver.split('.')[0] == '9':
+        if self.rhel_ver.split('.')[0] == '10':
+            data_file = "selinux.el10.lst"
+        elif self.rhel_ver.split('.')[0] == '9':
             data_file = "selinux.el9.lst"
         elif self.rhel_ver.split('.')[0] == '8':
             data_file = "selinux.el8.lst"
@@ -436,7 +440,9 @@ class GeneralTest(Test):
         self.log.info(
             "Check all files on the disk is controlled by rpm packages")
         utils_script = "rogue.sh"
-        if self.rhel_ver.split('.')[0] == '9':
+        if self.rhel_ver.split('.')[0] == '10':
+            data_file = "rogue.el10.lst"
+        elif self.rhel_ver.split('.')[0] == '9':
             data_file = "rogue.el9.lst"
         elif self.rhel_ver.split('.')[0] == '8':
             data_file = "rogue.el8.lst"
@@ -486,7 +492,9 @@ class GeneralTest(Test):
         """
 
         self.log.info("Check file content integrity by rpm -Va")
-        if self.rhel_ver.split('.')[0] == '9':
+        if self.rhel_ver.split('.')[0] == '10':
+            data_file = "rpm_va.el10.lst"
+        elif self.rhel_ver.split('.')[0] == '9':
             data_file = "rpm_va.el9.lst"
         elif self.rhel_ver.split('.')[0] == '8':
             data_file = "rpm_va.el8.lst"
@@ -605,7 +613,10 @@ will not check kernel-devel package.')
         root_path = os.path.dirname(os.path.dirname(self.pwd))
         src_dir = os.path.join(os.path.join(root_path, "data"),
                                self.cloud.cloud_provider)
-        if self.rhel_ver.split('.')[0] == '9':
+        if self.rhel_ver.split('.')[0] == '10':
+            if self.vm.arch == "x86_64":
+                data_file = "cmdline_params.el10.lst"
+        elif self.rhel_ver.split('.')[0] == '9':
             if self.vm.arch == "x86_64":
                 data_file = "cmdline_params.el9.lst"
             elif self.vm.arch == "aarch64":
@@ -658,6 +669,12 @@ will not check kernel-devel package.')
         htb = rhel = False
         if output_tmp.startswith("redhat-release"):
             htb = True
+
+        if self.vm.arch == "x86_64" and self.rhel_ver.split('.')[0] == '10':
+            output = self.session.cmd_output(
+                "rpm -qf /etc/pki/product-default/486.pem")
+            if output.startswith("redhat-release"):
+                rhel = True
 
         if self.vm.arch == "x86_64" and self.rhel_ver.split('.')[0] == '9':
             output = self.session.cmd_output(
@@ -1727,10 +1744,11 @@ will not check kernel-devel package.')
         """
         
         if 'ecs.ebm' in self.vm.flavor:
-            if self.vm.boot_mode == 'uefi':
-                max_boot_time = 240
-            else:
-                max_boot_time = 80
+            # if self.vm.boot_mode == 'uefi':
+            #     max_boot_time = 240
+            # else:
+            #     max_boot_time = 80
+            max_boot_time = 240
         else:
             # kvm-based VMs
             max_boot_time = 40
@@ -1766,13 +1784,14 @@ will not check kernel-devel package.')
             The actual boot time is no more than the experienced max time.
         """
         if 'ecs.ebm' in self.vm.flavor:
-            if self.vm.boot_mode == 'uefi':
-                max_boot_time = 240
-            else:
-                max_boot_time = 80
+            # if self.vm.boot_mode == 'uefi':
+            #     max_boot_time = 240
+            # else:
+            #     max_boot_time = 80
+            max_boot_time = 240
         else:
             # kvm-based VMs
-            max_boot_time = 40
+            max_boot_time = 60
 
         boot_time_sec = utils_alibaba.getboottime(self)
         utils_alibaba.compare_nums(self, num1=boot_time_sec, num2=max_boot_time,

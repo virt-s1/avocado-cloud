@@ -81,10 +81,10 @@ Aliyun /usr/sbin/irqbalance[2370]: IRQ arm-smmu-v3-gerror
 mcelog: ERROR: AMD Processor family 25: mcelog does not support this processor
 mcelog.service: Main process exited, code=exited, status=1/FAILURE
 mcelog.service: Failed with result 'exit-code'
-# RHEL-35952
+# RHEL10.0 Beta
+kernel: ACPI: _OSC evaluation for CPUs failed, trying _PDC
+/usr/lib/systemd/system-generators/systemd-ssh-generator failed
+kernel: platform regulatory.0: Direct firmware load for regulatory.db failed with error -2
+kernel: cfg80211: failed to load regulatory.db
+# RHEL9.5
 ACPI: _OSC evaluation for CPUs failed, trying _PDC
-# RHEL-36576
-libcap-ng used by "/usr/sbin/irqbalance" failed dropping bounding set due to not having CAP_SETPCAP in capng_apply
-# RHEL-37527
-bridge window [io  size 0x1000]: failed to assign
-pci 0000:39:00.0: bridge window [mem size 0x00200000]: failed to assign

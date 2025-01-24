@@ -1,0 +1,43 @@
+itlb_multihit:KVM: Mitigation: Split huge pages
+itlb_multihit:KVM: Vulnerable
+l1tf:Mitigation: PTE Inversion
+l1tf:Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable
+l1tf:Not affected
+mds:Mitigation: Clear CPU buffers; SMT vulnerable
+mds:Not affected
+mds:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown
+meltdown:Mitigation: PTI
+meltdown:Not affected
+spec_store_bypass:Mitigation: Speculative Store Bypass disabled via prctl and seccomp
+spec_store_bypass:Mitigation: Speculative Store Bypass disabled via prctl
+spec_store_bypass:Vulnerable
+spectre_v1:Mitigation: __user pointer sanitization
+spectre_v1:Mitigation: usercopy/swapgs barriers and __user pointer sanitization
+spectre_v2:Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling
+spectre_v2:Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, RSB filling
+spectre_v2:Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling
+spectre_v2:Mitigation: Full generic retpoline, STIBP: disabled, RSB filling
+srbds:Not affected
+tsx_async_abort:Mitigation: Clear CPU buffers; SMT vulnerable
+tsx_async_abort:Mitigation: TSX disabled
+tsx_async_abort:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown
+itlb_multihit:KVM: Mitigation: VMX unsupported
+spectre_v2:Mitigation: Enhanced IBRS, RSB filling
+itlb_multihit:KVM: Mitigation: VMX disabled
+spectre_v2:Mitigation: Full AMD retpoline, STIBP: disabled, RSB filling
+spectre_v2:Mitigation: Full AMD retpoline, IBPB: conditional, STIBP: conditional, RSB filling
+spectre_v2:Mitigation: Full AMD retpoline, IBPB: conditional, IBRS_FW, STIBP: always-on, RSB filling
+spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling
+spectre_v2:Mitigation: Retpolines, STIBP: disabled, RSB filling
+spectre_v2:Mitigation: Retpolines, IBPB: conditional, STIBP: conditional, RSB filling
+spectre_v2:Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: always-on, RSB filling
+spectre_v2:Mitigation: CSV2, BHB
+spectre_v2:Mitigation: Enhanced IBRS, RSB filling, PBRSB-eIBRS: SW sequence
+spectre_v2:Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling, PBRSB-eIBRS: SW sequence
+mmio_stale_data:Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown
+mmio_stale_data:Mitigation: Clear CPU buffers; SMT vulnerable
+retbleed:Vulnerable
+retbleed:Mitigation: IBRS
+retbleed:Mitigation: Enhanced IBRS
+retbleed:Mitigation: untrained return thunk; SMT enabled with STIBP protection
+spec_rstack_overflow:Vulnerable: Safe RET, no microcode

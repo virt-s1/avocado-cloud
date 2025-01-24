@@ -94,6 +94,8 @@ S.5....T.    /usr/share/authselect/default/sssd/system-auth
 .......T.    /usr/lib/systemd/system/sshd.service
 .......T.    /usr/lib/systemd/system/nm-cloud-setup.service
 S.5....T.  c /etc/dnf/plugins/subscription-manager.conf
-.......T.    /boot/grub2/fonts/unicode.pf2
+.M.......  c /etc/audit/rules.d/audit.rules
+.M.......    /var/lib/gssproxy/clients
+.M.......    /var/lib/gssproxy/rcache
 #################### KNOWN ISSUES BELOW ####################
 S.5....T.    /usr/lib/systemd/system/cloud-init.service

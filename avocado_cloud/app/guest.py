@@ -23,7 +23,7 @@ class GuestSession(object):
             logging.error("Timeout. Cannot login VM. Exception: %s", str(e))
             return False
 
-    def cmd_output(self, cmd='', timeout=30):
+    def cmd_output(self, cmd='', timeout=60):
         if self.session is None:
             self.connect()
         output = self.session.cmd_output(cmd, timeout).rstrip('\n')

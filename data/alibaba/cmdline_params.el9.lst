@@ -5,3 +5,4 @@ crashkernel=1G-4G:192M,4G-64G:256M,64G-:512M
 crash_kexec_post_notifiers=1
 nvme_core.io_timeout=4294967295
 nvme_core.admin_timeout=4294967295
+iommu=pt
