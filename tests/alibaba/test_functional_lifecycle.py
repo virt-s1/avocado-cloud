@@ -63,10 +63,11 @@ ssh_pwauth: True
 """.format(self.vm.vm_username, self.vm.vm_password)
         # Set timeout for Alibaba baremetal
         if 'ecs.ebm' in self.vm.flavor:
-            if self.vm.boot_mode == 'uefi':
-                connect_timeout = 600
-            else:
-                connect_timeout = 300
+            # if self.vm.boot_mode == 'uefi':
+            #     connect_timeout = 600
+            # else:
+            #     connect_timeout = 300
+            connect_timeout = 420
         else:
             connect_timeout = 120
 
@@ -294,10 +295,9 @@ password: output of cmd `who` unexpected -> %s" % output)
             Instance status is stopped.
         """
         if 'ecs.ebm' in self.vm.flavor:
-            time.sleep(120)
-        else:
             time.sleep(60)
-        self.session.cmd_output('sudo sync')
+        else:
+            time.sleep(30)        # self.session.cmd_output('sudo sync')
         self.vm.stop(wait=True)
         self.assertTrue(self.vm.is_stopped(),
                         "Stop VM error: VM status is not SHUTOFF")

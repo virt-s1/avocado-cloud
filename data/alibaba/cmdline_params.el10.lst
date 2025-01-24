@@ -1,9 +1,8 @@
 no_timer_check
-console=ttyAMA0,115200n8
+console=ttyS0,115200n8
 net.ifnames=0
-crashkernel=1G-4G:256M,4G-64G:320M,64G-:576M
+crashkernel=1G-4G:192M,4G-64G:256M,64G-:512M
 crash_kexec_post_notifiers=1
 nvme_core.io_timeout=4294967295
 nvme_core.admin_timeout=4294967295
-iommu.passthrough=1 
-iommu.strict=0
+iommu=pt

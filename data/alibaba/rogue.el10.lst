@@ -338,11 +338,23 @@
 /boot/grub2/locale/zh_TW.mo
 /etc/systemd/system/bluetooth.target.wants/bluetooth.service
 /etc/systemd/system/dbus-org.bluez.service
-/root/.pip/pip.conf
-/root/.pydistutils.cfg
-# RHEL-9.6 x86
+/etc/NetworkManager/conf.d/30-cloud-init-ip6-addr-gen-mode.conf
+/etc/NetworkManager/system-connections/cloud-init-eth0.nmconnection
+/etc/systemd/system/multi-user.target.wants/audit-rules.service
+/etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target
+/etc/systemd/system/sockets.target.wants/cockpit.socket
+/etc/systemd/system/sockets.target.wants/pcscd.socket
+/etc/systemd/system/sockets.target.wants/systemd-userdbd.socket
+/etc/systemd/system/sysinit.target.wants/systemd-confext.service
 /etc/systemd/system/sysinit.target.wants/systemd-pstore.service
+/etc/systemd/system/sysinit.target.wants/systemd-sysext.service
+/etc/systemd/system/timers.target.wants/fstrim.timer
+/etc/systemd/system/timers.target.wants/fwupd-refresh.timer
+/etc/systemd/user/timers.target.wants/grub-boot-success.timer
 /etc/udev/rules.d/90-cloud-init-hook-hotplug.rules
+# RHEL-10.0 x86
+/etc/systemd/system/sysinit.target.wants/fips-crypto-policy-overlay.service
+/etc/systemd/system/timers.target.wants/rhc-canonical-facts.timer
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
