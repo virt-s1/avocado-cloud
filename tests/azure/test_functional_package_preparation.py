@@ -56,16 +56,10 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
                 x_version = 9
         label = "BaseOS" if x_version > 7 else "Server"
         # Validate these repos one by one and select the available one
-        if x_version == 10:
-            base_url_list = [ "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/RHEL-{}-Public-Beta/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                            "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/updates/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                            "http://download-node-02.eng.bos.redhat.com/rhel-{}/nightly/RHEL-{}-Public-Beta/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                            ]
-        else:
-            base_url_list = [ "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                            "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/updates/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                            "http://download-node-02.eng.bos.redhat.com/rhel-{}/nightly/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                            ]
+        base_url_list = [ "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/updates/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/nightly/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                        ]
         for base_url in base_url_list:
             if requests.get(base_url.format(label)).ok:
                 break
