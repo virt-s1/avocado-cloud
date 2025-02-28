@@ -1287,11 +1287,11 @@ rh_subscription:
         """
         :avocado: tags=tier2,cloudinit
         RHEL-182307 CLOUDINIT-TC: Swapon successful when created on a xfs filesystem by cloud-init	
-        1. Add additional data disk and format to xfs, mount to /datatest and add to /etc/fstab
+        1. Add additional data disk and format to xfs, mount to /mnt/datatest and add to /etc/fstab
         2. Configure cloud-config and run mounts module
         # cat /etc/cloud/cloud.cfg.d/test_swap.cfg 
         swap:
-          filename: /datatest/swap.img
+          filename: /mnt/datatest/swap.img
           size: "auto" # or size in bytes
           maxsize: 2G 
         3. Check the swap, verify /datadisk/swap.img exists, verify no error logs in cloud-init.log
@@ -1299,10 +1299,10 @@ rh_subscription:
         self.log.info("RHEL-182307 CLOUDINIT-TC: Swapon successful when created on a xfs filesystem by cloud-init")
         self.session.cmd_output("sudo su -")
         # Clear old swap by cloud-init
-        self.session.cmd_output("swapoff /datatest/swap.img")
-        self.session.cmd_output("umount /datatest")
-        self.session.cmd_output("rm -rf /datatest")
-        self.session.cmd_output("sed -i '/.*\/datatest.*/d' /etc/fstab")
+        self.session.cmd_output("swapoff /mnt/datatest/swap.img")
+        self.session.cmd_output("umount /mnt/datatest")
+        self.session.cmd_output("rm -rf /mnt/datatest")
+        self.session.cmd_output("sed -i '/.*\/mnt\/datatest.*/d' /etc/fstab")
         # Get previous swap size
         old_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
         # Attach data disk
@@ -1314,14 +1314,14 @@ rh_subscription:
         self.session.cmd_output("parted /dev/sdc mklabel msdos -s")
         self.session.cmd_output("parted /dev/sdc mkpart primary xfs 1048k 4000M -s")
         self.session.cmd_output("mkfs.xfs -f /dev/sdc1")
-        self.session.cmd_output("mkdir -p /datatest")
-        self.session.cmd_output("mount /dev/sdc1 /datatest")
-        self.assertEqual(self.session.cmd_status_output("mount|grep /datatest")[0], 0,
+        self.session.cmd_output("mkdir -p /mnt/datatest")
+        self.session.cmd_output("mount /dev/sdc1 /mnt/datatest")
+        self.assertEqual(self.session.cmd_status_output("mount|grep /mnt/datatest")[0], 0,
             "Fail to mount datadisk")
         # Test begin
         CONFIG='''\
 swap:
-  filename: /datatest/swap.img
+  filename: /mnt/datatest/swap.img
   size: "auto" # or size in bytes
   maxsize: 2G'''
         self.session.cmd_output("echo '''{}''' > /etc/cloud/cloud.cfg.d/test_swap.cfg".format(CONFIG))
@@ -1330,8 +1330,8 @@ swap:
         new_swap = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
         self.assertAlmostEqual(first=int(old_swap)+2047, second=int(new_swap), delta=1,
             msg="The enabled swap size does not correct.")
-        self.assertEqual(self.session.cmd_status_output("ls /datatest/swap.img")[0], 0,
-            "/datatest/swap.img doesn't exist.")
+        self.assertEqual(self.session.cmd_status_output("ls /mnt/datatest/swap.img")[0], 0,
+            "/mnt/datatest/swap.img doesn't exist.")
         self.assertEqual(self.session.cmd_status_output("grep swap.img /etc/fstab")[0], 0,
             "Fail to add swap to /etc/fstab")
         self._check_cloudinit_log()
@@ -1613,9 +1613,14 @@ ssh_pwauth: 1
         RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg is not changed
         '''
         self.log.info("RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg is not changed")
-        self.session.cmd_output("cat /etc/cloud/cloud.cfg")
-        self.assertNotIn("/etc/cloud/cloud.cfg", self.session.cmd_output("sudo rpm -V cloud-init"),
-            "The /etc/cloud/cloud.cfg is changed")
+        self.session.cmd_output("cat /etc/cloud/cloud.cfg")        
+        out = self.session.cmd_output(self, 'ls /ostree/ | grep -i bootc')
+        if 'bootc' in out:
+            self.assertNotIn("/etc/cloud/cloud.cfg", self.session.cmd_output("sudo rpm -V cloud-init | grep -v '.......T.'"),
+                "The /etc/cloud/cloud.cfg is changed")
+        else:
+            self.assertNotIn("/etc/cloud/cloud.cfg", self.session.cmd_output("sudo rpm -V cloud-init"),
+                "The /etc/cloud/cloud.cfg is changed")
 
     def test_cloudinit_check_startup_time(self):
         '''
