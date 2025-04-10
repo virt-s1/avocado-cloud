@@ -114,7 +114,7 @@ EOF
         # Install package
         _yum_install = "ssh -o UserKnownHostsFile=/dev/null -o \
 StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
-\"yum -y install {}\"" % self.vm.public_ip
+\"yum -y --skip-broken install {}\"" % self.vm.public_ip
         self.session.cmd_output("yum clean all", timeout=300)
         if "kernel" in self.packages:
             # Delete debuginfo package in case no enough space in /boot
