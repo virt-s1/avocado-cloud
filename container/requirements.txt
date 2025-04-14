@@ -1,4 +1,4 @@
-PyJWT==1.6.1
+PyJWT==2.4.0
 PyNaCl==1.1.2
 PySocks==1.6.7
 pyyaml==5.4
