@@ -893,6 +893,16 @@ Retry: {0}/10".format(retry+1))
         self.assertEqual(self.session.cmd_output("systemctl is-active waagent"), 'active',
             "Cannot start waagent service after changing python version")
 
+    def test_check_10_azure_unmanaged_sriov_rules(self):
+        """
+        :avocado: tags=tier2
+        VIRT-303915	WALA-TC: [Network] Verify 10-azure-unmanaged-sriov.rules exists
+        """
+        self.log.info("VIRT-303915	WALA-TC: [Network] Verify 10-azure-unmanaged-sriov.rules exists")
+        ret = self.session.cmd_status_output("sudo cat /usr/lib/udev/rules.d/10-azure-unmanaged-sriov.rules")
+        self.log.info(ret[1])
+        self.assertEqual(ret[0], 0, "/usr/lib/udev/rules.d/10-azure-unmanaged-sriov.rules doesn't exist!")
+
     def tearDown(self):
         if self.case_short_name == "test_event_clean_up_when_above1000":
             self.session.cmd_output("rm -f /var/lib/waagent/events/test*")
