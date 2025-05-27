@@ -6,25 +6,20 @@ import json
 from avocado import Test
 from avocado import main
 from avocado_cloud.app import Setup
-# from avocado_cloud.app.azure import AzureAccount
-# from avocado_cloud.app.azure import AzureNIC
 from avocado_cloud.app.azure import AzurePublicIP
 from avocado_cloud.app.azure import AzureNicIpConfig
-# from avocado_cloud.app.azure import AzureImage
 from distutils.version import LooseVersion
 from avocado_cloud.utils import utils_azure
 
-# import requests
 from avocado_cloud.utils.utils_azure import command
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
 class Azure_vm_utilsTest(Test):
-
     def _postfix(self):
         from datetime import datetime
         return datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")
-
+        
     def setUp(self):
         #self.casestatus = False
         self.cloud = Setup(self.params, self.name)
@@ -40,17 +35,9 @@ class Azure_vm_utilsTest(Test):
         key = "/root/.ssh/id_rsa.pub"
         self.vm.ssh_key_value = "{}".format(key)
         self.vm.authentication_type = "ssh"
-        #self.vm.vm_name += "-utils"
-        # self.vm.os_disk_name += "-new"
-
-        #osdisk = self.vm.properties["storageProfile"]["osDisk"]["vhd"]["uri"]
-        #self.vm.delete()
-        #self.vm.image = osdisk
-        
         self.publicip_name = self.vm.vm_name + "PublicIP"
         self.vm.os_disk_name += "-utils"
         # self.vm.subnet += "-utils"
-
         self.vm.create(wait=True)
         self.session.connect(authentication="publickey")
         self.assertEqual(self.vm.vm_username,
@@ -72,7 +59,6 @@ class Azure_vm_utilsTest(Test):
         :avocado: tags=tier1,azure_vm_utils
         """
         try:   
-            #publicip_name = self.vm.vm_name + "PublicIP"
             publicip_name = self.publicip_name
             cmd = ' az network public-ip show   --name {} --resource-group "{}"  --query "ipAddress"   --output tsv'.format(publicip_name, self.vm.resource_group)
             ret = command(cmd)
