@@ -57,7 +57,7 @@ class WALAFuncTest(Test):
         :avocado: tags=tier2
         WALA-TC: [WALA function] Check waagent -verbose
         """
-        cmd_stop_waagent = "service waagent stop"
+        cmd_stop_waagent = "systemctl stop waagent"
         status, output = self.session.cmd_status_output(cmd_stop_waagent)
         self.assertEqual(
             status, 0,
@@ -591,7 +591,7 @@ to login as root"
         """
         self.log.info("[WALA function] waagent -start")
         # Stop waagent service
-        cmd_stop_waagent = "service waagent stop"
+        cmd_stop_waagent = "systemctl stop waagent"
         status, output = self.session.cmd_status_output(cmd_stop_waagent)
         self.assertEqual(
             status, 0,
@@ -612,7 +612,7 @@ to login as root"
         """
         self.log.info("[WALA function] waagent -run-exthandlers")
         # Stop service, remove waagent.log
-        cmd_stop_waagent = "service waagent stop"
+        cmd_stop_waagent = "systemctl stop waagent"
         status, output = self.session.cmd_status_output(cmd_stop_waagent)
         self.assertEqual(
             status, 0,
@@ -687,7 +687,7 @@ to login as root"
         RHEL7-41731	WALA-TC: [func] waagent -daemon
         1. Stop waagent service. Run "waagent -daemon &". Check process and log
         """
-        self.session.cmd_output("service waagent stop")
+        self.session.cmd_output("systemctl stop waagent")
         self.session.cmd_output("rm -f /var/log/waagent.log")
         ret = self.session.cmd_status_output(
             "timeout --preserve-status 10 waagent -daemon")
@@ -906,7 +906,7 @@ to login as root"
         self.log.info(
             "1. Modify waagent.service; Move /etc/waagent.conf to /root/\
 waagent.conf; Systemd daemon reload")
-        cmd_stop_waagent = "service waagent stop"
+        cmd_stop_waagent = "systemctl stop waagent"
         status, output = self.session.cmd_status_output(cmd_stop_waagent)
         self.assertEqual(
             status, 0,

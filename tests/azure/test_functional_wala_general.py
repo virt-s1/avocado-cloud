@@ -179,13 +179,13 @@ class GeneralTest(Test):
         Verify waagent service commands
         """
         self.log.info("Check the waagent service")
-        # service waagent stop
+        # systemctl stop waagent
         self.assertEqual(
-            self.session.cmd_status_output("sudo service waagent stop")[0], 0,
+            self.session.cmd_status_output("sudo systemctl stop waagent")[0], 0,
             "Fail to stop waagent: command fail")
-        # service waagent start
+        # systemctl start waagent
         self.assertEqual(
-            self.session.cmd_status_output("sudo service waagent start")[0], 0,
+            self.session.cmd_status_output("sudo systemctl start waagent")[0], 0,
             "Fail to start waagent: command fail")
         time.sleep(5)
         output = self.session.cmd_output(
@@ -194,11 +194,11 @@ class GeneralTest(Test):
                       "Fail to start waagent: no -daemon process")
         self.assertIn("-run-exthandlers", output,
                       "Fail to start waagent: no -run-exthandlers process")
-        # service waagent restart
+        # systemctl restart waagent
         old_pid = self.session.cmd_output(
             "sudo ps aux|grep [w]aagent\ -daemon|awk '{print $2}'")
         self.assertEqual(
-            self.session.cmd_status_output("sudo service waagent restart")[0],
+            self.session.cmd_status_output("sudo systemctl restart waagent")[0],
             0, "Fail to restart waagent: command fail")
         self.assertIn(
             "waagent -daemon",
@@ -223,7 +223,7 @@ class GeneralTest(Test):
                 self.session.cmd_output("sudo service waagent status"),
                 "waagent service status is wrong after killing process")
         if LooseVersion(self.project) < LooseVersion("7.0"):
-            start_cmd = "sudo service waagent start"
+            start_cmd = "sudo systemctl start waagent"
             status_cmd = "sudo service waagent status"
         else:
             start_cmd = "sudo systemctl start waagent"
@@ -245,8 +245,8 @@ class GeneralTest(Test):
         process
         """
         self.log.info("Start waagent service repeatedly")
-        self.session.cmd_output("sudo service waagent start")
-        self.session.cmd_output("sudo service waagent start")
+        self.session.cmd_output("sudo systemctl start waagent")
+        self.session.cmd_output("sudo systemctl start waagent")
         waagent_count = self.session.cmd_output(
             "sudo ps aux|grep [w]aagent\ -daemon|wc -l")
         self.assertEqual(
@@ -418,7 +418,7 @@ class GeneralTest(Test):
         self.session.cmd_output(
             "touch {0}/test{{0002..1000}}".format(event_path))
         self.session.cmd_output("rm -f /var/log/waagent.log")
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         self.log.info("2. Check if the test0001 file is removed.")
         max_retry = 10
         for retry in range(1, max_retry + 1):
@@ -446,11 +446,11 @@ class GeneralTest(Test):
 running. Check pid file")
         self.session.cmd_output("sudo su -")
         if self.session.cmd_output("ps aux|grep run-exthandlers") == "":
-            self.session.cmd_output("service waagent restart")
+            self.session.cmd_output("systemctl restart waagent")
         old_pid_file = self.session.cmd_output("ls /var/run/*_waagent.pid")
         self.log.info("2. Restart waagent service. The old pid file should \
 be removed and a new *_waagent.pid file is generated")
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         time.sleep(5)
         new_pid_file = self.session.cmd_output("ls /var/run/*_waagent.pid")
         if len(new_pid_file.split('\n')) > 1 or (old_pid_file in new_pid_file):
@@ -681,13 +681,13 @@ CPUQuota=75%
         self._block_output_443()
         self.log.info("2. Stop waagent service. Remove auto-update packages. "
                       "Enable auto-update. Enable verbose log")
-        self.session.cmd_output("service waagent stop")
+        self.session.cmd_output("systemctl stop waagent")
         self.session.cmd_output(
             "rm -rf /var/lib/waagent/WALinuxAgent-* /var/log/waagent.log")
         self._modify_value("AutoUpdate.Enabled", "y")
         self.log.info("3. Start waagent service. Check if can download \
 auto-update packages. Special string should be in waagent.log")
-        self.session.cmd_output("service waagent start")
+        self.session.cmd_output("systemctl start waagent")
         time.sleep(50)
         for retry in range(0, 30):
             if self.session.cmd_status_output("ll -d /var/lib/waagent/WALinuxAgent-*")[0] == 0:
@@ -717,12 +717,12 @@ Retry: {0}/30".format(retry+1))
         self.session.cmd_output("sudo su -")
         self.log.info("RHEL7-83665 WALA-TC: [General] host plugin - Extension")
         self._block_output_443()
-        self.session.cmd_output("service waagent stop")
+        self.session.cmd_output("systemctl stop waagent")
         self.session.cmd_output("rm -f /var/log/waagent.log")
         self._modify_value("AutoUpdate.Enabled", "n")
         # Remove old extension packages
         self.session.cmd_output("rm -rf /var/lib/waagent/Microsoft*")
-        self.session.cmd_output("service waagent start")
+        self.session.cmd_output("systemctl start waagent")
         self.vm.user_reset_ssh()
         time.sleep(20)
         for retry in range(0, 10):
@@ -755,11 +755,11 @@ Retry: {0}/10".format(retry+1))
         self.log.info(
             "RHEL7-90877 WALA-TC: [General] host plugin - Blob status upload")
         self._block_output_443()
-        self.session.cmd_output("service waagent stop")
+        self.session.cmd_output("systemctl stop waagent")
         self.session.cmd_output("rm -f /var/log/waagent.log")
         self._modify_value("AutoUpdate.Enabled", "n")
         self._modify_value("Logs.Verbose", "y")
-        self.session.cmd_output("service waagent start")
+        self.session.cmd_output("systemctl start waagent")
         time.sleep(180)
         for retry in range(0, 10):
             if self.session.cmd_status_output(
@@ -783,14 +783,14 @@ Retry: {0}/10".format(retry+1))
         self.log.info("host plugin - AutoUpdate")
         self.log.info(
             "RHEL7-93870	WALA-TC: [General] host plugin - ignore proxy")
-        self.session.cmd_output("service waagent stop")
+        self.session.cmd_output("systemctl stop waagent")
         self.session.cmd_output("rm -rf /var/lib/waagent/WALinuxAgent-*")
         self.session.cmd_output("rm -f /var/log/waagent.log")
         self._modify_value("AutoUpdate.Enabled", "y")
         self._modify_value("Logs.Verbose", "y")
         self._modify_value("HttpProxy.Host", "172.16.0.1")
         self._modify_value("HttpProxy.Port", "3128")
-        self.session.cmd_output("service waagent start")
+        self.session.cmd_output("systemctl start waagent")
         time.sleep(50)
         for retry in range(0, 10):
             if self.session.cmd_status_output("ll /var/lib/waagent/WALinuxAgent-*.zip")[0] == 0:
@@ -917,7 +917,7 @@ Retry: {0}/10".format(retry+1))
             self.session.cmd_output(
                 "iptables -D OUTPUT -p tcp --dport 443 -j DROP")
             time.sleep(10)
-            self.session.cmd_output("service waagent restart")
+            self.session.cmd_output("systemctl restart waagent")
             if self.case_short_name == "test_host_plugin_extension":
                 self.vm.extension_delete("enablevmaccess")
         if self.case_short_name == "test_change_python_version":

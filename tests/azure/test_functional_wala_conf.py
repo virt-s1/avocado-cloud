@@ -198,7 +198,7 @@ sudo chown -R root:root /root/.ssh")
         wala_log = "/var/log/waagent.log"
         # 1. Logs.Verbose=y
         self._modify_value("Logs.Verbose", "y")
-        self.session.cmd_output("sudo service waagent restart")
+        self.session.cmd_output("sudo systemctl restart waagent")
         time.sleep(5)
         self.assertEqual(
             self.session.cmd_status_output(
@@ -206,9 +206,9 @@ sudo chown -R root:root /root/.ssh")
             "Fail to enable Verbose log")
         # 2. Logs.Verbose=n
         self._modify_value("Logs.Verbose", "n")
-        self.session.cmd_output("sudo service waagent stop")
+        self.session.cmd_output("sudo systemctl stop waagent")
         self.session.cmd_output("sudo rm -f {}".format(wala_log))
-        self.session.cmd_output("sudo service waagent start")
+        self.session.cmd_output("sudo systemctl start waagent")
         time.sleep(5)
         self.assertEqual(
             self.session.cmd_status_output(
@@ -281,7 +281,7 @@ sudo chown -R root:root /root/.ssh")
         self._modify_value("ResourceDisk.MountPoint", "/mnt/resource-new")
         self._modify_value("ResourceDisk.Format", "y")
         self.session.cmd_output("sudo umount -l {}1".format(temporary_disk))
-        self.session.cmd_output("sudo service waagent restart")
+        self.session.cmd_output("sudo systemctl restart waagent")
         max_retry = 10
         for retry in range(1, max_retry + 1):
             if self.session.cmd_status_output(
@@ -297,7 +297,7 @@ new resource path")
         # 2. ResourceDisk.Format=n
         self._modify_value("ResourceDisk.Format", "n")
         self.session.cmd_output("sudo umount -l {}1".format(temporary_disk))
-        self.session.cmd_output("sudo service waagent restart")
+        self.session.cmd_output("sudo systemctl restart waagent")
         self.assertEqual(
             self.session.cmd_status_output(
                 "mount|grep {}".format(temporary_disk))[0], 1,
@@ -513,7 +513,7 @@ rhel-swap/s/^/#/' /etc/fstab")
         # 1. Provisioning.MonitorHostName=n
         self.log.info("Provisioning.MonitorHostName=n")
         self._modify_value("Provisioning.MonitorHostName", "n")
-        self.session.cmd_output("sudo service waagent restart")
+        self.session.cmd_output("sudo systemctl restart waagent")
         time.sleep(5)
         # self.session.cmd_output("sed -i '/^DHCP_HOSTNAME/d' %s" % eth_file)
         if LooseVersion(self.project) < LooseVersion("7.0"):
@@ -544,7 +544,7 @@ rhel-swap/s/^/#/' /etc/fstab")
         # 2. Provisioning.MonitorHostName=y
         self.log.info("Provisioning.MonitorHostName=y")
         self._modify_value("Provisioning.MonitorHostName", "y")
-        self.session.cmd_output("sudo service waagent restart")
+        self.session.cmd_output("sudo systemctl restart waagent")
         time.sleep(5)
         # self.session.cmd_output("sudo sed -i '/^DHCP_HOSTNAME/d' %s" %
         #                         eth_file)
@@ -591,7 +591,7 @@ rhel-swap/s/^/#/' /etc/fstab")
         # 1. OS.RootDeviceScsiTimeout=100
         self.log.info("OS.RootDeviceScsiTimeout=100")
         self._modify_value("OS.RootDeviceScsiTimeout", "100")
-        self.session.cmd_output("sudo service waagent restart")
+        self.session.cmd_output("sudo systemctl restart waagent")
         time.sleep(15)
         self.assertEqual(
             self.session.cmd_output("sudo cat /sys/block/sda/device/timeout"),
@@ -690,7 +690,7 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         self._modify_value("HttpProxy.Host", "10.0.0.254")
         self._modify_value("HttpProxy.Port", "3128")
         self.session.cmd_output("sudo rm -rf /var/lib/waagent/WALinuxAgent-*")
-        self.session.cmd_output("sudo service waagent restart")
+        self.session.cmd_output("sudo systemctl restart waagent")
         self.assertEqual(
             self.session.cmd_status_output(
                 "sudo timeout 30 tcpdump host 10.0.0.254 and "
@@ -711,13 +711,13 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         self._modify_value("HttpProxy.Host", "None")
         self._modify_value("HttpProxy.Port", "None")
         # 2. Set http_proxy in system environment; restart waagent service
-        self.session.cmd_output("sudo service waagent stop")
+        self.session.cmd_output("sudo systemctl stop waagent")
         self.session.cmd_output("sudo sed -i '/Service/a\Environment=\
 \"https_proxy=https://10.0.0.254:3128\"' \
 /usr/lib/systemd/system/waagent.service")
         self.session.cmd_output("sudo systemctl daemon-reload")
         self.session.cmd_output("sudo rm -rf /var/lib/waagent/WALinuxAgent-*")
-        self.session.cmd_output("sudo service waagent start")
+        self.session.cmd_output("sudo systemctl start waagent")
         # 3. Catch traffic
         self.assertEqual(
             self.session.cmd_status_output(
@@ -834,7 +834,7 @@ azurelinuxagent/common/version.py" % (px, py)
             self.session.cmd_output("grep -R '^AGENT_VERSION' %s" %
                                     version_file),
             "Fail to modify local version to %s" % low_version)
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         # Check feature
         time.sleep(10)
         max_retry = 10
@@ -859,7 +859,7 @@ azurelinuxagent/common/version.py" % (px, py)
             self.session.cmd_output("grep -R '^AGENT_VERSION' %s" %
                                     version_file),
             "Fail to modify local version to %s" % high_version)
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         time.sleep(10)
         # Check feature
         output = self._wait_for_exthandlers()
@@ -870,7 +870,7 @@ azurelinuxagent/common/version.py" % (px, py)
             "Should not use new version if local version is higher")
         # 1.3 restart again
         self.log.info("1.3 Restart waagent service again and check")
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         time.sleep(10)
         output = self._wait_for_exthandlers()
         self.assertIn(
@@ -881,7 +881,7 @@ azurelinuxagent/common/version.py" % (px, py)
         # 2. AutoUpdate.Enabled=n
         self.log.info("2. AutoUpdate.Enabled=n")
         self._modify_value("AutoUpdate.Enabled", "n")
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         time.sleep(10)
         # Check feature
         output = self._wait_for_exthandlers()
@@ -900,7 +900,7 @@ the default value")
             self.session.cmd_output(
                 "grep 'AutoUpdate.Enabled' /etc/waagent.conf"),
             "Fail to remove AutoUpdate.Enabled line")
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         time.sleep(10)
         # Check feature
         output = self._wait_for_exthandlers()
@@ -966,7 +966,7 @@ the default value")
         self.log.info("1. Extension.LogDir={0}, then restart waagent service, \
 check new log folder".format(new_dir))
         self._modify_value("Extension.LogDir", new_dir)
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         time.sleep(3)
         self.assertEqual(
             self.session.cmd_status_output("ls {}".format(new_dir))[0], 0,
@@ -1183,7 +1183,7 @@ echo 'teststring' >> /tmp/test.log\
         self.session.cmd_output("sudo su -")
         self.log.info("1. Extensions.Enabled=n")
         self._modify_value("Extensions.Enabled", 'n')
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         # Remove the old sshd_config backup
         self.session.cmd_output("rm -f /var/cache/vmaccess/*")
         # Must change ChallengeResponseAuthentication or it won't trigger backup
@@ -1197,7 +1197,7 @@ echo 'teststring' >> /tmp/test.log\
             "Should not install extension when Extensions.Enabled=n")
         self.log.info("2. Extensions.Enabled=y")
         self._modify_value("Extensions.Enabled", 'y')
-        self.session.cmd_output("service waagent restart")
+        self.session.cmd_output("systemctl restart waagent")
         time.sleep(10)
         for retry in range(1, 11):
             if utils_azure.file_exists("/var/cache/vmaccess/backup", self.session):
@@ -1591,7 +1591,7 @@ echo 'teststring' >> /tmp/test.log\
     #     self.session.cmd_output("sudo su -")
     #     self._modify_value("CGroups.EnforceLimits", "y")
     #     self._modify_value("CGroups.Excluded", "vmaccess")
-    #     self.session.cmd_output("service waagent restart")
+    #     self.session.cmd_output("systemctl restart waagent")
     #     self.session.cmd_output("cat /sys/fs/cgroup/cpu/WALinuxAgent/WALinuxAgent/cpu.cfs_quota_us")
 
     def tearDown(self):
@@ -1634,11 +1634,11 @@ echo 'teststring' >> /tmp/test.log\
         if self.case_short_name == "test_attach_disk_check_device_timeout":
             self.vm.unmanaged_disk_detach(self.disk_name)
         if self.case_short_name == "test_http_proxy_system_environment":
-            self.session.cmd_output("sudo service waagent stop")
+            self.session.cmd_output("sudo systemctl stop waagent")
             self.session.cmd_output("sudo sed -i 's/Environment/d' \
 /usr/lib/systemd/system/waagent.service")
             self.session.cmd_output("sudo systemctl daemon-reload")
-            self.session.cmd_output("sudo service waagent start")
+            self.session.cmd_output("sudo systemctl start waagent")
         if self.case_short_name in [
                 "test_extension_log_dir",
                 "test_enable_disable_extension"]:
@@ -1654,7 +1654,7 @@ echo 'teststring' >> /tmp/test.log\
         if ("session" in self.__dict__) and self.session.connect():
             self.session.cmd_output(
                 "sudo /usr/bin/cp /etc/waagent.conf-bak /etc/waagent.conf")
-            self.session.cmd_output("sudo service waagent restart")
+            self.session.cmd_output("sudo systemctl restart waagent")
             self.session.cmd_output("sudo tail -1 /etc/waagent.conf")
             if utils_azure.file_exists("/tmp/deprovisioned", self.session):
                 self._recovery()
