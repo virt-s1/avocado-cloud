@@ -215,16 +215,16 @@ class GeneralTest(Test):
         if LooseVersion(self.project) < LooseVersion("7.0"):
             self.assertEqual(
                 "waagent dead but pid file exists",
-                self.session.cmd_output("sudo service waagent status"),
+                self.session.cmd_output("sudo systemctl status waagent"),
                 "waagent service status is wrong after killing process")
         else:
             self.assertIn(
                 "code=killed, signal=KILL",
-                self.session.cmd_output("sudo service waagent status"),
+                self.session.cmd_output("sudo systemctl status waagent"),
                 "waagent service status is wrong after killing process")
         if LooseVersion(self.project) < LooseVersion("7.0"):
             start_cmd = "sudo systemctl start waagent"
-            status_cmd = "sudo service waagent status"
+            status_cmd = "sudo systemctl status waagent"
         else:
             start_cmd = "sudo systemctl start waagent"
             status_cmd = "sudo systemctl status waagent"
