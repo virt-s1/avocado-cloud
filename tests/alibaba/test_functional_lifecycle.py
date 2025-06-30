@@ -256,9 +256,9 @@ password: output of cmd `who` unexpected -> %s" % output)
             connect_timeout = 120
 
         before = self.session.cmd_output('last reboot')
-        self.session.send_line('sudo sync')
+        #self.session.send_line('sudo sync')
         self.session.send_line('sudo reboot')
-        time.sleep(10)
+        time.sleep(60)
         self.session.connect(timeout=connect_timeout)
         output = self.session.cmd_output('whoami')
         self.assertEqual(

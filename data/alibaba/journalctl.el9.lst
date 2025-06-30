@@ -88,3 +88,7 @@ libcap-ng used by "/usr/sbin/irqbalance" failed dropping bounding set due to not
 # RHEL-37527
 bridge window [io  size 0x1000]: failed to assign
 pci 0000:39:00.0: bridge window [mem size 0x00200000]: failed to assign
+# https://bugzilla.redhat.com/show_bug.cgi?id=1166978
+# https://bugzilla.redhat.com/show_bug.cgi?id=2002400
+mcelog does not support this processor
+

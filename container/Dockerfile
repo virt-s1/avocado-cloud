@@ -1,4 +1,5 @@
-FROM docker.io/library/fedora:28
+#FROM docker.io/library/fedora:28
+FROM mirror.gcr.io/library/fedora:28
 
 # metadata
 LABEL author="Charles Shih"
@@ -35,8 +36,8 @@ RUN python -m pip install -r ./container/requirements_alibaba.txt
 ADD ./container/requirements_aws.txt ./container/requirements_aws.txt
 RUN python -m pip install -r ./container/requirements_aws.txt
 
-ADD ./container/requirements_azure.txt ./container/requirements_azure.txt
-RUN python -m pip install -r ./container/requirements_azure.txt
+#ADD ./container/requirements_azure.txt ./container/requirements_azure.txt
+#RUN python -m pip install -r ./container/requirements_azure.txt
 
 ADD ./container/requirements_others.txt ./container/requirements_others.txt
 RUN python -m pip install -r ./container/requirements_others.txt

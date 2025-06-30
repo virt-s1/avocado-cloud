@@ -355,6 +355,18 @@
 # RHEL-10.0 x86
 /etc/systemd/system/sysinit.target.wants/fips-crypto-policy-overlay.service
 /etc/systemd/system/timers.target.wants/rhc-canonical-facts.timer
+/root/.pip/pip.conf
+/root/.pydistutils.cfg
+/boot/grub2/locale/he.mo
+/boot/grub2/locale/ka.mo
+/etc/systemd/system/sysstat.service.wants/sysstat-rotate.timer
+/etc/systemd/system/timers.target.wants/plocate-updatedb.timer
+/etc/systemd/system/timers.target.wants/raid-check.timer
+/usr/lib/sysimage/rpm/.rpmdbdirsymlink_created
+/boot/.vmlinuz-0-rescue-20884af7e9a9403fa48feacf37be860a.hmac
+/usr/lib/fontconfig/cache/035f0ebf2f86af269427f030f354ef4b-le64.cache-9
+/usr/lib/fontconfig/cache/3830d5c3ddfd5cd38a049b759396e72e-le64.cache-9
+/usr/lib/fontconfig/cache/d63f98f14a274bd69a5425fc33aaac6b-le64.cache-9
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
