@@ -78,7 +78,7 @@ Aliyun kernel: arm-cmn: probe of ARMHC700:02 failed with error -16
 Aliyun kernel: ipmi_si IPI0001:00: Error clearing flags: c1
 Aliyun /usr/sbin/irqbalance[2370]: IRQ arm-smmu-v3-gerror
 #BZ1827890 (https://access.redhat.com/solutions/158503)
-mcelog: ERROR: AMD Processor family 25: mcelog does not support this processor
+mcelog does not support this processor
 mcelog.service: Main process exited, code=exited, status=1/FAILURE
 mcelog.service: Failed with result 'exit-code'
 # RHEL10.0 Beta
@@ -86,5 +86,5 @@ kernel: ACPI: _OSC evaluation for CPUs failed, trying _PDC
 /usr/lib/systemd/system-generators/systemd-ssh-generator failed
 kernel: platform regulatory.0: Direct firmware load for regulatory.db failed with error -2
 kernel: cfg80211: failed to load regulatory.db
-# RHEL9.5
-ACPI: _OSC evaluation for CPUs failed, trying _PDC
+# RHEL-37527
+bridge window [io  size 0x1000]: failed to assign

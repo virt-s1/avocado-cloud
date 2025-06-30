@@ -343,6 +343,8 @@
 # RHEL-9.6 x86
 /etc/systemd/system/sysinit.target.wants/systemd-pstore.service
 /etc/udev/rules.d/90-cloud-init-hook-hotplug.rules
+/boot/.vmlinuz-0-rescue-615208c1146f4a83b189a452d90b1eb7.hmac
+/boot/.vmlinuz-0-rescue-2df2fa90187745a487b5388f8c201a26.hmac
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id

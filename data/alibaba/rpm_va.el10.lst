@@ -97,5 +97,11 @@ S.5....T.  c /etc/dnf/plugins/subscription-manager.conf
 .M.......  c /etc/audit/rules.d/audit.rules
 .M.......    /var/lib/gssproxy/clients
 .M.......    /var/lib/gssproxy/rcache
+.......T.    /boot/grub2/fonts/unicode.pf2
+.M.......  g /root/.bash_logout
+.M.......  g /root/.bash_profile
+.M.......  g /root/.bashrc
+.M.......  g /root/.cshrc
+.M.......  g /root/.tcshrc
 #################### KNOWN ISSUES BELOW ####################
 S.5....T.    /usr/lib/systemd/system/cloud-init.service

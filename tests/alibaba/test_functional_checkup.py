@@ -616,6 +616,8 @@ will not check kernel-devel package.')
         if self.rhel_ver.split('.')[0] == '10':
             if self.vm.arch == "x86_64":
                 data_file = "cmdline_params.el10.lst"
+            elif self.vm.arch == "aarch64":
+                data_file = "cmdline_params.el10.arm64.lst"
         elif self.rhel_ver.split('.')[0] == '9':
             if self.vm.arch == "x86_64":
                 data_file = "cmdline_params.el9.lst"
@@ -672,7 +674,7 @@ will not check kernel-devel package.')
 
         if self.vm.arch == "x86_64" and self.rhel_ver.split('.')[0] == '10':
             output = self.session.cmd_output(
-                "rpm -qf /etc/pki/product-default/486.pem")
+                "rpm -qf /etc/pki/product-default/479.pem")
             if output.startswith("redhat-release"):
                 rhel = True
 
