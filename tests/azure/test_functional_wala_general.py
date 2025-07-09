@@ -7,6 +7,7 @@ from avocado_cloud.app import Setup
 from avocado_cloud.app.azure import AzureAccount, AzureImage
 from distutils.version import LooseVersion
 from avocado_cloud.utils import utils_azure
+from avocado_cloud.utils.utils_azure import WalaConfig
 
 BASEPATH = os.path.abspath(__file__ + "/../../../")
 
@@ -373,6 +374,14 @@ class GeneralTest(Test):
         Check /etc/shadow permission
         https://bugzilla.redhat.com/show_bug.cgi?id=1688276
         """
+        self.session.cmd_output("sudo su -")
+        walaconfig = WalaConfig(self.session)
+        if self.session.cmd_status_output("ls /mnt/resource/swapfile")[0] != 0:
+            self.log.info("No swapfile. Enable swapfile in waagent.conf.")
+            walaconfig.modify_value("ResourceDisk.EnableSwap", "y")
+            walaconfig.modify_value("ResourceDisk.SwapSizeMB", "1024")
+            walaconfig.modify_value("ResourceDisk.Format", "y")
+            self.session.cmd_output("systemctl restart waagent; sleep 5")
         self._check_file_permission("/mnt/resource/swapfile", 600)
 
     def _check_waagent_log(self, additional_ignore_message_list=None):
