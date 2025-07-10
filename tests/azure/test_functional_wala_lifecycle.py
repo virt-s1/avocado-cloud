@@ -143,6 +143,8 @@ class LifeCycleTest(Test):
         restart VM through Azure CLI
         """
         self.log.info("RHEL7-41655 WALA-TC: [life cycle] Restart a VM")
+        # Get the swap size before reboot
+        swapsize_before = self.session.cmd_output("free -m|grep Swap|awk '{print $2}'")
         before = self.session.cmd_output("last reboot")
         self.log.info("Restart the vm %s", self.vm.vm_name)
         self.vm.reboot()
@@ -166,15 +168,15 @@ class LifeCycleTest(Test):
         # Retry 10 times (100s in total) to wait for the swap file created.
         max_retry = 10
         for count in range(1, max_retry + 1):
-            swapsize = self.session.cmd_output(
+            swapsize_after = self.session.cmd_output(
                 "free -m|grep Swap|awk '{print $2}'")
-            if swapsize == "2047":
+            if swapsize_after == swapsize_before:
                 break
             else:
                 self.log.info("Swap size is wrong. Retry %d times." % count)
                 time.sleep(10)
         else:
-            self.fail("Swap is not on after VM restart")
+            self.fail("Swap size is incorrect after VM restart. Before:{}, After:{}".format(swapsize_before, swapsize_after))
 
     def test_reboot_vm_inside_guest(self):
         """

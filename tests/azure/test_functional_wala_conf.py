@@ -311,6 +311,7 @@ new resource path")
         self.log.info("WALA conf: Resource disk file type")
         # 1. ResourceDisk.Filesystem=ext4 (Default)
         self._verify_value("ResourceDisk.Filesystem", "ext4")
+        self._modify_value("ResourceDisk.EnableSwap", "y")
         self._modify_value("ResourceDisk.Format", "y")
         self._modify_value("ResourceDisk.SwapSizeMB", "2048")
         max_retry = 3
