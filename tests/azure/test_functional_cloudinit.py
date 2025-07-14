@@ -1614,7 +1614,7 @@ ssh_pwauth: 1
         '''
         self.log.info("RHEL-196560 - CLOUDINIT-TC: Check the cloud-init default config file /etc/cloud/cloud.cfg is not changed")
         self.session.cmd_output("cat /etc/cloud/cloud.cfg")        
-        out = self.session.cmd_output(self, 'ls /ostree/ | grep -i bootc')
+        out = self.session.cmd_output('ls /ostree/ | grep -i bootc')
         if 'bootc' in out:
             self.assertNotIn("/etc/cloud/cloud.cfg", self.session.cmd_output("sudo rpm -V cloud-init | grep -v '.......T.'"),
                 "The /etc/cloud/cloud.cfg is changed")
