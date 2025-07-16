@@ -191,6 +191,8 @@ tcpdump"
             depro_type = "wala"
         elif "kernel" in pkgname_list:
             depro_type = "kernel"
+        elif "azure-vm-utils" in pkgname_list:
+            depro_type = "azure-vm-utils"
         else:
             self.fail("Not supported package(s): {}".format(pkgname_list))
         script = "deprovision_package.sh"

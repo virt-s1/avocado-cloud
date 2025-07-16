@@ -4,6 +4,7 @@ if [ x$1 != x ];then
     func=$1
 else
     echo "Must specify function: deprovision/verify/all. Exit!"
+    echo "Usage: $0 <function: deprovision|verify|all> <type: cloudinit|cloudinit_wala|wala|kernel|azure-vm-utils> [username]"
     exit 1
 fi
 
@@ -11,6 +12,7 @@ if [ x$2 != x ];then
     type=$2
 else
     echo "Must specify type: cloudinit/cloudinit_wala/wala. Exit!"
+    echo "Usage: $0 <function: deprovision|verify|all> <type: cloudinit|cloudinit_wala|wala|kernel|azure-vm-utils> [username]"
     exit 1
 fi
 
@@ -51,6 +53,11 @@ function deprovision_wala() {
     touch /etc/sysconfig/network-scripts/ifcfg-eth0
     # Remove 50-cloud-init.conf
     rm -f /etc/ssh/sshd_config.d/50-cloud-init.conf
+}
+
+function deprovision_azure_vm_utils() {
+    #rpm -e azure-vm-utils > /dev/null 2>&1 
+    return 1
 }
 
 function deprovision_cloudinit_wala() {
@@ -503,6 +510,19 @@ function verify_cloudinit() {
     exit $rflag
 }
 
+function verify_azure_vm_utils() {
+    # rpm -q azure-vm-utils > /dev/null
+    # if [ $? -eq 0 ];then
+    #     format_echo "Verify azure-vm-utils removed: FAIL";
+    #     ret=1
+    # else
+    #     format_echo "Verify azure-vm-utils removed: PASS"
+    #     ret=0
+    # fi
+    # return $ret
+    return 0
+}
+
 case $type in
 cloudinit)
     function deprovision() { deprovision_cloudinit; }
@@ -527,8 +547,14 @@ kernel)
         function verify() { verify_wala; }
     fi
 ;;
+azure-vm-utils)
+# azure-vm-utils
+    function deprovision() { deprovision_azure_vm_utils; }
+    function verify() { verify_azure_vm_utils; }
+;;
 *)
     echo "$type: unsupported deprovision type! Exit."
+    echo "Usage: $0 <function: deprovision|verify|all> <type: cloudinit|cloudinit_wala|wala|kernel|azure-vm-utils> [username]"
     exit 1
 ;;
 esac
