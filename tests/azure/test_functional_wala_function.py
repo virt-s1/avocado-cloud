@@ -39,18 +39,15 @@ class WALAFuncTest(Test):
         status, output = self.session.cmd_status_output('sudo su -')
         self.assertEqual(status, 0,
                          "User [root] login failed\n{}".format(str(output)))
+        self.wala_version = utils_azure.wala_version(self.session)
         # Must stop NetworkManager or it will regenerate /etc/resolv.conf in RHEL-8.4
         if "test_waagent_depro" in self.case_short_name:
             self.session.cmd_output("systemctl stop NetworkManager")
         if "test_waagent_collect_logs" == self.case_short_name:
             if LooseVersion(self.project) >= LooseVersion('9.0') and \
-                self.wala_version >= LooseVersion('2.9.1.1'):
+                LooseVersion(self.wala_version) >= LooseVersion('2.9.1.1'):
                 self.cancel("waagent -collect-logs cannot be enabled in RHEL-9+ and WALA-2.9.1.1+")
 
-
-    @property
-    def wala_version(self):
-        return LooseVersion(self.session.cmd_output("rpm -q WALinuxAgent").split("-")[1])
 
     def _stop_waagent(self, delete_log=False):
         """
@@ -84,7 +81,6 @@ class WALAFuncTest(Test):
         """
         self.log.info("[WALA function] Check waagent -version")
         # Check the WALinuxAgent version
-        # wala_version = self.params.get("wala_ver", "*/VM/*").split('-')[0]
         rpm_version = self.session.cmd_output("rpm -q WALinuxAgent")
         rpm_version_format = rpm_version.split('-')[1]
         show_version = self.session.cmd_output(
@@ -128,7 +124,6 @@ class WALAFuncTest(Test):
             "Provisioning.RegenerateSshHostKeyPair", "y")
         self.assertEqual(status, 0, output)
         del status, output
-        wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         # In case there's no /root/.bash_history
         # RHEL-10 doesn't have dhclient
         if LooseVersion(self.project) < LooseVersion('10.0'):
@@ -152,7 +147,7 @@ class WALAFuncTest(Test):
             "WARNING! root password will be disabled. You will not be able to \
 login as root"
         ]
-        if r"2.0.16" in wala_version:
+        if r"2.0.16" in self.wala_version:
             message_list = [
                 "WARNING! The waagent service will be stopped",
                 "WARNING! All SSH host key pairs will be deleted",
@@ -230,7 +225,6 @@ to login as root"
             "echo %s | passwd --stdin root" % self.vm.vm_password)
         self.assertEqual(passwd_status, 0,
                          "Fail to set password for user root")
-        wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         check_list = [
             "/etc/ssh/ssh_host_*", "/etc/resolv.conf",
             "/root/.bash_history", "/var/log/waagent.log"
@@ -249,7 +243,7 @@ to login as root"
             "WARNING! root password will be disabled. You will not be able \
 to login as root"
         ]
-        if r"2.0.16" in wala_version:
+        if r"2.0.16" in self.wala_version:
             message_list = [
                 "WARNING! The waagent service will be stopped",
                 "WARNING! All SSH host key pairs will be deleted",
@@ -353,7 +347,6 @@ to login as root", deprovision_output,
             "Provisioning.RegenerateSshHostKeyPair", "y")
         self.assertEqual(status, 0, output)
         del status, output
-        wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         check_list = [
             "/etc/ssh/ssh_host_*", "/etc/resolv.conf",
             "/root/.bash_history", "/var/log/waagent.log"
@@ -374,7 +367,7 @@ login as root",
             "WARNING! %s account and entire home directory will be deleted" %
             self.vm.vm_username
         ]
-        if r"2.0.16" in wala_version:
+        if r"2.0.16" in self.wala_version:
             message_list = [
                 "WARNING! The waagent service will be stopped",
                 "WARNING! All SSH host key pairs will be deleted",
@@ -457,7 +450,7 @@ login as root"
             self.session.cmd_output("grep -R %s /etc/shadow" %
                                     self.vm.vm_username),
             "%s is not deleted" % self.vm.vm_username)
-        if r"2.0.16" in wala_version:
+        if r"2.0.16" in self.wala_version:
             self.assertIn("No such file",
                           self.session.cmd_output("ls /etc/sudoers.d/waagent"),
                           "/etc/sudoers.d/waagent is not deleted")
@@ -483,7 +476,6 @@ login as root"
             "echo %s | passwd --stdin root" % self.vm.vm_password)
         self.assertEqual(passwd_status, 0,
                          "Fail to set password for user root")
-        wala_version = self.session.cmd_output("rpm -q WALinuxAgent")
         check_list = [
             "/etc/ssh/ssh_host_*", "/etc/resolv.conf",
             "/root/.bash_history", "/var/log/waagent.log"
@@ -504,7 +496,7 @@ login as root",
             "WARNING! %s account and entire home directory will be deleted" %
             self.vm.vm_username
         ]
-        if r"2.0.16" in wala_version:
+        if r"2.0.16" in self.wala_version:
             message_list = [
                 "WARNING! The waagent service will be stopped",
                 "WARNING! All SSH host key pairs will be deleted",
@@ -544,7 +536,7 @@ to login as root"
             self.session.cmd_output("grep -R %s /etc/shadow" %
                                     self.vm.vm_username),
             "%s is not deleted" % self.vm.vm_username)
-        if r"2.0.16" in wala_version:
+        if r"2.0.16" in self.wala_version:
             self.assertIn("No such file",
                           self.session.cmd_output("ls /etc/sudoers.d/waagent"),
                           "/etc/sudoers.d/waagent is not deleted")
@@ -561,24 +553,22 @@ to login as root"
         WALA-TC: [WALA function] Check waagent -help
         """
         self.log.info("[WALA function] Check waagent -help")
-        wala_version = LooseVersion(
-            self.session.cmd_output("rpm -q WALinuxAgent").split("-")[1])
-        if wala_version == LooseVersion("2.0.16"):
+        if LooseVersion(self.wala_version) == LooseVersion("2.0.16"):
             help_msg = "[-verbose] [-force] [-help|" \
                        "-install|-uninstall|-deprovision[+user]|-version|"\
                        "-serialconsole|-daemon]"
-        elif wala_version < LooseVersion("2.2.18"):
+        elif LooseVersion(self.wala_version) < LooseVersion("2.2.18"):
             help_msg = "[-verbose] [-force] [-help] " \
                        "-configuration-path:<path to configuration file>"\
                        "-deprovision[+user]|-register-service|-version|"\
                        "-daemon|-start|-run-exthandlers]"
-        elif wala_version < LooseVersion("2.3.0"):
+        elif LooseVersion(self.wala_version) < LooseVersion("2.3.0"):
             help_msg = "[-verbose] [-force] [-help] " \
                        "-configuration-path:<path to configuration file>"\
                        "-deprovision[+user]|-register-service|-version|"\
                        "-daemon|-start|-run-exthandlers|"\
                        "-show-configuration]"
-        elif wala_version < LooseVersion("2.13.1"):
+        elif LooseVersion(self.wala_version) < LooseVersion("2.13.1"):
             help_msg = "[-verbose] [-force] [-help] " \
                        "-configuration-path:<path to configuration file>"\
                        "-deprovision[+user]|-register-service|-version|"\
@@ -605,7 +595,7 @@ to login as root"
         self._stop_waagent()
         # waagent start
         self.session.cmd_output("waagent -start")
-        time.sleep(1)
+        time.sleep(5)
         processes = self.session.cmd_output("ps aux|grep -E 'waagent|WAL'")
         self.assertIn("waagent -daemon", processes,
                       "Fail to start daemon process through waagent -start")
@@ -631,7 +621,7 @@ to login as root"
         # waagent -run-exthandlers
         # It doesn't check the process, but only check the log.
         output = self.session.cmd_output("timeout 3 waagent -run-exthandlers")
-        if self.wala_version >= LooseVersion('2.9.1.1'):
+        if LooseVersion(self.wala_version) >= LooseVersion('2.9.1.1'):
             keyword = "Goal State Agent version"
         else:
             keyword = "is running as the goal state agent"
@@ -778,14 +768,13 @@ to login as root"
             "-A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT",
             "-A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j DROP"
         ]
-        wala_version = self.session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
-        if LooseVersion(wala_version) > LooseVersion('2.3.0.2'):
+        if LooseVersion(self.wala_version) > LooseVersion('2.3.0.2'):
             FIREWALL_RULES.append("-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT")
         # Stop waagent service and clear iptables security table
         self._stop_waagent()
         self.session.cmd_output("iptables -t security -F")
         # Verify new rules are added
-        if LooseVersion(wala_version) < LooseVersion('2.13.1.1'):
+        if LooseVersion(self.wala_version) < LooseVersion('2.13.1.1'):
             self.session.cmd_output("waagent -setup-firewall --dst_ip=168.63.129.16 --uid=0 -w")
         else:
             self.session.cmd_output("waagent -setup-firewall=168.63.129.16")

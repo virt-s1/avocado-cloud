@@ -812,13 +812,7 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         # Need to set the following parameters to trigger self-update immediately
         self._modify_value("Debug.SelfUpdateRegularFrequency", "10")
         self._modify_value("Autoupdate.Frequency", "10")
-        x, y, z = self.session.cmd_output("rpm -q WALinuxAgent").split(
-            '-')[1].split('.')[:3]
-        # Set low and high version
-        low_version = "2.0.0"
-        high_version = "{0}.{1}.{2}".format(int(x) + 10, y, z)
-        self.log.info("Low version: " + low_version)
-        self.log.info("High version: " + high_version)
+        # Get python version
         if LooseVersion(self.project) < LooseVersion("8.0"):
             python = "python"
         else:
@@ -826,8 +820,20 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         import re
         _, px, py, pz = re.split(
             '[ .]', self.session.cmd_output("%s --version" % python))
+        # Get WALA version in version.py
         version_file = "/usr/lib/python%s.%s/site-packages/\
 azurelinuxagent/common/version.py" % (px, py)
+        x, y, z = self.session.cmd_output("rpm -q WALinuxAgent").split(
+            '-')[1].split('.')[:3]
+        origin_version = self.session.cmd_output(
+            "grep '^AGENT_VERSION' /usr/lib/python%s.%s/site-packages/\
+azurelinuxagent/common/version.py" % (px, py)).split('=')[1].strip().strip("'")
+        self.log.debug("Origin WALA version: %s" % origin_version)
+        # Set low and high version
+        low_version = "2.0.0"
+        high_version = "{0}.{1}.{2}".format(int(x) + 10, y, z)
+        self.log.info("Low version: " + low_version)
+        self.log.info("High version: " + high_version)
         # If version >= 2.13.1 then AutoUpdate.UpdateToLatestVersion=y
         if LooseVersion(self.wala_version) < LooseVersion("2.13"):
             autoupdate_conf = "AutoUpdate.Enabled"
@@ -905,8 +911,8 @@ azurelinuxagent/common/version.py" % (px, py)
         self.log.info("3. Remove {} parameter and check the default value".format(autoupdate_conf))
         # Recover the agent version
         self.session.cmd_output(
-            "sed -i \"s/^AGENT_VERSION.*$/AGENT_VERSION = '{}.{}.{}'/g\" {}".
-            format(x, y, z, version_file))
+            "sed -i \"s/^AGENT_VERSION.*$/AGENT_VERSION = '{}'/g\" {}".
+            format(origin_version, version_file))
         self.session.cmd_output(
             "sed -i '/{}/d' /etc/waagent.conf".format(autoupdate_conf))
         self.assertEqual(
