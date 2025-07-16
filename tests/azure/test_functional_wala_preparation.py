@@ -80,10 +80,10 @@ install /tmp/%s\"" % (self.vm.public_ip, self.package)).exit_status
         self.assertEqual(
             self.session.cmd_status_output("rpm -q WALinuxAgent")[0], 0,
             "Fail to install %s package" % self.package)
-        # Install cloud-utils-growpart gdisk packages for auto_extend_os_disk
-        # case
-        self.session.cmd_output("rm -f /etc/yum.repos.d/rhel.repo")
+        # Enable firewalld service for WALA testing
+        self.session.cmd_output("systemctl enable firewalld")
         # Deprovision image
+        self.session.cmd_output("rm -f /etc/yum.repos.d/rhel.repo")
         self.session.copy_files_to(
             local_path="%s/../../scripts/deprovision_wala.sh" % self.pwd,
             remote_path="/tmp/deprovision_wala.sh")
