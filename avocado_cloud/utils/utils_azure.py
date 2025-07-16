@@ -240,6 +240,30 @@ def recreate_vm(instance, tag, timeout=300, **kwargs):
     return (cloud.vm, session)
 
 
+def check_waagent_log(session, additional_ignore_message_list=None):
+    logging.info("Check the waagent log")
+    basepath = os.path.abspath(__file__ + "/../../../")
+    with open("{}/data/azure/ignore_waagent_messages".format(basepath),
+                'r') as f:
+        base_ignore_message_list = f.read().split('\n')
+    # Check waagent.log
+    cmd = "sudo sh -c \"grep -iE '(error|fail)' /var/log/waagent.log\""
+    ignore_message_list = []
+    if base_ignore_message_list:
+        ignore_message_list += base_ignore_message_list
+    if additional_ignore_message_list:
+        ignore_message_list += additional_ignore_message_list
+    if ignore_message_list:
+        cmd += "|grep -vE '({})'".format('|'.join(ignore_message_list))
+    error_log = session.cmd_output(cmd)
+    assert(error_log == "",
+        "There's error in the /var/log/waagent.log: \n%s" % error_log)
+
+def wala_version(session):
+    return session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
+
+
+
 class WalaConfig(object):
     def __init__(self, session, path="/etc/waagent.conf"):
         self.session = session
