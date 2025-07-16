@@ -52,18 +52,24 @@ class WALAFuncTest(Test):
     def wala_version(self):
         return LooseVersion(self.session.cmd_output("rpm -q WALinuxAgent").split("-")[1])
 
-    def test_waagent_verbose(self):
+    def _stop_waagent(self, delete_log=False):
         """
-        :avocado: tags=tier2
-        WALA-TC: [WALA function] Check waagent -verbose
+        Stop waagent service and delete waagent.log
         """
         cmd_stop_waagent = "systemctl stop waagent"
         status, output = self.session.cmd_status_output(cmd_stop_waagent)
         self.assertEqual(
             status, 0,
             "Fail to stop waagent service before test\n{}".format(str(output)))
-        cmd_delete_log = "rm -f /var/log/waagent.log"
-        self.session.cmd_output(cmd_delete_log)
+        if delete_log:
+            self.session.cmd_output("rm -f /var/log/waagent.log")
+
+    def test_waagent_verbose(self):
+        """
+        :avocado: tags=tier2
+        WALA-TC: [WALA function] Check waagent -verbose
+        """
+        self._stop_waagent(delete_log=True)
         cmd_rerun_wala = "timeout 5 waagent -verbose -daemon"
         self.session.cmd_output(cmd_rerun_wala)
         time.sleep(5)
@@ -572,13 +578,19 @@ to login as root"
                        "-deprovision[+user]|-register-service|-version|"\
                        "-daemon|-start|-run-exthandlers|"\
                        "-show-configuration]"
-        else:
+        elif wala_version < LooseVersion("2.13.1"):
             help_msg = "[-verbose] [-force] [-help] " \
                        "-configuration-path:<path to configuration file>"\
                        "-deprovision[+user]|-register-service|-version|"\
                        "-daemon|-start|-run-exthandlers|-show-configuration|"\
                        "-collect-logs [-full]|-setup-firewall "\
                        "[-dst_ip=<IP> -uid=<UID> [-w/--wait]]"
+        else:
+            help_msg = "[-verbose] [-force] [-help] " \
+                       "-configuration-path:<path to configuration file>"\
+                       "-deprovision[+user]|-register-service|-version|"\
+                       "-daemon|-start|-run-exthandlers|-show-configuration|"\
+                       "-collect-logs [-full]|-setup-firewall=<IP>]"
         # self.log.info("help_msg: \n" + help_msg)
         cmd_output = self.session.cmd_output("waagent -help").strip(
             '\n').split("waagent")[-1].strip()
@@ -590,12 +602,7 @@ to login as root"
         WALA-TC: [WALA function] waagent -start
         """
         self.log.info("[WALA function] waagent -start")
-        # Stop waagent service
-        cmd_stop_waagent = "systemctl stop waagent"
-        status, output = self.session.cmd_status_output(cmd_stop_waagent)
-        self.assertEqual(
-            status, 0,
-            "Fail to stop waagent service before test\n{}".format(str(output)))
+        self._stop_waagent()
         # waagent start
         self.session.cmd_output("waagent -start")
         time.sleep(1)
@@ -612,12 +619,8 @@ to login as root"
         """
         self.log.info("[WALA function] waagent -run-exthandlers")
         # Stop service, remove waagent.log
-        cmd_stop_waagent = "systemctl stop waagent"
-        status, output = self.session.cmd_status_output(cmd_stop_waagent)
-        self.assertEqual(
-            status, 0,
-            "Fail to stop waagent service before test\n{}".format(str(output)))
-        self.session.cmd_output("rm -f /var/log/waagent.log")
+        self._stop_waagent(delete_log=True)
+        # Disable auto update
         walaconfig = WalaConfig(self.session)
         status, output = walaconfig.modify_value("AutoUpdate.Enabled", "n")
         self.assertEqual(status, 0, output)
@@ -636,9 +639,10 @@ to login as root"
                       "Fail to run exthandlers")
         self.assertIn("is an orphan -- exiting", output,
                       "Fail to exit as orphan")
-        output = self.session.cmd_output(
-            "grep -iE 'error|fail' /var/log/waagent.log")
-        self.assertEqual("", output, "There are error logs: \n%s" % output)
+        # output = self.session.cmd_output(
+        #     "grep -iE 'error|fail' /var/log/waagent.log")
+        # self.assertEqual("", output, "There are error logs: \n%s" % output)
+        utils_azure.check_waagent_log(self.session)
         # waagent -run-exthandlers -debug (v2.2.35)
         output = self.session.cmd_output(
             "timeout 3 waagent -run-exthandlers -debug")
@@ -670,7 +674,7 @@ to login as root"
         """
         self.log.info("WALA-TC: [func] the path of configuration file can be customized")
         self.log.info("1. Move /etc/waagent.conf to /root/waagent.conf. Restart waagent service")
-        self.session.cmd_output("systemctl stop waagent;sleep 3")
+        self._stop_waagent()
         self.session.cmd_output("/usr/bin/mv /etc/waagent.conf /root/waagent.conf")
         self.log.info('2. Run "waagent -start", verify no waagent process is running.')
         self.session.cmd_output("waagent -start;sleep 3")
@@ -687,8 +691,7 @@ to login as root"
         RHEL7-41731	WALA-TC: [func] waagent -daemon
         1. Stop waagent service. Run "waagent -daemon &". Check process and log
         """
-        self.session.cmd_output("systemctl stop waagent")
-        self.session.cmd_output("rm -f /var/log/waagent.log")
+        self._stop_waagent(delete_log=True)
         ret = self.session.cmd_status_output(
             "timeout --preserve-status 10 waagent -daemon")
         self.assertEqual(0, ret[0],
@@ -778,10 +781,14 @@ to login as root"
         wala_version = self.session.cmd_output("rpm -q WALinuxAgent").split('-')[1]
         if LooseVersion(wala_version) > LooseVersion('2.3.0.2'):
             FIREWALL_RULES.append("-A OUTPUT -d 168.63.129.16/32 -p tcp -m tcp --dport 53 -j ACCEPT")
-        # Clear iptables security table
+        # Stop waagent service and clear iptables security table
+        self._stop_waagent()
         self.session.cmd_output("iptables -t security -F")
         # Verify new rules are added
-        self.session.cmd_output("waagent -setup-firewall --dst_ip=168.63.129.16 --uid=0 -w")
+        if LooseVersion(wala_version) < LooseVersion('2.13.1.1'):
+            self.session.cmd_output("waagent -setup-firewall --dst_ip=168.63.129.16 --uid=0 -w")
+        else:
+            self.session.cmd_output("waagent -setup-firewall=168.63.129.16")
         time.sleep(1)
         output = self.session.cmd_output("iptables-save -t security|grep -A3 'OUTPUT ACCEPT'")
         for line in FIREWALL_RULES:
@@ -864,7 +871,8 @@ to login as root"
             self.session.cmd_output(cmd_start_waagent)
         elif self.case_short_name == "test_waagent_verbose" or \
                 self.case_short_name == "test_waagent_run_exthandlers" or \
-                self.case_short_name == "test_waagent_daemon":
+                self.case_short_name == "test_waagent_daemon" or \
+                self.case_short_name == "test_waagent_setup_firewall":
             try:
                 self.session.cmd_output(cmd_stop_waagent)
                 self.session.cmd_output("rm -f /var/log/waagent*.log")

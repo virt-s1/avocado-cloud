@@ -384,31 +384,32 @@ class GeneralTest(Test):
             self.session.cmd_output("systemctl restart waagent; sleep 5")
         self._check_file_permission("/mnt/resource/swapfile", 600)
 
-    def _check_waagent_log(self, additional_ignore_message_list=None):
-        self.log.info("Check the waagent log")
-        with open("{}/data/azure/ignore_waagent_messages".format(BASEPATH),
-                  'r') as f:
-            base_ignore_message_list = f.read().split('\n')
-        # Check waagent.log
-        cmd = "sudo sh -c \"grep -iE '(error|fail)' /var/log/waagent.log\""
-        ignore_message_list = []
-        if base_ignore_message_list:
-            ignore_message_list += base_ignore_message_list
-        if additional_ignore_message_list:
-            ignore_message_list += additional_ignore_message_list
-        if ignore_message_list:
-            cmd += "|grep -vE '({})'".format('|'.join(ignore_message_list))
-        error_log = self.session.cmd_output(cmd)
-        self.assertEqual(
-            error_log, "",
-            "There's error in the /var/log/waagent.log: \n%s" % error_log)
+    # def _check_waagent_log(self, additional_ignore_message_list=None):
+    #     self.log.info("Check the waagent log")
+    #     with open("{}/data/azure/ignore_waagent_messages".format(BASEPATH),
+    #               'r') as f:
+    #         base_ignore_message_list = f.read().split('\n')
+    #     # Check waagent.log
+    #     cmd = "sudo sh -c \"grep -iE '(error|fail)' /var/log/waagent.log\""
+    #     ignore_message_list = []
+    #     if base_ignore_message_list:
+    #         ignore_message_list += base_ignore_message_list
+    #     if additional_ignore_message_list:
+    #         ignore_message_list += additional_ignore_message_list
+    #     if ignore_message_list:
+    #         cmd += "|grep -vE '({})'".format('|'.join(ignore_message_list))
+    #     error_log = self.session.cmd_output(cmd)
+    #     self.assertEqual(
+    #         error_log, "",
+    #         "There's error in the /var/log/waagent.log: \n%s" % error_log)
 
     def test_check_waagent_log(self):
         """
         :avocado: tags=tier2
         Check if there's error logs in /var/log/waagent.log
         """
-        self._check_waagent_log()
+        # self._check_waagent_log()
+        utils_azure.check_waagent_log(self.session)
 
     def test_event_clean_up_when_above1000(self):
         """
@@ -627,7 +628,8 @@ CPUQuota=75%
         self.vm.reboot()
         self.session.connect()
         additional_ignore_message_list = ["Error getting cloud-init enabled status from"]
-        self._check_waagent_log(additional_ignore_message_list)
+        # self._check_waagent_log(additional_ignore_message_list)
+        utils_azure.check_waagent_log(self.session, additional_ignore_message_list)
 
     def test_provision_with_2_keys(self):
         """
@@ -694,12 +696,13 @@ CPUQuota=75%
         self.session.cmd_output(
             "rm -rf /var/lib/waagent/WALinuxAgent-* /var/log/waagent.log")
         self._modify_value("AutoUpdate.Enabled", "y")
-        self.log.info("3. Start waagent service. Check if can download \
-auto-update packages. Special string should be in waagent.log")
+        self.log.info("3. Start waagent service. Check if auto-update \
+can work. Special string should be in waagent.log")
         self.session.cmd_output("systemctl start waagent")
         time.sleep(50)
         for retry in range(0, 30):
-            if self.session.cmd_status_output("ll -d /var/lib/waagent/WALinuxAgent-*")[0] == 0:
+            # if self.session.cmd_status_output("ll -d /var/lib/waagent/WALinuxAgent-*")[0] == 0:
+            if self.session.cmd_status_output("grep 'Self-update discovered new Regular upgrade' /var/log/waagent.log")[0] == 0:
                 break
             self.log.info("Waiting for auto-update package downloaded. \
 Retry: {0}/30".format(retry+1))

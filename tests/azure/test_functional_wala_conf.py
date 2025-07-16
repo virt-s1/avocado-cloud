@@ -27,6 +27,7 @@ class WALAConfTest(Test):
             cloud = Setup(self.params, self.name)
         self.vm = cloud.vm
         self.session = cloud.init_vm()
+        self.wala_version = utils_azure.wala_version(self.session)
         self.session.cmd_output("sudo /usr/bin/cp /etc/waagent.conf{,-bak}")
         if self.case_short_name != "test_self_update" and \
            not self.case_short_name.startswith("test_http_proxy"):
@@ -808,8 +809,12 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
         """
         self.log.info("WALA conf: self-update")
         self.session.cmd_output("sudo su -")
+        # Need to set the following parameters to trigger self-update immediately
+        self._modify_value("Debug.SelfUpdateRegularFrequency", "10")
+        self._modify_value("Autoupdate.Frequency", "10")
         x, y, z = self.session.cmd_output("rpm -q WALinuxAgent").split(
             '-')[1].split('.')[:3]
+        # Set low and high version
         low_version = "2.0.0"
         high_version = "{0}.{1}.{2}".format(int(x) + 10, y, z)
         self.log.info("Low version: " + low_version)
@@ -823,8 +828,13 @@ PasswordAuthentication yes/g' /etc/ssh/sshd_config")
             '[ .]', self.session.cmd_output("%s --version" % python))
         version_file = "/usr/lib/python%s.%s/site-packages/\
 azurelinuxagent/common/version.py" % (px, py)
+        # If version >= 2.13.1 then AutoUpdate.UpdateToLatestVersion=y
+        if LooseVersion(self.wala_version) < LooseVersion("2.13"):
+            autoupdate_conf = "AutoUpdate.Enabled"
+        else:
+            autoupdate_conf = "AutoUpdate.UpdateToLatestVersion"
         # 1. AutoUpdate.Enabled=y
-        self._modify_value("AutoUpdate.Enabled", "y")
+        self._modify_value(autoupdate_conf, "y")
         # 1.1 local version is lower than new version
         self.log.info("1.1 local version is lower than new version")
         self.session.cmd_output(
@@ -845,7 +855,7 @@ azurelinuxagent/common/version.py" % (px, py)
                 break
             self.log.info("Wait for updating. Retry %d/%d times" %
                           (retry, max_retry))
-            time.sleep(30)
+            time.sleep(10)
         else:
             self.fail("[RHEL-6]Bug 1371071. "
                       "Fail to enable AutoUpdate after retry %d times" %
@@ -880,8 +890,8 @@ azurelinuxagent/common/version.py" % (px, py)
             #   self.session.cmd_output("ps aux|grep [-]run-exthandlers"),
             "Should not use new version if local version is higher")
         # 2. AutoUpdate.Enabled=n
-        self.log.info("2. AutoUpdate.Enabled=n")
-        self._modify_value("AutoUpdate.Enabled", "n")
+        self.log.info("2. {}=n".format(autoupdate_conf))
+        self._modify_value(autoupdate_conf, "n")
         self.session.cmd_output("systemctl restart waagent")
         time.sleep(10)
         # Check feature
@@ -892,24 +902,38 @@ azurelinuxagent/common/version.py" % (px, py)
             #   self.session.cmd_output("ps aux|grep [-]run-exthandlers"),
             "Fail to disable AutoUpdate")
         # 3. Remove AutoUpdate.enabled parameter and check the default value
-        self.log.info("3. Remove AutoUpdate.enabled parameter and check \
-the default value")
+        self.log.info("3. Remove {} parameter and check the default value".format(autoupdate_conf))
+        # Recover the agent version
         self.session.cmd_output(
-            "sed -i '/AutoUpdate.Enabled/d' /etc/waagent.conf")
+            "sed -i \"s/^AGENT_VERSION.*$/AGENT_VERSION = '{}.{}.{}'/g\" {}".
+            format(x, y, z, version_file))
+        self.session.cmd_output(
+            "sed -i '/{}/d' /etc/waagent.conf".format(autoupdate_conf))
         self.assertEqual(
             "",
             self.session.cmd_output(
-                "grep 'AutoUpdate.Enabled' /etc/waagent.conf"),
-            "Fail to remove AutoUpdate.Enabled line")
+                "grep '{}' /etc/waagent.conf".format(autoupdate_conf)),
+            "Fail to remove {} line".format(autoupdate_conf))
         self.session.cmd_output("systemctl restart waagent")
         time.sleep(10)
         # Check feature
-        output = self._wait_for_exthandlers()
-        self.assertIn(
-            "/usr/sbin/waagent -run-exthandlers",
-            output,
-            #   self.session.cmd_output("ps aux|grep [-]run-exthandlers"),
-            "The AutoUpdate.enabled is not False by default.")
+        # output = self._wait_for_exthandlers()
+        for retry in range(1, max_retry + 1):
+            if "egg" in self.session.cmd_output(
+                    "ps aux|grep [-]run-exthandlers"):
+                break
+            self.log.info("Wait for updating. Retry %d/%d times" %
+                          (retry, max_retry))
+            time.sleep(10)
+        else:
+            self.fail("The {} is not False by default".format(autoupdate_conf))
+        # self.assertIn(
+        #     "/usr/sbin/waagent -run-exthandlers",
+        #     output,
+        #     #   self.session.cmd_output("ps aux|grep [-]run-exthandlers"),
+        #     "The {} is not False by default.".format(autoupdate_conf))
+        # self.assertIn("egg", output,
+        #               "The {} is not True by default.".format(autoupdate_conf))
 
     def test_resource_disk_mount_options(self):
         """
@@ -1243,7 +1267,13 @@ echo 'teststring' >> /tmp/test.log\
         self.log.info("Enable FIPS")
         self.log.info("1. Environment prepare. Enable FIPS in RHEL")
         # 1.1 Check fips packages, disable prelink
-        if LooseVersion(self.project) >= LooseVersion("8.0"):
+        if LooseVersion(self.project) >= LooseVersion("10.0"):
+            self.session.cmd_output('''
+boot_uuid=$(findmnt --first --noheadings -o SOURCE /boot);
+[ -z ${boot_uuid} ] && boot_uuid=$(findmnt --first --noheadings -o SOURCE /);
+grubby --update-kernel=ALL --args="fips=1 boot=UUID=$(blkid --output value --match-tag UUID ${boot_uuid})"
+''')
+        elif LooseVersion(self.project) >= LooseVersion("8.0"):
             self.session.cmd_output("fips-mode-setup --enable", timeout=600)
         else:
             if utils_azure.file_exists("ls /root/dracut-fips-*.rpm", self.session):
