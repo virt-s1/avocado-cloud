@@ -25,11 +25,15 @@ class AzureAccount(object):
     def __init__(self, params):
         self.username = params.get('username', '*/Credential/*')
         self.password = params.get('password', '*/Credential/*')
+        self.tenant = params.get('tenant', '*/Credential/*')
 
     def login(self):
-        return
-        cmd = 'az login -u "{}" -p "{}" --output json'.format(
-            self.username, self.password)
+        ret = command('az account show', ignore_status=True)
+        if ret.exit_status == 0:
+            print("Already logged in to Azure")
+            return
+        cmd = 'az login --service-principal -u "{}" -p "{}" --tenant "{}" --output json'.format(
+            self.username, self.password, self.tenant)
         command(cmd)
 
     def logout(self):
