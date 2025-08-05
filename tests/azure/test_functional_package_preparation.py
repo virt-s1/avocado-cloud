@@ -7,6 +7,14 @@ from avocado_cloud.app.azure import AzureAccount
 from avocado_cloud.utils.utils_azure import command
 
 
+def _url_available(url, timeout=10):
+    try:
+        response = requests.get(url, timeout=timeout).ok
+        return response  # or response.status_code, response.text, etc.
+    except requests.exceptions.RequestException:
+        return False
+
+
 class PackagePreparation(Test):
     def setUp(self):
         self.casestatus = False
@@ -56,12 +64,12 @@ sudo chown -R root:root /root/.ssh".format(self.vm.vm_username))
                 x_version = 9
         label = "BaseOS" if x_version > 7 else "Server"
         # Validate these repos one by one and select the available one
-        base_url_list = [ "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/rel-eng/updates/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
-                          "http://download-node-02.eng.bos.redhat.com/rhel-{}/nightly/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+        base_url_list = [ "http://download.devel.redhat.com/rhel-{}/rel-eng/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download.devel.redhat.com/rhel-{}/rel-eng/updates/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
+                          "http://download.devel.redhat.com/rhel-{}/nightly/RHEL-{}/latest-RHEL-{}/compose/{}/x86_64/os/".format(x_version, x_version, self.project, {}),
                         ]
         for base_url in base_url_list:
-            if requests.get(base_url.format(label)).ok:
+            if _url_available(base_url.format(label)):
                 break
         BASEREPO = """
 [rhel-base]
@@ -70,6 +78,7 @@ baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
+skip_if_unavailable=1
 
 EOF
 """.format(base_url.format(label))
@@ -80,6 +89,7 @@ baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
+skip_if_unavailable=1
 
 EOF
 """.format(base_url.format("AppStream"))
@@ -91,15 +101,18 @@ baseurl={}
 enabled=1
 gpgcheck=0
 proxy=http://127.0.0.1:8080/
+skip_if_unavailable=1
 
 EOF
 """.format(pulpcore_url)
         self.session.cmd_output("cat << EOF > /etc/yum.repos.d/rhel.repo%s" %
                                 (BASEREPO))
         # WALA doesn't use pulpcore repo to avoid the RHEL-8.0 systemd update issue
-        if "WALinuxAgent" not in self.packages and requests.get(pulpcore_url).ok:
+        if "WALinuxAgent" not in self.packages and _url_available(pulpcore_url):
             self.session.cmd_output("cat << EOF >> /etc/yum.repos.d/rhel.repo%s" %
                                     (PULPCOREREPO))
+        else:
+            print("Skip pulpcore repo")
         if x_version > 7:
             self.session.cmd_output(
                 "cat << EOF >> /etc/yum.repos.d/rhel.repo%s" % (APPSTREAMREPO))
@@ -134,7 +147,7 @@ StrictHostKeyChecking=no -R 8080:127.0.0.1:3128 root@%s \
                 'cloud-init', 'python3-jsonpatch', 'cloud-utils-growpart',
                 'python3-jsonschema', 'python3-httpretty', 'python3-pyserial',
                 'python3-prettytable', 'python3-configobj', 'python3-distro',
-                'python3-jsonschema-specifications'
+                'python3-jsonschema-specifications', 'azure-vm-utils'
             ]
         else:
             cloudinit_pkgs = [
