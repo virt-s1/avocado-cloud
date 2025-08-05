@@ -194,18 +194,16 @@ tcpdump"
         self.session.cmd_output(
             "sed -i 's/^IPV6INIT.*$/IPV6INIT=yes/g' /etc/sysconfig/network-scripts/ifcfg-eth0")
         # Deprovision image
-        # If cloud-init related packages:
-        if (list(set(pkgname_list).intersection(set(cloudinit_pkgs)))):
+        if "WALinuxAgent" in pkgname_list:
+            depro_type = "wala"
+#        elif "kernel" in pkgname_list:
+#            depro_type = "kernel"
+        else:
+            # cloud-init related packages and others:
             if self.with_wala:
                 depro_type = "cloudinit_wala"
             else:
                 depro_type = "cloudinit"
-        elif "WALinuxAgent" in pkgname_list:
-            depro_type = "wala"
-        elif "kernel" in pkgname_list:
-            depro_type = "kernel"
-        else:
-            self.fail("Not supported package(s): {}".format(pkgname_list))
         script = "deprovision_package.sh"
         self.session.copy_files_to(local_path="{0}/../../scripts/{1}".format(
             self.pwd, script),
