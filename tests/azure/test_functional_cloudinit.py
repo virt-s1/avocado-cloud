@@ -1571,11 +1571,16 @@ ssh_pwauth: 1
         # Wait for serial log to refresh
         time.sleep(60)
         serial_output = str(utils_azure.acommand("az vm boot-diagnostics get-boot-log -n {} -g {}".format(self.vm.vm_name, self.vm.resource_group), timeout=10, ignore_status=True).stdout)
-        for line in serial_output.split('\r\n'):
-            if "test1" in line:
-                test1_pw = line.split(':')[1]
-        self.assertEqual(len(test1_pw), 20,
-            "Random password length is {} not 20".format(len(test1_pw)))
+        if serial_output is not None:
+            for line in serial_output.split('\r\n'):
+                if "test1" in line:
+                    test1_pw = line.split(':')[1]
+            self.assertEqual(len(test1_pw), 20,
+                "Random password length is {} not 20".format(len(test1_pw)))
+        else:
+            self.cancel(
+                    "Can not get serial console log. Skip this case.")
+
 
     def test_cloudinit_man_page(self):
         '''
