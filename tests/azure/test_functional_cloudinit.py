@@ -344,9 +344,12 @@ class CloudinitTest(Test):
         else:
             mode = "cloudinit"
         script = "deprovision_package.sh"
-        self.session.copy_files_to(local_path="{}/../../scripts/{}".format(
-            self.pwd, script),
-            remote_path="/tmp/{}".format(script))
+        try:
+            self.session.copy_files_to(local_path="{}/../../scripts/{}".format(
+                self.pwd, script),
+                remote_path="/tmp/{}".format(script))
+        except:
+            self.log.info("SCP script to remote instance maybe failed.")
         ret, output = self.session.cmd_status_output(
             "/bin/bash /tmp/{} all {} {}".format(script, mode, origin_username))
         self.assertEqual(ret, 0, "Deprovision VM failed.\n{0}".format(output))
