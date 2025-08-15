@@ -88,3 +88,7 @@ kernel: platform regulatory.0: Direct firmware load for regulatory.db failed wit
 kernel: cfg80211: failed to load regulatory.db
 # RHEL-37527
 bridge window [io  size 0x1000]: failed to assign
+# RHEL-39470
+/usr/bin/setfont failed with a "system error"
+put_font_kdfontop: Unable to load such font with such kernel version
+Setting source virtual console failed, ignoring remaining ones

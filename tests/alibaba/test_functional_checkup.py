@@ -1798,6 +1798,57 @@ will not check kernel-devel package.')
         boot_time_sec = utils_alibaba.getboottime(self)
         utils_alibaba.compare_nums(self, num1=boot_time_sec, num2=max_boot_time,
                                    ratio=0, msg="Compare with experienced max_boot_time")
+    def test_check_thirdparty_packages(self):
+        """
+        case_name:
+            [Aliyun]GeneralTest.test_check_thirdparty_packages
+        case_tags:
+            N/A
+        case_status:
+            Approved
+        title:
+            [Aliyun]GeneralTest.test_check_thirdparty_packages
+        importance:
+            low
+        subsystem_team:
+            sst_virtualization_cloud
+        automation_drop_down:
+            automated
+        linked_work_items:
+            polarion-VIRT-99338
+        automation_field:
+            https://github.com/virt-s1/avocado-cloud/tree/master/tests/alibaba/test_functional_checkup.py
+        setup_teardown:
+            N/A
+        environment:
+            N/A
+        component:
+            N/A
+        bug_id:
+            N/A
+        is_customer_case:
+            False
+        testplan:
+            https://polarion.engineering.redhat.com/polarion/#/project/RHELVIRT/wiki/Alibaba/Aliyun%20RHEL%20guest%20Test%20Plan
+        test_type:
+            functional
+        test_level:
+            Component
+        maintainer:
+            yoguo@redhat.com
+        description:
+            Check if there are third-party packages installed in a RHEL image
+        key_steps:
+            1. Start an instance (e.g., c6.xlarge) with RHEL image on Aliyun
+            2. Check by 'rpm -qa --queryformat "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH} = %{VENDOR} \n" | sort | grep -v "Red Hat" | grep -v "rhui" | grep -v "gpg-pubkey"'
+        expected_result:
+            No third-party packages found
+        debug_want:
+            N/A
+        """
+        cmd = 'rpm -qa --queryformat "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH} = %{VENDOR} \n" | sort | grep -v "Red Hat" | grep -v "rhui" | grep -v "gpg-pubkey"'
+        output = utils_alibaba.run_cmd(self, cmd, msg='check the third-party packages')
+        self.assertEqual(output, '', 'Found the third-party packages:\n {}'.format(output))
 
     def tearDown(self):
         self.session.close()
