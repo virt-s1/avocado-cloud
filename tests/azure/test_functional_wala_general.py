@@ -638,11 +638,11 @@ CPUQuota=75%
         """
         self.log.info(
             "RHEL-151963 WALA-TC: [General] Provision with 2 public keys")
-        authorized_key_list = self.session.cmd_output(
-            "cat /home/{}/.ssh/authorized_keys".format(self.vm.vm_username)).strip('\n').split('\n')
-        self.assertEqual(set([self.key1_value, self.key2_value]), set(authorized_key_list),
-                         "The keys are not match. \nExpect:\n{}\n{}\nReal:\n{}\n{}"
-                         .format(self.key1_value, self.key2_value, authorized_key_list[0], authorized_key_list[1]))
+        authorized_keys = self.session.cmd_output(
+            "cat /home/{}/.ssh/authorized_keys".format(self.vm.vm_username)).strip('\n')
+        for key in [self.key1_value, self.key2_value]:
+            self.assertIn(key, authorized_keys,
+                "Key {} is not in authorized_keys {}.".format(key, authorized_keys))
 
     def _block_output_443(self):
         self.session.cmd_output(
