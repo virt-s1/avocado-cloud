@@ -9,7 +9,8 @@ Subscription:
     password:
 VM:
     rhel_ver: "8.0"
-    vm_name_prefix: walaautoyjgauto
+    basename: walaauto
+    vm_name_prefix: yjgauto
     size: D2
     image: RHEL75.vhd
     vm_username: azureuser

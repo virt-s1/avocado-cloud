@@ -23,9 +23,10 @@ class AzureSdkError(Exception):
 
 class AzureAccount(object):
     def __init__(self, params):
-        self.username = params.get('username', '*/Credential/*')
-        self.password = params.get('password', '*/Credential/*')
-        self.tenant = params.get('tenant', '*/Credential/*')
+        self.username = params.get('username', '*/Azure_subscription/*')
+        self.password = params.get('password', '*/Azure_subscription/*')
+        self.tenant = params.get('tenant', '*/Azure_subscription/*')
+        self.id = params.get('id', '*/Azure_subscription/*')
 
     def login(self):
         ret = command('az account show', ignore_status=True)
@@ -35,6 +36,7 @@ class AzureAccount(object):
         cmd = 'az login --service-principal -u "{}" -p "{}" --tenant "{}" --output json'.format(
             self.username, self.password, self.tenant)
         command(cmd)
+        command('az account set -s {}'.format(self.id))
 
     def logout(self):
         cmd = "az logout"
@@ -432,30 +434,34 @@ class AzureImage(Base):
 class AzureVM(VM):
     def __init__(self, params, **kwargs):
         super(AzureVM, self).__init__(params)
-        vm_name_prefix = params.get("vm_name_prefix", "*/VM/*")
-        size = kwargs.get("size") if "size" in kwargs else params.get(
-            "size", "*/VM/*")
-        self.vm_name = vm_name_prefix + \
+
+        def get_value(key, path, default=None):
+            return kwargs.get(key, params.get(key, path, default))
+
+        basename = get_value("basename", "*/VM/*", "walaauto")
+        size = get_value("size", "*/VM/*")
+        self.region = get_value("region", "*/vm_sizes/{}/*".format(size), "eastus")
+        self.resource_group = basename + self.region
+        vm_name_prefix = get_value("vm_name_prefix", "*/VM/*")
+        self.vm_name = basename + vm_name_prefix + \
             re.sub("[_-]", "", size.lower())
-        self.resource_group = params.get("resource_group",
-                                         "*/vm_sizes/{}/*".format(size))
-        self.storage_account = params.get("storage_account",
-                                          "*/vm_sizes/{}/*".format(size))
-        self.size = params.get("name", "*/vm_sizes/{}/*".format(size))
-        self.region = params.get("region", "*/vm_sizes/{}/*".format(size))
-        self.image = params.get("image", "*/VM/*")
+        self.storage_account = self.resource_group
+        self.vnet_name = self.resource_group
+        self.subnet = self.resource_group
+        self.size = get_value("name", "*/vm_sizes/{}/*".format(size))
+        self.image = get_value("image", "*/VM/*")
         if ".vhd" in self.image:
             self.image = "https://{}.blob.core.windows.net/vhds/{}"\
                          .format(self.storage_account, self.image)
-        self.vm_username = params.get("vm_username", "*/VM/*", "azureuser")
-        self.generate_ssh_keys = params.get("generate_ssh_keys", "*/VM/*")
-        self.vm_password = params.get("vm_password", "*/VM/*")
-        self.ssh_key_value = params.get("ssh_key_value", "*/VM/*")
+        self.vm_username = get_value("vm_username", "*/VM/*", "azureuser")
+        self.generate_ssh_keys = get_value("generate_ssh_keys", "*/VM/*")
+        self.vm_password = get_value("vm_password", "*/VM/*")
+        self.ssh_key_value = get_value("ssh_key_value", "*/VM/*")
         self.authentication_type = "ssh" if self.generate_ssh_keys or \
             self.ssh_key_value else "password"
-        self.custom_data = params.get("custom_data", "*/VM/*")
-        self.user_data = params.get("user_data", "*/VM/*")
-        self.use_unmanaged_disk = params.get("use_unmanaged_disk", "*/VM/*")
+        self.custom_data = get_value("custom_data", "*/VM/*")
+        self.user_data = get_value("user_data", "*/VM/*")
+        self.use_unmanaged_disk = get_value("use_unmanaged_disk", "*/VM/*")
         self.assign_identity = False
         subscription_id = AzureAccount.show().get("id")
         self.scope = "/subscriptions/{0}/resourceGroups/{1}"\
@@ -464,9 +470,7 @@ class AzureVM(VM):
         # 03.19 15:17:20  -->  0319151720
         self.os_disk_name = self.vm_name + "_os" + \
             time.strftime("%m%d%H%M%S", time.localtime())
-        self.vnet_name = self.resource_group
-        self.subnet = self.resource_group
-        self.rhel_version = params.get("rhel_ver", "*/VM/*")
+        self.rhel_version = get_value("rhel_ver", "*/VM/*")
         self.nics = kwargs.get("nics")
         self.os_disk_size = kwargs.get("os_disk_size")
         self.properties = {}

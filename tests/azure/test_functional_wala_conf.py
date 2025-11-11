@@ -19,10 +19,13 @@ class WALAConfTest(Test):
     def setUp(self):
         account = AzureAccount(self.params)
         account.login()
+        self.azure_sub_id = account.id or utils_azure.command("az account show|jq .id -r").stdout
         self.case_short_name = re.findall(r"Test.(.*)", self.name.name)[0]
         self.project = self.params.get("rhel_ver", "*/VM/*")
         if self.case_short_name == "test_resource_disk_gpt_partition":
             cloud = Setup(self.params, self.name, size="M64ls")
+        elif self.case_short_name == "test_enable_fips":
+            cloud = Setup(self.params, self.name, region="eastus2euap")
         else:
             cloud = Setup(self.params, self.name)
         self.vm = cloud.vm
@@ -1243,6 +1246,8 @@ echo 'teststring' >> /tmp/test.log\
         """
         :avocado: tags=tier3
         Enable FIPS
+        0 Preparation
+        https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/agent-linux-fips
         1.1 Ensure these packages are installed:
         fipscheck
         fipscheck-lib
@@ -1270,6 +1275,34 @@ echo 'teststring' >> /tmp/test.log\
         /var/log/waagent.log
         """
         self.session.cmd_output("sudo su -")
+        self.log.info("Enable FIPS")
+        # Enable subscription FIPS-3 support
+        self.log.info("0.0 Check subcsription enablement")
+        subscription_fips = utils_azure.command("az feature list | jq '.[] | select(.name==\"Microsoft.Compute/OptInToFips1403Compliance\")'.properties.state -r").stdout
+        if subscription_fips != 'Registered':
+            utils_azure.command("az feature register --namespace Microsoft.Compute --name OptInToFips1403Compliance")
+            subscription_fips = utils_azure.command("az feature list | jq '.[] | select(.name==\"Microsoft.Compute/OptInToFips1403Compliance\")'.properties.state -r").stdout
+            if subscription_fips != 'Registered':
+                self.error("Fail to register subscription to FIPS-3. Exit.")
+        # Enable VM FIPS-3 support
+        self.log.info("0.1 VM FIPS-3 enablement")
+        url = "https://management.azure.com/subscriptions/{}/resourceGroups/{}/providers/Microsoft.Compute/virtualMachines/{}/?api-version=2024-11-01".format(self.azure_sub_id, self.vm.resource_group, self.vm.vm_name)
+        import json
+        body = {
+            "location": self.vm.region,
+            "properties": {
+                "additionalCapabilities": {
+                    "enableFips1403Encryption": True
+                }
+            }
+        }
+        cmd = "az rest --method put --url '{}' --body '{}'".format(url, json.dumps(body))
+        utils_azure.command(cmd)
+        vm_fips = utils_azure.command("az rest --method get --url '{}'|jq .properties.additionalCapabilities.enableFips1403Encryption".format(url)).stdout
+        for retry in range(0, 3):
+            if vm_fips != 'true':
+                self.error("Fail to register VM to FIPS-3. Exit.")
+        ### Main test script
         self.log.info("Enable FIPS")
         self.log.info("1. Environment prepare. Enable FIPS in RHEL")
         # 1.1 Check fips packages, disable prelink
@@ -1309,34 +1342,38 @@ grubby --update-kernel=ALL --args="fips=1 boot=UUID=$(blkid --output value --mat
                     "grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg")
         # 1.3 Rebuild initramfs
         self.session.cmd_output("rm -f /boot/initramfs-*.img")
-        self.session.cmd_output("dracut -f -v", timeout=300)
-        # Set EnableFIPS in waagent.conf
-        ### Currently this configuration makes WALA failure in RHEL-8. Don't set it.
+        self.session.cmd_output("dracut -f", timeout=300)
+        ### This is an old configuration. Don't set it.
         # self._modify_value("OS.EnableFIPS", "y")
         self.session.cmd_output("rm -f /var/log/waagent.log")
-        # 1.4 Reboot
+        # 1.4 Deallocate/start the VM to get the new cert
         self.session.close()
-        self.vm.reboot()
+        self.vm.deallocate()
+        self.vm.start()
         self.session.connect()
         self.session.cmd_output("sudo su -")
         # 1.5 Check if fips is enabled
-        if LooseVersion(self.project) >= LooseVersion("8.0"):
+        if (LooseVersion(self.project) >= LooseVersion("8.0")) and (LooseVersion(self.project) < LooseVersion("10.0")):
             self.assertEqual(0, self.session.cmd_status_output("fips-mode-setup --is-enabled")[0],
-                "Fail to enable FIPS in RHEL")
+                "Fail to enable FIPS in RHEL-{}".format(self.project))
         else:
             self.assertEqual(
                 '1', self.session.cmd_output("cat /proc/sys/crypto/fips_enabled"),
-                "Fail to enable FIPS in RHEL")
+                "Fail to enable FIPS in RHEL-{}".format(self.project))
         # 3. Run "reset remote access" to install an Extension to the VM.
+        # 3. Run "run command" to install an Extension to the VM.
         self.log.info(
-            "Run 'reset remote access' to install an Extension to the VM."
+            "Run 'run command' to install an Extension to the VM."
             "Wait for the extension installed, check if there's error log in \
 /var/log/waagent.log")
-        self.session.cmd_output("rm -f /etc/ssh/sshd_config_* /var/log/waagent.log")
+        self.session.cmd_output("rm -f /var/log/waagent.log /tmp/test")
         try:
-            self.vm.user_reset_ssh(timeout=300)
-            time.sleep(60)
-            self.assertTrue(utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session))
+            # self.vm.user_reset_ssh(timeout=300)
+            self.vm.run_command(scripts="echo teststring > /tmp/test",)
+            time.sleep(30)
+            # self.assertTrue(utils_azure.file_exists("/etc/ssh/sshd_config_*", self.session))
+            self.assertEqual('teststring', self.session.cmd_output("cat /tmp/test"),
+                            'Fail to execute run command extension!')
         except:
             time.sleep(1)
             self.session.cmd_output("cat /var/log/waagent.log")
