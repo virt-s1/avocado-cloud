@@ -443,7 +443,7 @@ class AzureVM(VM):
         self.region = get_value("region", "*/vm_sizes/{}/*".format(size), "eastus")
         self.resource_group = basename + self.region
         vm_name_prefix = get_value("vm_name_prefix", "*/VM/*")
-        self.vm_name = basename + vm_name_prefix + \
+        self.vm_name = vm_name_prefix + \
             re.sub("[_-]", "", size.lower())
         self.storage_account = self.resource_group
         self.vnet_name = self.resource_group
