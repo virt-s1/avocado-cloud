@@ -138,7 +138,8 @@ def command(cmd, timeout=1200, **kwargs):
         try:
             ret.stdout = json.loads(ret.stdout)
         except ValueError as e:
-            logging.warn(e)
+            logging.warning(e)
+    ret.stdout = ret.stdout.strip()
     return ret
 
 
