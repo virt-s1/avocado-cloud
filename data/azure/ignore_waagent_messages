@@ -8,3 +8,4 @@ Daemon Error getting cloud-init enabled status from.*
 INFO ExtHandler ExtHandler [HEARTBEAT] Agent WALinuxAgent-.* is running as the goal state agent.*
 UpdateGSErrors: 0;
 INFO ExtHandler ExtHandler The firewalld service is present, but not running: .firewall-cmd --state. failed: 252 .not running.
+Can.t find out seqnum from .*Microsoft.CPlat.Core.RunCommandLinux.*status, not enough files
