@@ -1640,11 +1640,31 @@ grubby --update-kernel=ALL --args="fips=1 boot=UUID=$(blkid --output value --mat
         self.assertIn("Move rules file", self.session.cmd_output("cat /var/log/waagent.log"),
             "No warning message of moving rules")
 
-
+    def test_protocol_endpoint_discovery(self):
+        """
+        :avocado: tags=tier3
+        VIRT-306495	WALA-TC: [WALA conf] Protocol.EndpointDiscovery
+        Protocol.EndpointDiscovery=static
+        """
+        self.log.info("VIRT-306495	WALA-TC: [WALA conf] Protocol.EndpointDiscovery")
+        # 1. Verify default value
+        self.assertEqual('Protocol.EndpointDiscovery = dhcp',
+            self.session.cmd_output("waagent -show-configuration|grep 'Protocol.EndpointDiscovery'"),
+            "Default value of Protocol.EndpointDiscovery is not dhcp")
+        # 2. Change Protocol.EndpointDiscovery = static
+        self._modify_value('Protocol.EndpointDiscovery', 'static')
+        self.session.cmd_output("sudo systemctl daemon-reload")
+        self.session.cmd_output("sudo systemctl restart waagent")
+        time.sleep(5)
+        waagent_log = self.session.cmd_output("cat /var/log/waagent.log")
+        for msg in [
+            "DHCP usage for endpoint discovery is disabled",
+            "Missing file /var/lib/waagent/WireServerEndpoint",
+            "Using hardcoded Wireserver endpoint 168.63.129.16"
+        ]:
+            self.assertIn(msg, waagent_log, "{} is not in waagent.log".format(msg))
+        utils_azure.check_waagent_log(self.session, "Missing file .*WireServerEndpoint")
         
-
-
-
     # def test_enable_cgroups_limits(self):
     #     """
     #     :avocado: tags=tier2

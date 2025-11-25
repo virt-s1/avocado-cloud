@@ -98,6 +98,7 @@ cases:
     test_functional_wala_conf.py:WALAConfTest.test_enable_firewall
     test_functional_wala_conf.py:WALAConfTest.test_monitor_dhcp_client_restart_period
     test_functional_wala_conf.py:WALAConfTest.test_remove_persistent_net_rules_period
+    test_functional_wala_conf.py:WALAConfTest.test_protocol_endpoint_discovery
     test_functional_wala_lifecycle.py:LifeCycleTest.test_stop_vm
     test_functional_wala_lifecycle.py:LifeCycleTest.test_start_vm
     test_functional_wala_lifecycle.py:LifeCycleTest.test_restart_vm
