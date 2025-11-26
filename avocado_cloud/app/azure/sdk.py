@@ -10,6 +10,15 @@ from avocado_cloud.app.base import Base
 from avocado_cloud.utils.utils_azure import acommand as command
 from avocado_cloud.utils import utils_misc
 
+BASENAME = "walaauto"
+REGION = "eastus"
+
+def get_resource_group(params, **kwargs):
+    size = kwargs.get("size", params.get("size", "*/VM/*"))
+    region = kwargs.get("region", params.get("region", "*/vm_sizes/{}/*".format(size), REGION))
+    basename = params.get("basename", "*/VM/*", BASENAME)
+    return basename + region
+
 
 class AzureSdkError(Exception):
     def __init__(self, msg, output):
@@ -57,11 +66,9 @@ class AzureAccount(object):
 class AzureGroup(Base):
     def __init__(self, params, **kwargs):
         super(AzureGroup, self).__init__(params)
-        size = kwargs.get("size") if "size" in kwargs else params.get(
-            "size", "*/VM/*")
-        self.name = params.get("resource_group",
-                               "*/vm_sizes/{}/*".format(size))
-        self.location = params.get("location", "*/vm_sizes/{}/*".format(size))
+        self.name = get_resource_group(params, **kwargs)
+        size = kwargs.get("size", params.get("size", "*/VM/*"))
+        self.region = kwargs.get("region", params.get("region", "*/vm_sizes/{}/*".format(size), REGION))
         # After the resource group creating,below properties will be setted
         self.id = None
         self.properties = None
@@ -128,10 +135,7 @@ class AzureVNET(Base):
 class AzureSubnet(Base):
     def __init__(self, params, **kwargs):
         super(AzureSubnet, self).__init__(params)
-        size = kwargs.get("size") if "size" in kwargs else params.get(
-            "size", "*/VM/*")
-        self.resource_group = params.get("resource_group",
-                                         "*/vm_sizes/{}/*".format(size))
+        self.resource_group = get_resource_group(params, **kwargs)
         self.vnet = self.resource_group
         self.name = kwargs.get("name", self.vnet)
         # After the subnet is created, properties below will be set
@@ -152,10 +156,7 @@ class AzureNIC(Base):
                        enabled while creating NIC
         :param: ip_version: IPv4/IPv6
         '''
-        size = kwargs.get("size") if "size" in kwargs else params.get(
-            "size", "*/VM/*")
-        self.resource_group = params.get("resource_group",
-                                         "*/vm_sizes/{}/*".format(size))
+        self.resource_group = get_resource_group(params, **kwargs)
         self.vnet = kwargs.get("vnet", self.resource_group)
         self.subnet = kwargs.get("subnet", self.vnet)
         timestamp = time.strftime("%m%d%H%M%S", time.localtime())
@@ -229,10 +230,7 @@ class AzurePublicIP(Base):
         :param: ip_version: IPv4/IPv6
         """
         super(AzurePublicIP, self).__init__(params)
-        size = kwargs.get("size") if "size" in kwargs else params.get(
-            "size", "*/VM/*")
-        self.resource_group = params.get("resource_group",
-                                         "*/vm_sizes/{}/*".format(size))
+        self.resource_group = get_resource_group(params, **kwargs)
         timestamp = time.strftime("%m%d%H%M%S", time.localtime())
         self.name = kwargs.get("name", self.resource_group + timestamp)
         self.ip_version = kwargs.get("ip_version")
@@ -297,10 +295,7 @@ class AzureNicIpConfig(Base):
         :param: ip_version: IPv4/IPv6
         """
         super(AzureNicIpConfig, self).__init__(params)
-        size = kwargs.get("size") if "size" in kwargs else params.get(
-            "size", "*/VM/*")
-        self.resource_group = params.get("resource_group",
-                                         "*/vm_sizes/{}/*".format(size))
+        self.resource_group = get_resource_group(params, **kwargs)
         timestamp = time.strftime("%m%d%H%M%S", time.localtime())
         self.name = kwargs.get("name", self.resource_group + timestamp)
         self.nic_name = kwargs.get("nic_name")
@@ -372,13 +367,9 @@ class AzureImage(Base):
         :param: source:[REQUIRED]The source(.vhd url) of the image
         """
         super(AzureImage, self).__init__(params)
-        size = kwargs.get("size") if "size" in kwargs else params.get(
-            "size", "*/VM/*")
-        self.resource_group = params.get("resource_group",
-                                         "*/vm_sizes/{}/*".format(size))
+        self.resource_group = get_resource_group(params, **kwargs)
         vhd_name = params.get("image", "*/VM/*")
-        storage_account = params.get("storage_account",
-                                     "*/vm_sizes/{}/*".format(size))
+        storage_account = self.resource_group
         self.source = "https://{}.blob.core.windows.net/vhds/{}"\
                       .format(storage_account, vhd_name)
         timestamp = time.strftime("%m%d%H%M%S", time.localtime())
@@ -438,10 +429,9 @@ class AzureVM(VM):
         def get_value(key, path, default=None):
             return kwargs.get(key, params.get(key, path, default))
 
-        basename = get_value("basename", "*/VM/*", "walaauto")
         size = get_value("size", "*/VM/*")
         self.region = get_value("region", "*/vm_sizes/{}/*".format(size), "eastus")
-        self.resource_group = basename + self.region
+        self.resource_group = get_resource_group(params, **kwargs)
         vm_name_prefix = get_value("vm_name_prefix", "*/VM/*")
         self.vm_name = vm_name_prefix + \
             re.sub("[_-]", "", size.lower())
