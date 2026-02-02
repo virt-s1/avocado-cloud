@@ -859,7 +859,7 @@ Retry: {0}/10".format(retry+1))
             pre_project = '7.9'
             brew_tag = "extras-rhel-7.9-candidate"
         else:
-            compose_id = utils_azure.command("curl http://download.eng.bos.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{0}/COMPOSE_ID;echo".format(pre_x_version)).stdout
+            compose_id = utils_azure.command("curl http://download.devel.redhat.com/rhel-{0}/nightly/RHEL-{0}/latest-RHEL-{0}/COMPOSE_ID;echo".format(pre_x_version)).stdout
             pre_project = compose_id.split('-')[1]
             brew_tag = "rhel-{}-pending".format(pre_project)
         pre_wala_pkg = utils_azure.command("brew latest-build %s WALinuxAgent --quiet|awk '{print $1}'" % brew_tag).stdout.rstrip('\n')

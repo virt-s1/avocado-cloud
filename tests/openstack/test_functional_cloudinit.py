@@ -553,13 +553,13 @@ ssh_pwauth: false
 cat << EOF > /etc/yum.repos.d/redhat.repo
 [rhel-base-upgrade]
 name=rhel-base-upgrade
-baseurl=http://download.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/
+baseurl=http://download.devel.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/{2}/x86_64/os/
 enabled=1
 gpgcheck=0
 
 [rhel-appstream-upgrade]
 name=rhel-appstream-upgrade
-baseurl=http://download.eng.bos.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/
+baseurl=http://download.devel.redhat.com/rhel-{0}/rel-eng/RHEL-{0}/latest-RHEL-{1}/compose/AppStream/x86_64/os/
 enabled=1
 gpgcheck=0
 EOF
@@ -633,13 +633,13 @@ EOF
 cat << EOF > /etc/yum.repos.d/redhat.repo
 [rhel-base-upgrade]
 name=rhel-base-upgrade
-baseurl=http://download.eng.bos.redhat.com/rhel-{0}/{1}/RHEL-{0}/latest-RHEL-{2}/compose/{3}/x86_64/os/
+baseurl=http://download.devel.redhat.com/rhel-{0}/{1}/RHEL-{0}/latest-RHEL-{2}/compose/{3}/x86_64/os/
 enabled=1
 gpgcheck=0
 
 [rhel-appstream-upgrade]
 name=rhel-appstream-upgrade
-baseurl=http://download.eng.bos.redhat.com/rhel-{0}/{1}/RHEL-{0}/latest-RHEL-{2}/compose/AppStream/x86_64/os/
+baseurl=http://download.devel.redhat.com/rhel-{0}/{1}/RHEL-{0}/latest-RHEL-{2}/compose/AppStream/x86_64/os/
 enabled=1
 gpgcheck=0
 EOF
