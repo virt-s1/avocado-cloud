@@ -162,8 +162,8 @@ class CloudinitTest(Test):
             return
         self.session = cloud.init_vm(authentication=authentication)
         if self.case_short_name == "test_cloudinit_upgrade_downgrade_package":
-            rhel7_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-7/packages/cloud-init/18.2/1.el7/x86_64/cloud-init-18.2-1.el7.x86_64.rpm"
-            rhel8_old_pkg_url = "http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/cloud-init/18.2/1.el8/noarch/cloud-init-18.2-1.el8.noarch.rpm"
+            rhel7_old_pkg_url = "http://download.devel.redhat.com/brewroot/vol/rhel-7/packages/cloud-init/18.2/1.el7/x86_64/cloud-init-18.2-1.el7.x86_64.rpm"
+            rhel8_old_pkg_url = "http://download.devel.redhat.com/brewroot/vol/rhel-8/packages/cloud-init/18.2/1.el8/noarch/cloud-init-18.2-1.el8.noarch.rpm"
             try:
                 self.assertEqual(0, self.session.cmd_status_output("ls /tmp/{}".format(self.package))[0],
                                  "No new pakcage in guest VM")

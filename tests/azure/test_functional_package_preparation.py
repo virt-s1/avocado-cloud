@@ -93,7 +93,7 @@ skip_if_unavailable=1
 
 EOF
 """.format(base_url.format("AppStream"))
-        pulpcore_url = "http://download.eng.bos.redhat.com/brewroot/repos/pulpcore-3.4-rhel-{}-build/latest/x86_64/".format(x_version)
+        pulpcore_url = "http://download.devel.redhat.com/brewroot/repos/pulpcore-3.4-rhel-{}-build/latest/x86_64/".format(x_version)
         PULPCOREREPO = """
 [pulpcore-3.4]
 name=pulpcore-3.4
