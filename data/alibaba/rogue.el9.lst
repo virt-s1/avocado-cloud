@@ -345,6 +345,10 @@
 /etc/udev/rules.d/90-cloud-init-hook-hotplug.rules
 /boot/.vmlinuz-0-rescue-615208c1146f4a83b189a452d90b1eb7.hmac
 /boot/.vmlinuz-0-rescue-2df2fa90187745a487b5388f8c201a26.hmac
+# RHEL-9.7 x86
+/boot/.vmlinuz-0-rescue-0afde59f3d9a4ca58b393deeb20a6de2.hmac
+/etc/cloud/cloud.cfg.d/apsara_cloud.cfg
+/etc/systemd/system/timers.target.wants/raid-check.timer
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id

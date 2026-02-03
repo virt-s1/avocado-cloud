@@ -41,3 +41,4 @@ retbleed:Mitigation: IBRS
 retbleed:Mitigation: Enhanced IBRS
 retbleed:Mitigation: untrained return thunk; SMT enabled with STIBP protection
 spec_rstack_overflow:Vulnerable: Safe RET, no microcode
+# https://docs.kernel.org/admin-guide/hw-vuln/processor_mmio_stale_data.html

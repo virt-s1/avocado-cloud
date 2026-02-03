@@ -368,6 +368,9 @@
 /usr/lib/fontconfig/cache/3830d5c3ddfd5cd38a049b759396e72e-le64.cache-9
 /usr/lib/fontconfig/cache/d63f98f14a274bd69a5425fc33aaac6b-le64.cache-9
 /boot/.vmlinuz-0-rescue-cbc2b428b82c40b6960d38b8617befef.hmac
+# RHEL-10.1 x86
+/boot/.vmlinuz-0-rescue-26e3fc351e024957bff9bf3b3f3af961.hmac
+/etc/cloud/cloud.cfg.d/apsara_cloud.cfg
 #################### KNOWN ISSUES BELOW ####################
 /etc/redhat-access-insights/.lastupload
 /etc/redhat-access-insights/machine-id
