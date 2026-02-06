@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import base64
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkecs.request.v20140526 import DescribeInstancesRequest
 from aliyunsdkecs.request.v20140526 import CreateInstanceRequest
@@ -87,7 +88,19 @@ class AlibabaSDK(object):
     def __init__(self, params):
         # Alibaba connection credentials
         access_key_id = params.get('access_key_id', '*/Credential/*')
+        if access_key_id:
+            try:
+                access_key_id = base64.b64decode(access_key_id).decode()
+            except Exception:
+                pass
+
         access_key_secret = params.get('secretaccess_key', '*/Credential/*')
+        if access_key_secret:
+            try:
+                access_key_secret = base64.b64decode(access_key_secret).decode()
+            except Exception:
+                pass
+
         region = params.get('region', '*/VM/*')
 
         AliyunConfig(access_key_id=access_key_id,
