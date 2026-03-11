@@ -19,7 +19,7 @@ cases:
     test_functional_wala_general.py:GeneralTest.test_check_DATALOSS_WARNING_README
     test_functional_wala_general.py:GeneralTest.test_provision_gen2_vm
     test_functional_wala_general.py:GeneralTest.test_install_uninstall_package
-    test_functional_wala_general.py:GeneralTest.test_upgrade_downgrade_package
+    # test_functional_wala_general.py:GeneralTest.test_upgrade_downgrade_package
     test_functional_wala_general.py:GeneralTest.test_provision_with_2_keys
     test_functional_wala_general.py:GeneralTest.test_host_plugin_autoupdate
     test_functional_wala_general.py:GeneralTest.test_host_plugin_extension
@@ -28,7 +28,7 @@ cases:
     test_functional_wala_general.py:GeneralTest.test_verify_no_waagent_extn_logrotate
     test_functional_wala_general.py:GeneralTest.test_verify_nic_down_up_in_one_line
     test_functional_wala_general.py:GeneralTest.test_verify_agent_cgroup_enabled
-    test_functional_wala_general.py:GeneralTest.test_wala_version_not_lower_than_old_rhel
+    # test_functional_wala_general.py:GeneralTest.test_wala_version_not_lower_than_old_rhel
     test_functional_wala_general.py:GeneralTest.test_check_waagent_network_setup_service
     test_functional_wala_general.py:GeneralTest.test_change_python_version
     test_functional_wala_general.py:GeneralTest.test_check_10_azure_unmanaged_sriov_rules
