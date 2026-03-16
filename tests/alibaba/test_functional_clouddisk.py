@@ -505,9 +505,13 @@ echo test_content > /mnt/{0}/test_file'
 
         self.session.cmd_output('sudo yum -y install nvme-cli')
 
+        # Get the boot nvme disk first
+        cmd = "lsblk -no PKNAME $(findmnt -nvo SOURCE /)"
+        boot_disk = self.session.cmd_output(cmd).strip()
         # Get the non-boot nvme disk
-        cmd = "lsblk -l | grep nvme | cut -d ' ' -f 1 | grep -v nvme0"
-        nvme_disk = self.session.cmd_output(cmd)
+        cmd = "lsblk -dn -o NAME | grep nvme | grep -v '{}' | tail -n 1".format(boot_disk)
+        nvme_disk = self.session.cmd_output(cmd).strip()
+
 
         if len(nvme_disk) == 0:
             self.fail("No nvme disk found!")
