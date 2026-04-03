@@ -196,6 +196,8 @@ tcpdump"
         # Deprovision image
         if "WALinuxAgent" in pkgname_list:
             depro_type = "wala"
+        elif "azure-vm-utils" in pkgname_list:
+            depro_type = "azure-vm-utils"
 #        elif "kernel" in pkgname_list:
 #            depro_type = "kernel"
         else:
