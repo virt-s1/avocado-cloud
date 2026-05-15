@@ -1,5 +1,18 @@
 Cloud test suite for RHEL guests with avocado framework.
 
+# This repo has moved to
+
+https://gitlab.com/virt-cloud/avocado-cloud
+
+
+
+
+
+
+
+
+
+
 # Setup avocado-cloud
 
 ## 1. Clone the code
