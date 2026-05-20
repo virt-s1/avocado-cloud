@@ -1,0 +1,2 @@
+cases:
+    test_functional_azure-vm-utils.py:Azure_vm_utilsTest.test_selftest_without_imds_symlink_validation
